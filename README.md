@@ -1,4 +1,4 @@
-# Garde-manger
+# Aux Petits Oignons
 
 Application de planification des repas à partir du stock du foyer : inventaire,
 planning hebdomadaire, liste de courses calculée, suivi du budget.

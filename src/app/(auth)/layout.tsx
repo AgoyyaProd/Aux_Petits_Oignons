@@ -4,7 +4,7 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
   return (
     <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-8 px-4 py-10">
       <Link href="/" className="text-brand text-lg font-bold tracking-tight">
-        Garde-manger
+        Aux Petits Oignons
       </Link>
       {children}
     </main>

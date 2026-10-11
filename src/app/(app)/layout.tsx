@@ -17,7 +17,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       <header className="border-border bg-surface/90 sticky top-0 z-10 flex items-center justify-between border-b px-4 py-3 backdrop-blur">
         <div className="flex min-w-0 flex-col">
           <Link href="/dashboard" className="text-brand text-base font-bold tracking-tight">
-            Garde-manger
+            Aux Petits Oignons
           </Link>
           <Suspense fallback={<span className="text-muted h-4 text-xs" />}>
             <HouseholdName />
