@@ -5,7 +5,27 @@ export type Database = {
   
   "public": {
           Tables: {
-            "allergens": {
+            "ai_generations": {
+                  Row: {
+                    "created_at": string,"household_id": string,"id": string,"model": string,"request_payload": NonNullable<Json>,"requested_by": string | null,"response_payload": Json | null,"validation_errors": NonNullable<Json>,"validation_status": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"household_id": string,"id"?: string,"model": string,"request_payload": NonNullable<Json>,"requested_by"?: string | null,"response_payload"?: Json | null,"validation_errors"?: NonNullable<Json>,"validation_status": string
+                  }
+                  Update: {
+                    "created_at"?: string,"household_id"?: string,"id"?: string,"model"?: string,"request_payload"?: NonNullable<Json>,"requested_by"?: string | null,"response_payload"?: Json | null,"validation_errors"?: NonNullable<Json>,"validation_status"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "ai_generations_household_id_fkey"
+      columns: ["household_id"]
+isOneToOne: false
+      referencedRelation: "households"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"allergens": {
                   Row: {
                     "code": string,"label": string
                   }
@@ -297,6 +317,84 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"recipe_ingredients": {
+                  Row: {
+                    "dimension": Database["public"]['Enums']["dimension"] | null,"id": string,"ingredient_id": string,"is_optional": boolean,"position": number,"preparation_note": string | null,"quantity": number | null,"quantity_base": number | null,"recipe_id": string,"unit_code": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "dimension"?: Database["public"]['Enums']["dimension"] | null,"id"?: string,"ingredient_id": string,"is_optional"?: boolean,"position": number,"preparation_note"?: string | null,"quantity"?: number | null,"quantity_base"?: number | null,"recipe_id": string,"unit_code"?: string | null
+                  }
+                  Update: {
+                    "dimension"?: Database["public"]['Enums']["dimension"] | null,"id"?: string,"ingredient_id"?: string,"is_optional"?: boolean,"position"?: number,"preparation_note"?: string | null,"quantity"?: number | null,"quantity_base"?: number | null,"recipe_id"?: string,"unit_code"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "recipe_ingredients_ingredient_id_fkey"
+      columns: ["ingredient_id"]
+isOneToOne: false
+      referencedRelation: "ingredients"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "recipe_ingredients_recipe_id_fkey"
+      columns: ["recipe_id"]
+isOneToOne: false
+      referencedRelation: "recipes"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "recipe_ingredients_unit_code_fkey"
+      columns: ["unit_code"]
+isOneToOne: false
+      referencedRelation: "units"
+      referencedColumns: ["code"]
+    }
+                  ]
+                },"recipe_steps": {
+                  Row: {
+                    "instruction": string,"position": number,"recipe_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "instruction": string,"position": number,"recipe_id": string
+                  }
+                  Update: {
+                    "instruction"?: string,"position"?: number,"recipe_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "recipe_steps_recipe_id_fkey"
+      columns: ["recipe_id"]
+isOneToOne: false
+      referencedRelation: "recipes"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"recipes": {
+                  Row: {
+                    "ai_generation_id": string | null,"cook_minutes": number,"created_at": string,"description": string | null,"household_id": string | null,"id": string,"image_path": string | null,"prep_minutes": number,"servings": number,"slug": string,"source": Database["public"]['Enums']["recipe_source"],"source_ref": string | null,"status": Database["public"]['Enums']["recipe_status"],"tags": (string)[],"title": string,"updated_at": string,"validated_at": string | null,"validated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "ai_generation_id"?: string | null,"cook_minutes"?: number,"created_at"?: string,"description"?: string | null,"household_id"?: string | null,"id"?: string,"image_path"?: string | null,"prep_minutes": number,"servings": number,"slug": string,"source": Database["public"]['Enums']["recipe_source"],"source_ref"?: string | null,"status"?: Database["public"]['Enums']["recipe_status"],"tags"?: (string)[],"title": string,"updated_at"?: string,"validated_at"?: string | null,"validated_by"?: string | null
+                  }
+                  Update: {
+                    "ai_generation_id"?: string | null,"cook_minutes"?: number,"created_at"?: string,"description"?: string | null,"household_id"?: string | null,"id"?: string,"image_path"?: string | null,"prep_minutes"?: number,"servings"?: number,"slug"?: string,"source"?: Database["public"]['Enums']["recipe_source"],"source_ref"?: string | null,"status"?: Database["public"]['Enums']["recipe_status"],"tags"?: (string)[],"title"?: string,"updated_at"?: string,"validated_at"?: string | null,"validated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "recipes_ai_generation_id_fkey"
+      columns: ["ai_generation_id"]
+isOneToOne: false
+      referencedRelation: "ai_generations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "recipes_household_id_fkey"
+      columns: ["household_id"]
+isOneToOne: false
+      referencedRelation: "households"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"stock_movements": {
                   Row: {
                     "created_at": string,"created_by": string | null,"delta_base": number | null,"household_id": string,"id": number,"ingredient_id": string,"kind": Database["public"]['Enums']["movement_kind"],"note": string | null,"operation_id": string,"pantry_item_id": string,"quantity_after_base": number | null
@@ -372,7 +470,47 @@ isOneToOne: false
                 }
           }
           Views: {
-            [_ in never]: never
+            "recipe_allergens": {
+                  Row: {
+                    "allergen_code": string | null,"recipe_id": string | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    {
+      foreignKeyName: "ingredient_allergens_allergen_code_fkey"
+      columns: ["allergen_code"]
+isOneToOne: false
+      referencedRelation: "allergens"
+      referencedColumns: ["code"]
+    },{
+      foreignKeyName: "recipe_ingredients_recipe_id_fkey"
+      columns: ["recipe_id"]
+isOneToOne: false
+      referencedRelation: "recipes"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"recipe_diet_conflicts": {
+                  Row: {
+                    "diet_code": string | null,"recipe_id": string | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    {
+      foreignKeyName: "ingredient_diet_conflicts_diet_code_fkey"
+      columns: ["diet_code"]
+isOneToOne: false
+      referencedRelation: "diets"
+      referencedColumns: ["code"]
+    },{
+      foreignKeyName: "recipe_ingredients_recipe_id_fkey"
+      columns: ["recipe_id"]
+isOneToOne: false
+      referencedRelation: "recipes"
+      referencedColumns: ["id"]
+    }
+                  ]
+                }
           }
           Functions: {
             "_stock_begin_operation":

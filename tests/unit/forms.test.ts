@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { formatStockQuantity, unitsForDimension } from "@/lib/format-quantity";
+import {
+  formatRecipeQuantity,
+  formatStockQuantity,
+  unitsForDimension,
+} from "@/lib/format-quantity";
 import { householdSettingsSchema } from "@/server/modules/households/schema";
 import { addItemSchema, echoValues, movementSchema } from "@/server/modules/pantry/schema";
 
@@ -136,5 +140,24 @@ describe("affichage des quantités en stock", () => {
   it("propose uniquement les unités de la dimension du produit", () => {
     expect(unitsForDimension("mass")).toEqual(["g", "kg"]);
     expect(unitsForDimension("count")).toEqual(["piece"]);
+  });
+});
+
+describe("quantités de recette ajustées aux portions", () => {
+  it("masses et volumes : valeur exacte, au dixième", () => {
+    expect(formatRecipeQuantity("300", "g", 5, 4)).toBe("375 g");
+    expect(formatRecipeQuantity("400", "ml", 5, 4)).toBe("500 ml");
+    expect(formatRecipeQuantity("10", "g", 5, 4)).toBe("12,5 g");
+  });
+
+  it("pièces et cuillères : arrondi à la demi-unité, signalé par ≈", () => {
+    expect(formatRecipeQuantity("3", "piece", 5, 4)).toBe("≈ 4 pièces"); // 3,75 œufs
+    expect(formatRecipeQuantity("3", "tbsp", 5, 4)).toBe("≈ 4 c. à soupe");
+    expect(formatRecipeQuantity("2", "piece", 5, 4)).toBe("2,5 pièces"); // exact
+    expect(formatRecipeQuantity("4", "piece", 4, 4)).toBe("4 pièces");
+  });
+
+  it("jamais moins d'une demi-unité affichée", () => {
+    expect(formatRecipeQuantity("1", "piece", 1, 6)).toBe("≈ 0,5 pièce");
   });
 });

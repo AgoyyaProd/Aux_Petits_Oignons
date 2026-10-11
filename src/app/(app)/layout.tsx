@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
-import { AppNav } from "@/components/layout/app-nav";
+import { AppNav, AppNavShell } from "@/components/layout/app-nav";
 import { buttonClasses } from "@/components/ui/button";
 import { signOutAction } from "@/server/modules/auth/actions";
 import { getCurrentContext } from "@/server/modules/auth/session";
@@ -36,7 +36,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       </header>
       <div className="flex flex-1 flex-col md:flex-row">
         <div className="md:w-56 md:shrink-0">
-          <AppNav />
+          <Suspense fallback={<AppNavShell pathname={null} />}>
+            <AppNav />
+          </Suspense>
         </div>
         <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 pb-24 md:pb-6">{children}</main>
       </div>

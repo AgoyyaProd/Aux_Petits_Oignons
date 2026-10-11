@@ -7,14 +7,22 @@ import { usePathname } from "next/navigation";
 const ITEMS = [
   { href: "/dashboard", label: "Accueil", ready: true },
   { href: "/pantry", label: "Garde-manger", ready: true },
-  { href: "/recipes", label: "Recettes", ready: false },
+  { href: "/recipes", label: "Recettes", ready: true },
   { href: "/planner", label: "Planning", ready: false },
   { href: "/shopping", label: "Courses", ready: false },
 ] as const;
 
+/**
+ * Navigation avec l'onglet actif. usePathname() lit l'URL de la requête :
+ * avec les Cache Components, ce composant doit être rendu dans un <Suspense>
+ * dont le repli est <AppNavShell pathname={null} /> (même rendu, sans onglet actif).
+ */
 export function AppNav() {
-  const pathname = usePathname();
+  return <AppNavShell pathname={usePathname()} />;
+}
 
+/** Rendu pur de la navigation, sans lecture d'URL. */
+export function AppNavShell({ pathname }: { pathname: string | null }) {
   return (
     <nav
       aria-label="Navigation principale"
@@ -22,7 +30,8 @@ export function AppNav() {
     >
       <ul className="mx-auto flex max-w-lg justify-between md:max-w-none md:flex-col md:gap-1 md:p-3">
         {ITEMS.map((item) => {
-          const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+          const active =
+            pathname !== null && (pathname === item.href || pathname.startsWith(`${item.href}/`));
           if (!item.ready) {
             return (
               <li key={item.href} className="flex-1 md:flex-none">
