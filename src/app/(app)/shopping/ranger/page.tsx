@@ -6,18 +6,18 @@ import { PageSkeleton } from "@/components/ui/skeleton";
 import { suggestPutAway } from "@/lib/format-quantity";
 import { defaultLocation, getShoppingPage } from "@/server/modules/shopping/queries";
 
-export const metadata: Metadata = { title: "Ranger mes courses" };
+export const metadata: Metadata = { title: "Finir les courses" };
 export const maxDuration = 30;
 
 export default function PutAwayRoute({ searchParams }: PageProps<"/shopping/ranger">) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold tracking-tight">Ranger mes courses</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Finir les courses</h1>
         <p className="text-muted text-sm">
-          Ajuste les quantités réellement achetées (un paquet de 500 g plutôt que les 375 g
-          nécessaires, par exemple), l&apos;emplacement et, si tu veux, la date limite. Tout est
-          ajouté au garde-manger en une fois.
+          Les produits cochés sont rangés au garde-manger : ajuste les quantités réellement achetées
+          (un paquet de 500 g plutôt que les 375 g nécessaires, par exemple), l&apos;emplacement et,
+          si tu veux, la date limite. Ensuite, tu pourras marquer tes plats « Cuisiné ».
         </p>
       </div>
       <Suspense fallback={<PageSkeleton rows={4} />}>
@@ -38,11 +38,11 @@ async function PutAwayContent({
       ← Liste de courses
     </Link>
   );
-  if (!("aisles" in page) || !page.aisles.length) {
+  if (!("aisles" in page)) {
     return (
       <>
         {back}
-        <p className="text-muted text-sm">Rien à ranger : la liste de courses est vide.</p>
+        <p className="text-muted text-sm">Aucun menu pour cette semaine.</p>
       </>
     );
   }

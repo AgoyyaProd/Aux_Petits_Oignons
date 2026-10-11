@@ -337,6 +337,38 @@ isOneToOne: true
                   Relationships: [
                     
                   ]
+                },"meal_cookings": {
+                  Row: {
+                    "cooked_at": string,"cooked_by": string | null,"household_id": string,"id": string,"missing": NonNullable<Json>,"operation_id": string,"plan_id": string,"recipe_id": string,"servings": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cooked_at"?: string,"cooked_by"?: string | null,"household_id": string,"id"?: string,"missing"?: NonNullable<Json>,"operation_id": string,"plan_id": string,"recipe_id": string,"servings": number
+                  }
+                  Update: {
+                    "cooked_at"?: string,"cooked_by"?: string | null,"household_id"?: string,"id"?: string,"missing"?: NonNullable<Json>,"operation_id"?: string,"plan_id"?: string,"recipe_id"?: string,"servings"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "meal_cookings_operation_id_fkey"
+      columns: ["operation_id"]
+isOneToOne: false
+      referencedRelation: "stock_operations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "meal_cookings_plan_id_household_id_fkey"
+      columns: ["plan_id","household_id"]
+isOneToOne: false
+      referencedRelation: "meal_plans"
+      referencedColumns: ["id","household_id"]
+    },{
+      foreignKeyName: "meal_cookings_recipe_id_fkey"
+      columns: ["recipe_id"]
+isOneToOne: false
+      referencedRelation: "recipes"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"meal_plan_entries": {
                   Row: {
                     "created_at": string,"household_id": string,"id": string,"locked": boolean,"plan_id": string,"position": number,"recipe_id": string,"servings": number
@@ -365,14 +397,14 @@ isOneToOne: false
                   ]
                 },"meal_plans": {
                   Row: {
-                    "budget_cents": number | null,"created_at": string,"created_by": string | null,"household_id": string,"id": string,"last_idempotency_key": string | null,"meal_count": number,"people": number,"seed": number,"updated_at": string,"version": number,"week_start": string
+                    "budget_cents": number | null,"created_at": string,"created_by": string | null,"household_id": string,"id": string,"last_idempotency_key": string | null,"meal_count": number,"people": number,"seed": number,"shopping_done_at": string | null,"updated_at": string,"version": number,"week_start": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "budget_cents"?: number | null,"created_at"?: string,"created_by"?: string | null,"household_id": string,"id"?: string,"last_idempotency_key"?: string | null,"meal_count": number,"people": number,"seed"?: number,"updated_at"?: string,"version"?: number,"week_start": string
+                    "budget_cents"?: number | null,"created_at"?: string,"created_by"?: string | null,"household_id": string,"id"?: string,"last_idempotency_key"?: string | null,"meal_count": number,"people": number,"seed"?: number,"shopping_done_at"?: string | null,"updated_at"?: string,"version"?: number,"week_start": string
                   }
                   Update: {
-                    "budget_cents"?: number | null,"created_at"?: string,"created_by"?: string | null,"household_id"?: string,"id"?: string,"last_idempotency_key"?: string | null,"meal_count"?: number,"people"?: number,"seed"?: number,"updated_at"?: string,"version"?: number,"week_start"?: string
+                    "budget_cents"?: number | null,"created_at"?: string,"created_by"?: string | null,"household_id"?: string,"id"?: string,"last_idempotency_key"?: string | null,"meal_count"?: number,"people"?: number,"seed"?: number,"shopping_done_at"?: string | null,"updated_at"?: string,"version"?: number,"week_start"?: string
                   }
                   Relationships: [
                     {
@@ -712,6 +744,9 @@ isOneToOne: false
 "is_household_owner":
 { Args: { "hid": string }; Returns: boolean
                            },
+"meal_cook":
+{ Args: { "p_consumptions": Json,"p_household_id": string,"p_idempotency_key": string,"p_missing": Json,"p_recipe_id": string,"p_servings": number,"p_week_start": string }; Returns: Json
+                           },
 "meal_plan_save":
 { Args: { "p_budget_cents": number,"p_entries": Json,"p_expected_version": number,"p_household_id": string,"p_idempotency_key": string,"p_meal_count": number,"p_people": number,"p_seed": number,"p_week_start": string }; Returns: {
               "plan_id": string,"plan_version": number
@@ -737,6 +772,9 @@ isOneToOne: false
                            },
 "set_household_preferences":
 { Args: { "p_allergens": (string)[],"p_diets": (string)[],"p_household_id": string }; Returns: undefined
+                           },
+"shopping_finish":
+{ Args: { "p_household_id": string,"p_idempotency_key": string,"p_items": Json,"p_week_start": string }; Returns: Json
                            },
 "shopping_put_away":
 { Args: { "p_household_id": string,"p_idempotency_key": string,"p_items": Json }; Returns: Json

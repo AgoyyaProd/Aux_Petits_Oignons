@@ -59,10 +59,11 @@ export type PutAwayState = {
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
- * Range les produits cochés au garde-manger, en une seule opération atomique et idempotente
- * (shopping_put_away). La clé vient du formulaire : un double envoi ne range qu'une fois.
+ * « Finir les courses » : range les produits cochés au garde-manger (s'il y en a) et marque
+ * les courses de la semaine comme faites, en une seule transaction (shopping_finish).
+ * La clé vient du formulaire : un double envoi ne range qu'une fois.
  */
-export async function putAwayAction(
+export async function finishShoppingAction(
   _prev: PutAwayState,
   formData: FormData,
 ): Promise<PutAwayState> {
@@ -127,12 +128,10 @@ export async function putAwayAction(
       invalid,
     };
   }
-  if (items.length === 0)
-    return { status: "error", message: "Coche au moins un produit à ranger." };
-
   const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.rpc("shopping_put_away", {
+  const { data, error } = await supabase.rpc("shopping_finish", {
     p_household_id: household.id,
+    p_week_start: week,
     p_items: items,
     p_idempotency_key: key,
   });
@@ -149,9 +148,12 @@ export async function putAwayAction(
       .eq("dimension", line.dimension as "mass" | "volume" | "count");
   }
   refresh();
-  const n = (data as { count?: number } | null)?.count ?? items.length;
+  const n = (data as { put_away?: { count?: number } | null } | null)?.put_away?.count ?? 0;
   return {
     status: "success",
-    message: `${n} produit${n > 1 ? "s" : ""} rangé${n > 1 ? "s" : ""} au garde-manger.`,
+    message:
+      n > 0
+        ? `Courses terminées : ${n} produit${n > 1 ? "s" : ""} rangé${n > 1 ? "s" : ""} au garde-manger.`
+        : "Courses terminées.",
   };
 }

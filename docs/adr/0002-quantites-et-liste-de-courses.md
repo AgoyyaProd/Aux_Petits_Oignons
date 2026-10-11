@@ -59,3 +59,18 @@ Le résultat est un **besoin théorique** : aucune taille de conditionnement n'e
 - « Ranger mes courses » : `shopping_put_away` ajoute tous les produits en **une opération**
   atomique et idempotente, tracée par des mouvements `purchase`. Le foyer saisit la quantité
   réellement achetée (paquet de 500 g plutôt que 375 g nécessaires).
+
+## Finir les courses, puis « Cuisiné » (migration 0016)
+
+- « Finir les courses » (`shopping_finish`) range les produits cochés et marque la semaine
+  (`meal_plans.shopping_done_at`), dans une seule transaction.
+- Le bouton « Cuisiné » n'apparaît sur une fiche recette qu'ensuite, si la recette est au menu
+  (semaine en cours, suivante ou précédente) et pas encore cuisinée.
+- Le décompte est calculé par le domaine (`planCooking`) : ingrédients obligatoires ajustés
+  aux portions du menu, FEFO, DLC dépassée et quantité inconnue jamais utilisées, placard
+  jamais décompté, conversions seulement par l'ingrédient. Ce qui manque est signalé, rien
+  n'est inventé.
+- `meal_cook` applique ce décompte en une opération atomique et idempotente (mouvements
+  `cooking`), avec contrôle de version par lot : un stock modifié entre-temps lève `AP409`.
+- Les plats cuisinés sont tenus dans un journal (`meal_cookings`), indépendant de l'ordre du
+  menu ; ils sortent de la liste de courses et ne peuvent plus être modifiés ni remplacés.

@@ -129,7 +129,8 @@ export async function getShoppingPage(week?: string) {
   const meals: PlannedMealInput[] = [];
   plan.entries.forEach((e, i) => {
     const meta = catalog.recipes.get(e.recipeId);
-    if (!meta) return;
+    // Un plat déjà cuisiné n'a plus besoin de rien.
+    if (!meta || plan.cooked.has(i + 1)) return;
     const id = `plat-${i + 1}`;
     titles.set(id, meta.title);
     meals.push({
@@ -217,7 +218,11 @@ export async function getShoppingPage(week?: string) {
 
   return {
     ...base,
-    plan: { mealCount: plan.entries.length, people: plan.people },
+    plan: {
+      mealCount: plan.entries.length - plan.cooked.size,
+      people: plan.people,
+      shoppingDoneAt: plan.shoppingDoneAt,
+    },
     aisles,
     covered,
     cupboard,

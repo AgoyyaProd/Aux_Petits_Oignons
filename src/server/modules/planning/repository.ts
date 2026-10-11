@@ -12,6 +12,10 @@ export interface StoredPlan {
   budgetCents: number | null;
   seed: number;
   entries: PlanEntry[];
+  /** Date de fin des courses (« Finir les courses »), sinon null. */
+  shoppingDoneAt: string | null;
+  /** Positions (1..n) des plats déjà cuisinés. */
+  cooked: Set<number>;
 }
 
 export async function readPlan(
@@ -22,13 +26,26 @@ export async function readPlan(
   const { data, error } = await supabase
     .from("meal_plans")
     .select(
-      "id, version, people, meal_count, budget_cents, seed, meal_plan_entries (position, recipe_id, servings, locked)",
+      "id, version, people, meal_count, budget_cents, seed, shopping_done_at, meal_plan_entries (position, recipe_id, servings, locked), meal_cookings (recipe_id)",
     )
     .eq("household_id", householdId)
     .eq("week_start", weekStart)
     .maybeSingle();
   if (error) throw new Error(`Lecture du menu impossible : ${error.message}`);
   if (!data) return null;
+  const entries = [...(data.meal_plan_entries ?? [])].sort((a, b) => a.position - b.position);
+  // Le journal compte les plats cuisinés par recette : on les attribue aux premières occurrences.
+  const toMark = new Map<string, number>();
+  for (const c of data.meal_cookings ?? [])
+    toMark.set(c.recipe_id, (toMark.get(c.recipe_id) ?? 0) + 1);
+  const cooked = new Set<number>();
+  entries.forEach((e, i) => {
+    const left = toMark.get(e.recipe_id) ?? 0;
+    if (left > 0) {
+      cooked.add(i + 1);
+      toMark.set(e.recipe_id, left - 1);
+    }
+  });
   return {
     id: data.id,
     version: data.version,
@@ -36,9 +53,13 @@ export async function readPlan(
     mealCount: data.meal_count,
     budgetCents: data.budget_cents,
     seed: data.seed,
-    entries: [...(data.meal_plan_entries ?? [])]
-      .sort((a, b) => a.position - b.position)
-      .map((e) => ({ recipeId: e.recipe_id, servings: e.servings, locked: e.locked })),
+    entries: entries.map((e) => ({
+      recipeId: e.recipe_id,
+      servings: e.servings,
+      locked: e.locked,
+    })),
+    shoppingDoneAt: data.shopping_done_at,
+    cooked,
   };
 }
 

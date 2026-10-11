@@ -3,10 +3,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { Tag } from "@/components/recipes/recipe-card";
+import { CookButton } from "@/components/cooking/cook-button";
 import { RecipeIngredients } from "@/components/recipes/recipe-ingredients";
 import { Alert } from "@/components/ui/alert";
 import { PageSkeleton } from "@/components/ui/skeleton";
 import { formatCents } from "@/domain/money";
+import { formatDateTime } from "@/lib/dates";
+import { getCookStatus } from "@/server/modules/cooking/queries";
 import { getRecipe, RECIPE_TAG_LABEL } from "@/server/modules/recipes/queries";
 
 export const metadata: Metadata = { title: "Recette" };
@@ -31,6 +34,7 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
   if (!recipe) notFound();
 
   const total = recipe.prepMinutes + recipe.cookMinutes;
+  const cook = await getCookStatus(recipe.id);
 
   return (
     <article className="flex flex-col gap-6">
@@ -96,6 +100,20 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
         <Alert tone="info">
           Ingrédient facultatif que tu ne manges pas : {recipe.toRemoveNames.join(", ")}. La recette
           se fait sans.
+        </Alert>
+      ) : null}
+
+      {cook?.kind === "ready" ? (
+        <CookButton
+          week={cook.week}
+          recipeId={recipe.id}
+          servings={cook.servings}
+          formKey={cook.formKey}
+        />
+      ) : cook?.kind === "cooked" ? (
+        <Alert tone="success">
+          Cuisiné le {formatDateTime(cook.cookedAt, "Europe/Paris")} : ingrédients retirés du
+          garde-manger.
         </Alert>
       ) : null}
 

@@ -20,6 +20,8 @@ export interface PlannerEntryView {
   cents: number;
   missingNames: string[];
   available: boolean;
+  /** Plat déjà cuisiné : ses ingrédients ont été retirés du garde-manger. */
+  cooked: boolean;
 }
 
 export interface ReplacementView {
@@ -77,6 +79,7 @@ export async function getPlannerPage({ week, replace }: { week?: string; replace
         cents: 0,
         missingNames: [],
         available: false,
+        cooked: plan!.cooked.has(i + 1),
       };
     }
     const cost = costOfEntry(meta, e.servings, catalog.priceBook);
@@ -91,6 +94,7 @@ export async function getPlannerPage({ week, replace }: { week?: string; replace
       cents: cost.cents,
       missingNames: cost.missingNames,
       available: meta.compatible,
+      cooked: plan!.cooked.has(i + 1),
     };
   });
 
@@ -140,6 +144,7 @@ export async function getPlannerPage({ week, replace }: { week?: string; replace
       people: plan.people,
       mealCount: plan.mealCount,
       budgetCents: plan.budgetCents,
+      shoppingDoneAt: plan.shoppingDoneAt,
     },
     entries,
     totals: {

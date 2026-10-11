@@ -202,6 +202,19 @@ function Summary({ page }: { page: PlannerPage }) {
             : `Dans ton budget : il reste ${formatCents(budget - cents)} sur ${formatCents(budget)}.`}
         </p>
       ) : null}
+      {plan.shoppingDoneAt ? (
+        <p className="text-success text-sm font-medium">
+          Courses faites ✓ Quand tu as préparé un plat, ouvre sa recette et appuie sur « Cuisiné »
+          pour retirer ses ingrédients du garde-manger.
+        </p>
+      ) : (
+        <Link
+          href={`/shopping?semaine=${page.weekStart}`}
+          className="text-brand text-sm font-medium underline"
+        >
+          Voir la liste de courses
+        </Link>
+      )}
       {entriesWithMissing > 0 ? (
         <p className="text-muted text-xs">
           Sans prix connu, non comptés : {missingNames.join(", ")}. Le total est donc un minimum.{" "}
@@ -246,7 +259,7 @@ function EntryCard({
           )}
           <span className="text-muted text-xs">
             {entry.totalMinutes !== null ? `${entry.totalMinutes} min · ` : ""}
-            {entry.locked ? "Gardé" : `Plat ${entry.position}`}
+            {entry.cooked ? "Cuisiné ✓" : entry.locked ? "Gardé" : `Plat ${entry.position}`}
           </span>
         </div>
         <div className="flex shrink-0 flex-col items-end">
@@ -260,64 +273,71 @@ function EntryCard({
         </div>
       </div>
 
-      {!entry.available ? (
+      {entry.cooked ? null : !entry.available ? (
         <Alert tone="error">
           Cette recette ne correspond plus à tes préférences : remplace-la.
         </Alert>
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="flex items-center gap-1" role="group" aria-label="Portions">
-          <PlanActionButton
-            action={setServingsAction}
-            fields={{ ...fields, servings: Math.max(1, entry.servings - 1), key: page.newKey() }}
-            label="Une portion de moins"
-            className={small}
-          >
-            −
-          </PlanActionButton>
-          <span className="min-w-20 text-center text-sm tabular-nums">
-            {entry.servings} portion{entry.servings > 1 ? "s" : ""}
-          </span>
-          <PlanActionButton
-            action={setServingsAction}
-            fields={{ ...fields, servings: Math.min(40, entry.servings + 1), key: page.newKey() }}
-            label="Une portion de plus"
-            className={small}
-          >
-            +
-          </PlanActionButton>
+      {entry.cooked ? (
+        <p className="text-muted text-sm">
+          {entry.servings} portion{entry.servings > 1 ? "s" : ""} · ingrédients retirés du
+          garde-manger.
+        </p>
+      ) : (
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1" role="group" aria-label="Portions">
+            <PlanActionButton
+              action={setServingsAction}
+              fields={{ ...fields, servings: Math.max(1, entry.servings - 1), key: page.newKey() }}
+              label="Une portion de moins"
+              className={small}
+            >
+              −
+            </PlanActionButton>
+            <span className="min-w-20 text-center text-sm tabular-nums">
+              {entry.servings} portion{entry.servings > 1 ? "s" : ""}
+            </span>
+            <PlanActionButton
+              action={setServingsAction}
+              fields={{ ...fields, servings: Math.min(40, entry.servings + 1), key: page.newKey() }}
+              label="Une portion de plus"
+              className={small}
+            >
+              +
+            </PlanActionButton>
+          </div>
+          <div className="ml-auto flex flex-wrap gap-2">
+            <PlanActionButton
+              action={toggleLockAction}
+              fields={{ ...fields, key: page.newKey() }}
+              label={entry.locked ? "Ne plus garder ce plat" : "Garder ce plat si je relance"}
+              className={`${small} ${entry.locked ? "bg-brand-soft text-brand" : ""}`}
+            >
+              {entry.locked ? "Gardé ✓" : "Garder"}
+            </PlanActionButton>
+            <Link
+              href={
+                replacing
+                  ? `/planner?semaine=${page.weekStart}`
+                  : `/planner?semaine=${page.weekStart}&remplacer=${entry.position}`
+              }
+              className={small}
+              scroll={false}
+            >
+              {replacing ? "Annuler" : "Remplacer"}
+            </Link>
+            <PlanActionButton
+              action={removeEntryAction}
+              fields={{ ...fields, key: page.newKey() }}
+              label={`Retirer ${entry.title} du menu`}
+              className={`${small} text-danger`}
+            >
+              Retirer
+            </PlanActionButton>
+          </div>
         </div>
-        <div className="ml-auto flex flex-wrap gap-2">
-          <PlanActionButton
-            action={toggleLockAction}
-            fields={{ ...fields, key: page.newKey() }}
-            label={entry.locked ? "Ne plus garder ce plat" : "Garder ce plat si je relance"}
-            className={`${small} ${entry.locked ? "bg-brand-soft text-brand" : ""}`}
-          >
-            {entry.locked ? "Gardé ✓" : "Garder"}
-          </PlanActionButton>
-          <Link
-            href={
-              replacing
-                ? `/planner?semaine=${page.weekStart}`
-                : `/planner?semaine=${page.weekStart}&remplacer=${entry.position}`
-            }
-            className={small}
-            scroll={false}
-          >
-            {replacing ? "Annuler" : "Remplacer"}
-          </Link>
-          <PlanActionButton
-            action={removeEntryAction}
-            fields={{ ...fields, key: page.newKey() }}
-            label={`Retirer ${entry.title} du menu`}
-            className={`${small} text-danger`}
-          >
-            Retirer
-          </PlanActionButton>
-        </div>
-      </div>
+      )}
 
       {replacing ? <Replacements page={page} entry={entry} base={base} /> : null}
     </article>

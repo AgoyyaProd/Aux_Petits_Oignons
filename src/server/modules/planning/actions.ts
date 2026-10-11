@@ -85,7 +85,10 @@ export async function generatePlanAction(
     if (plan) requirePlan(plan, input.version);
     // On ne garde que les plats verrouillés encore proposables (allergies changées entre-temps).
     const allowed = new Set(catalog.candidates.map((c) => c.id));
-    const locked = (plan?.entries ?? []).filter((e) => e.locked && allowed.has(e.recipeId));
+    // Plats cuisinés : toujours gardés (le stock a déjà été décompté).
+    const locked = (plan?.entries ?? []).filter(
+      (e, i) => plan!.cooked.has(i + 1) || (e.locked && allowed.has(e.recipeId)),
+    );
     if (locked.length > input.mealCount) {
       return {
         status: "error",
@@ -171,6 +174,13 @@ function entryAt(entries: PlanEntry[], position: number): PlanEntry {
   return entry;
 }
 
+/** Un plat cuisiné ne se modifie plus : ses ingrédients ont déjà quitté le garde-manger. */
+function assertNotCooked(plan: StoredPlan, position: number): void {
+  if (plan.cooked.has(position)) {
+    throw new ActionError("invalid", "Ce plat est déjà cuisiné : il ne peut plus être modifié.");
+  }
+}
+
 export async function toggleLockAction(
   _prev: PlannerState,
   formData: FormData,
@@ -190,8 +200,9 @@ export async function removeEntryAction(
 ): Promise<PlannerState> {
   const parsed = entrySchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { status: "error", message: "Requête invalide." };
-  return editEntries(parsed.data, (entries) => {
+  return editEntries(parsed.data, (entries, plan) => {
     entryAt(entries, parsed.data.position);
+    assertNotCooked(plan, parsed.data.position);
     return entries.filter((_, i) => i !== parsed.data.position - 1);
   });
 }
@@ -202,7 +213,8 @@ export async function setServingsAction(
 ): Promise<PlannerState> {
   const parsed = servingsSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { status: "error", message: "Entre 1 et 40 portions." };
-  return editEntries(parsed.data, (entries) => {
+  return editEntries(parsed.data, (entries, plan) => {
+    assertNotCooked(plan, parsed.data.position);
     entryAt(entries, parsed.data.position).servings = parsed.data.servings;
     return entries;
   });
@@ -256,6 +268,7 @@ export async function replaceEntryAction(formData: FormData): Promise<void> {
       throw new ActionError("invalid", "Cette recette est déjà dans le menu.");
     }
     const entry = entryAt(entries, position);
+    assertNotCooked(plan, position);
     entries[position - 1] = { recipeId, servings: entry.servings || plan.people, locked: false };
     return entries;
   });

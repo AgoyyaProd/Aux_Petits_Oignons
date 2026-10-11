@@ -93,14 +93,18 @@ function ListView({ page }: { page: Extract<ShoppingPage, { aisles: unknown }> }
           des tailles de paquet.
           {totals.unpriced ? ` ${totals.unpriced} article(s) sans prix, non comptés.` : ""}
         </p>
-        {totals.lines > 0 ? (
+        {page.plan!.shoppingDoneAt ? (
+          <p className="text-success text-sm font-medium">
+            Courses terminées ✓ Marque tes plats « Cuisiné » depuis leur fiche recette.
+          </p>
+        ) : (
           <Link
             href={`/shopping/ranger?semaine=${page.weekStart}`}
-            className={buttonClasses(totals.checked ? "primary" : "secondary", "mt-1")}
+            className={buttonClasses("primary", "mt-1")}
           >
-            Ranger mes courses au garde-manger
+            Finir les courses
           </Link>
-        ) : null}
+        )}
       </section>
 
       {page.warnings.length ? (

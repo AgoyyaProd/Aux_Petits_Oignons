@@ -5,7 +5,7 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { UNITS, type UnitCode } from "@/domain/units";
 import { unitsForDimension } from "@/lib/format-quantity";
-import { putAwayAction, type PutAwayState } from "@/server/modules/shopping/actions";
+import { finishShoppingAction, type PutAwayState } from "@/server/modules/shopping/actions";
 
 export interface PutAwayLine {
   ingredientId: string;
@@ -35,11 +35,15 @@ export function PutAwayForm({
   formKey: string;
   lines: PutAwayLine[];
 }) {
-  const [state, action, pending] = useActionState(putAwayAction, idle);
+  const [state, action, pending] = useActionState(finishShoppingAction, idle);
   const invalid = new Set(state.invalid ?? []);
 
   if (state.status === "success") {
-    return <Alert tone="success">{state.message} Retrouve-les dans ton garde-manger.</Alert>;
+    return (
+      <Alert tone="success">
+        {state.message} Tu peux maintenant marquer chaque plat « Cuisiné » depuis sa fiche recette.
+      </Alert>
+    );
   }
 
   return (
@@ -119,7 +123,7 @@ export function PutAwayForm({
       </ul>
       <div className="bg-background/95 sticky bottom-16 py-2 md:bottom-0">
         <Button type="submit" disabled={pending} className="w-full">
-          {pending ? "Rangement…" : "Ranger au garde-manger"}
+          {pending ? "Enregistrement…" : "Finir les courses"}
         </Button>
       </div>
     </form>
