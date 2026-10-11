@@ -43,7 +43,7 @@ export async function householdContext(
   householdId: string,
   timeZone = "Europe/Paris",
 ) {
-  const [diets, exclusions, pantry] = await Promise.all([
+  const [diets, exclusions, pantry, staples] = await Promise.all([
     supabase.from("household_diets").select("diet_code").eq("household_id", householdId),
     supabase
       .from("household_exclusions")
@@ -55,10 +55,12 @@ export async function householdContext(
       .eq("household_id", householdId)
       .eq("status", "active")
       .gt("quantity_base", 0),
+    supabase.from("household_staples").select("ingredient_id").eq("household_id", householdId),
   ]);
   if (diets.error) fail("des régimes", diets.error);
   if (exclusions.error) fail("des exclusions", exclusions.error);
   if (pantry.error) fail("du garde-manger", pantry.error);
+  if (staples.error) fail("du placard", staples.error);
 
   const constraints: HouseholdConstraints = {
     diets: new Set(diets.data.map((d) => d.diet_code)),
@@ -78,7 +80,10 @@ export async function householdContext(
       )
       .map((p) => p.ingredient_id),
   );
-  return { constraints, available: new Set(pantry.data.map((p) => p.ingredient_id)), priority };
+  // Placard : présents par déclaration du foyer (sans quantité, jamais décomptés).
+  const staple = new Set(staples.data.map((s) => s.ingredient_id));
+  const available = new Set([...pantry.data.map((p) => p.ingredient_id), ...staple]);
+  return { constraints, available, priority, staple };
 }
 
 /** Libellés des allergènes et régimes, pour expliquer une exclusion. */
@@ -281,6 +286,8 @@ export interface RecipeDetail {
     optional: boolean;
     note: string | null;
     inStock: boolean;
+    /** Coché dans le placard (présent, sans quantité). */
+    inCupboard: boolean;
   }[];
   steps: string[];
   allergenLabels: string[];
@@ -349,6 +356,7 @@ export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
       optional: l.is_optional,
       note: l.preparation_note,
       inStock: ctx.available.has(l.ingredient_id),
+      inCupboard: ctx.staple.has(l.ingredient_id),
     })),
     steps: [...(r.recipe_steps ?? [])]
       .sort((a, b) => a.position - b.position)

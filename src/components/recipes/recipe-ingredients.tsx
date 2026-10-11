@@ -83,9 +83,9 @@ function IngredientList({
             {item.inStock ? (
               <span
                 className="bg-brand-soft text-brand rounded-full px-2 py-0.5 text-[11px] font-medium"
-                title="Présent dans ton garde-manger"
+                title={item.inCupboard ? "Coché dans ton placard" : "Présent dans ton garde-manger"}
               >
-                en stock
+                {item.inCupboard ? "placard" : "en stock"}
               </span>
             ) : null}
           </div>

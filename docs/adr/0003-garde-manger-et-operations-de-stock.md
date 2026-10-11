@@ -48,3 +48,12 @@ Un allergène ne peut pas être enregistré comme simple « dégoût » (contrai
 Les types générés par `supabase gen types` déclarent les arguments RPC non nuls. Les
 appels passent par `src/server/modules/pantry/repository.ts`, qui décrit les signatures
 réelles et valide chaque réponse avec Zod.
+
+## Placard (ajout du 11/10/2026, migration 0014)
+
+Exception **explicite et déclarée par le foyer** à la règle « une quantité inconnue n'est
+jamais comptée comme disponible » : épices, herbes, condiments, huiles et quelques produits de
+base (`ingredients.is_staple`) se cochent simplement dans le placard (`household_staples`).
+Ils comptent comme présents (fiche recette, couverture du générateur, liste de courses) mais
+n'ont pas de quantité et ne sont jamais décomptés du stock. Un produit à quantité (beurre,
+crème…) est refusé par la base (`AP422`) et reste géré au garde-manger.

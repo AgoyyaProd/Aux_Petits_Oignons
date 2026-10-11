@@ -13,9 +13,12 @@ export const metadata: Metadata = { title: "Garde-manger" };
 export default function PantryPage() {
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold tracking-tight">Garde-manger</h1>
         <div className="flex gap-2">
+          <Link href="/pantry/placard" className={buttonClasses("secondary", "min-h-10 px-3")}>
+            Placard
+          </Link>
           <Link href="/pantry/history" className={buttonClasses("secondary", "min-h-10 px-3")}>
             Historique
           </Link>
