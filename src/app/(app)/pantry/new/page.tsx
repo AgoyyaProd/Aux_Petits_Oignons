@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import { AddItemForm } from "@/components/pantry/add-item-form";
 import { PageSkeleton } from "@/components/ui/skeleton";
 import { getCurrentContext } from "@/server/modules/auth/session";
-import { getIngredientNames } from "@/server/modules/pantry/queries";
+import { getIngredientChoices } from "@/server/modules/pantry/queries";
 
 export const metadata: Metadata = { title: "Ajouter un produit" };
 
@@ -26,11 +26,11 @@ export default function NewPantryItemPage() {
 }
 
 async function FormLoader() {
-  const [{ household }, names] = await Promise.all([getCurrentContext(), getIngredientNames()]);
+  const [{ household }, choices] = await Promise.all([getCurrentContext(), getIngredientChoices()]);
   if (!household) return <p className="text-muted">Aucun foyer actif.</p>;
   return (
     <div className="border-border bg-surface rounded-2xl border p-4">
-      <AddItemForm householdId={household.id} ingredientNames={names} initialKey={randomUUID()} />
+      <AddItemForm householdId={household.id} choices={choices} initialKey={randomUUID()} />
     </div>
   );
 }

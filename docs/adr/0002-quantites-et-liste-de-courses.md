@@ -74,3 +74,20 @@ Le résultat est un **besoin théorique** : aucune taille de conditionnement n'e
   `cooking`), avec contrôle de version par lot : un stock modifié entre-temps lève `AP409`.
 - Les plats cuisinés sont tenus dans un journal (`meal_cookings`), indépendant de l'ordre du
   menu ; ils sortent de la liste de courses et ne peuvent plus être modifiés ni remplacés.
+
+## Variantes d'ingrédients (migration 0017)
+
+`ingredients.parent_id` : Farfalle, Spaghetti… sont des variantes de Pâtes ; Basmati, Thaï,
+Étuvé de Riz ; Arborio de Riz rond ; Grenaille de Pomme de terre. Un seul niveau, même
+dimension que le parent (contrôlé en base). Le garde-manger garde le nom précis.
+
+- Un besoin du parent est couvert par le stock de ses variantes (couverture, liste de courses,
+  décompte en cuisinant), sauf si la variante est elle-même demandée ailleurs dans le menu.
+- Un besoin d'une variante précise n'est couvert que par elle.
+- Prix : catégorie Open Prices de la variante si elle existe, sinon prix du parent, affiché
+  comme approchant. Allergènes et régimes hérités du parent.
+- Les pâtes à lasagne sont un ingrédient à part (pas une variante).
+
+La saisie d'un ingrédient passe par une recherche insensible aux accents et aux synonymes
+(« oeuf » -> « Œuf », « farf » -> « Farfalle »), au lieu de la liste native du navigateur
+qui compare les caractères exactement.

@@ -66,6 +66,5 @@ export async function getHouseholdSettings() {
         a.ingredient_id ? [{ id: a.ingredient_id, name: a.ingredients?.name ?? "?" }] : [],
       )
       .sort((a, b) => a.name.localeCompare(b.name, "fr")),
-    ingredientNames: (ingredients.data ?? []).map((i) => i.name),
   };
 }

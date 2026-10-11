@@ -8,6 +8,7 @@ import {
 } from "@/domain/recipes/compatibility";
 import { isPriority } from "@/domain/pantry/priority";
 import { estimateRecipeCost, millicentsToCents } from "@/domain/pricing";
+import { withParents } from "@/domain/shopping";
 import { fromBase } from "@/domain/units";
 import { todayIn } from "@/lib/dates";
 import { getCurrentContext } from "@/server/modules/auth/session";
@@ -43,7 +44,7 @@ export async function householdContext(
   householdId: string,
   timeZone = "Europe/Paris",
 ) {
-  const [diets, exclusions, pantry, staples] = await Promise.all([
+  const [diets, exclusions, pantry, staples, variants] = await Promise.all([
     supabase.from("household_diets").select("diet_code").eq("household_id", householdId),
     supabase
       .from("household_exclusions")
@@ -56,11 +57,15 @@ export async function householdContext(
       .eq("status", "active")
       .gt("quantity_base", 0),
     supabase.from("household_staples").select("ingredient_id").eq("household_id", householdId),
+    supabase.from("ingredients").select("id, parent_id").not("parent_id", "is", null),
   ]);
   if (diets.error) fail("des régimes", diets.error);
   if (exclusions.error) fail("des exclusions", exclusions.error);
   if (pantry.error) fail("du garde-manger", pantry.error);
   if (staples.error) fail("du placard", staples.error);
+  if (variants.error) fail("des variantes", variants.error);
+  // Une variante en stock (Farfalle) rend son parent (Pâtes) présent.
+  const parentOf = new Map(variants.data.map((v) => [v.id, v.parent_id!]));
 
   const constraints: HouseholdConstraints = {
     diets: new Set(diets.data.map((d) => d.diet_code)),
@@ -70,7 +75,7 @@ export async function householdContext(
     ),
   };
   const today = todayIn(timeZone);
-  const priority = new Set(
+  const priority = withParents(
     pantry.data
       .filter((p) =>
         isPriority(
@@ -79,10 +84,11 @@ export async function householdContext(
         ),
       )
       .map((p) => p.ingredient_id),
+    parentOf,
   );
   // Placard : présents par déclaration du foyer (sans quantité, jamais décomptés).
   const staple = new Set(staples.data.map((s) => s.ingredient_id));
-  const available = new Set([...pantry.data.map((p) => p.ingredient_id), ...staple]);
+  const available = withParents([...pantry.data.map((p) => p.ingredient_id), ...staple], parentOf);
   return { constraints, available, priority, staple };
 }
 

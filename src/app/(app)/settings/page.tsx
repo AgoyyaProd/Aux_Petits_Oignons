@@ -7,6 +7,7 @@ import { PreferencesForm } from "@/components/settings/preferences-form";
 import { buttonClasses } from "@/components/ui/button";
 import { PageSkeleton } from "@/components/ui/skeleton";
 import { getHouseholdSettings } from "@/server/modules/households/queries";
+import { getIngredientChoices } from "@/server/modules/pantry/queries";
 
 export const metadata: Metadata = { title: "Paramètres" };
 
@@ -22,7 +23,7 @@ export default function SettingsPage() {
 }
 
 async function SettingsContent() {
-  const settings = await getHouseholdSettings();
+  const [settings, choices] = await Promise.all([getHouseholdSettings(), getIngredientChoices()]);
   if (!settings) return <p className="text-muted">Aucun foyer actif.</p>;
 
   return (
@@ -52,7 +53,7 @@ async function SettingsContent() {
         <AvoidedFoodsForm
           householdId={settings.household.id}
           avoidedFoods={settings.avoidedFoods}
-          ingredientNames={settings.ingredientNames}
+          choices={choices}
         />
       </Section>
     </>

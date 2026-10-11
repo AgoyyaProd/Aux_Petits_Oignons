@@ -4,7 +4,8 @@ import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Field } from "@/components/ui/field";
+import { IngredientInput } from "@/components/ui/ingredient-input";
+import type { IngredientChoice } from "@/lib/ingredient-search";
 import { addAvoidedFoodAction, removeAvoidedFoodAction } from "@/server/modules/households/actions";
 import type { FormState } from "@/server/modules/households/schema";
 
@@ -13,10 +14,10 @@ const initialState: FormState<"ingredient"> = { status: "idle" };
 interface Props {
   householdId: string;
   avoidedFoods: { id: string; name: string }[];
-  ingredientNames: string[];
+  choices: IngredientChoice[];
 }
 
-export function AvoidedFoodsForm({ householdId, avoidedFoods, ingredientNames }: Props) {
+export function AvoidedFoodsForm({ householdId, avoidedFoods, choices }: Props) {
   const [state, action, pending] = useActionState(addAvoidedFoodAction, initialState);
   const already = new Set(avoidedFoods.map((f) => f.name));
 
@@ -53,11 +54,11 @@ export function AvoidedFoodsForm({ householdId, avoidedFoods, ingredientNames }:
           <Alert tone={state.status === "success" ? "success" : "error"}>{state.message}</Alert>
         ) : null}
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
-          <Field
+          <IngredientInput
             label="Ajouter un aliment"
             name="ingredient"
-            list="avoided-ingredient-names"
-            autoComplete="off"
+            choices={choices}
+            exclude={already}
             placeholder="Ex. champignons, coriandre…"
             error={state.fieldErrors?.ingredient}
           />
@@ -65,13 +66,6 @@ export function AvoidedFoodsForm({ householdId, avoidedFoods, ingredientNames }:
             {pending ? "Ajout…" : "Ajouter"}
           </Button>
         </div>
-        <datalist id="avoided-ingredient-names">
-          {ingredientNames
-            .filter((name) => !already.has(name))
-            .map((name) => (
-              <option key={name} value={name} />
-            ))}
-        </datalist>
       </form>
     </div>
   );

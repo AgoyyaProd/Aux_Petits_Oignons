@@ -5,6 +5,8 @@ import { useActionState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button, buttonClasses } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
+import { IngredientInput } from "@/components/ui/ingredient-input";
+import type { IngredientChoice } from "@/lib/ingredient-search";
 import { SelectField } from "@/components/ui/select-field";
 import { UNITS, type UnitCode } from "@/domain/units";
 import { addPantryItemAction } from "@/server/modules/pantry/actions";
@@ -24,11 +26,11 @@ const EXPIRY_OPTIONS = [
 
 export function AddItemForm({
   householdId,
-  ingredientNames,
+  choices,
   initialKey,
 }: {
   householdId: string;
-  ingredientNames: string[];
+  choices: IngredientChoice[];
   initialKey: string;
 }) {
   const [state, action, pending] = useActionState(addPantryItemAction, initialState);
@@ -45,21 +47,15 @@ export function AddItemForm({
         <Alert tone={state.status === "success" ? "success" : "error"}>{state.message}</Alert>
       ) : null}
 
-      <Field
+      <IngredientInput
         label="Ingrédient"
         name="ingredient"
-        list="ingredient-names"
-        autoComplete="off"
-        placeholder="Ex. riz, lait, carottes…"
+        choices={choices}
+        placeholder="Ex. riz, œufs, farfalle…"
         required
         defaultValue={v.ingredient}
         error={state.fieldErrors?.ingredient}
       />
-      <datalist id="ingredient-names">
-        {ingredientNames.map((name) => (
-          <option key={name} value={name} />
-        ))}
-      </datalist>
 
       <SelectField
         label="Emplacement"

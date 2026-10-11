@@ -1,4 +1,5 @@
 import "server-only";
+import type { IngredientChoice } from "@/lib/ingredient-search";
 import { comparePantryItems, isPriority } from "@/domain/pantry/priority";
 import { todayIn } from "@/lib/dates";
 import { getCurrentContext } from "@/server/modules/auth/session";
@@ -66,6 +67,26 @@ export async function getPantry() {
 }
 
 /** Noms des ingrédients du référentiel, pour la saisie assistée. */
+/** Ingrédients avec leurs synonymes, pour la recherche (« oeuf » -> « Œuf »). */
+export async function getIngredientChoices(): Promise<IngredientChoice[]> {
+  const supabase = await createSupabaseServerClient();
+  const [ingredients, aliases] = await Promise.all([
+    supabase.from("ingredients").select("id, name").order("name"),
+    supabase.from("ingredient_aliases").select("alias_normalized, ingredient_id"),
+  ]);
+  if (ingredients.error)
+    throw new Error(`Lecture du référentiel impossible : ${ingredients.error.message}`);
+  if (aliases.error)
+    throw new Error(`Lecture du référentiel impossible : ${aliases.error.message}`);
+  const byId = new Map<string, string[]>();
+  for (const a of aliases.data) {
+    const list = byId.get(a.ingredient_id);
+    if (list) list.push(a.alias_normalized);
+    else byId.set(a.ingredient_id, [a.alias_normalized]);
+  }
+  return ingredients.data.map((i) => ({ name: i.name, aliases: byId.get(i.id) ?? [] }));
+}
+
 export async function getIngredientNames(): Promise<string[]> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.from("ingredients").select("name").order("name");

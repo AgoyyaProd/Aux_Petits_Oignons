@@ -26,7 +26,7 @@ export async function loadPriceBook(
   supabase: Supabase,
   householdId: string,
 ): Promise<Map<string, PriceInfo>> {
-  const [reference, household, sources] = await Promise.all([
+  const [reference, household, sources, variants] = await Promise.all([
     supabase
       .from("reference_prices")
       .select("ingredient_id, source, dimension, cents_per_ref, sample_size, observed_to"),
@@ -35,10 +35,12 @@ export async function loadPriceBook(
       .select("ingredient_id, dimension, cents_per_ref, store_label, observed_on")
       .eq("household_id", householdId),
     supabase.from("ingredient_price_sources").select("ingredient_id, approximate"),
+    supabase.from("ingredients").select("id, parent_id").not("parent_id", "is", null),
   ]);
   if (reference.error) throw new Error(`Lecture des prix impossible : ${reference.error.message}`);
   if (household.error) throw new Error(`Lecture des prix impossible : ${household.error.message}`);
   if (sources.error) throw new Error(`Lecture des prix impossible : ${sources.error.message}`);
+  if (variants.error) throw new Error(`Lecture des prix impossible : ${variants.error.message}`);
 
   const approximate = new Set(
     sources.data.filter((s) => s.approximate).map((s) => s.ingredient_id),
@@ -66,6 +68,11 @@ export async function loadPriceBook(
       approximate: false,
       lowSample: false,
     });
+  }
+  // Variante sans prix propre (Coquillettes) : prix du parent (Pâtes), signalé approchant.
+  for (const v of variants.data) {
+    const parent = book.get(v.parent_id!);
+    if (!book.has(v.id) && parent) book.set(v.id, { ...parent, approximate: true });
   }
   return book;
 }

@@ -325,17 +325,23 @@ isOneToOne: true
                   ]
                 },"ingredients": {
                   Row: {
-                    "category": string,"created_at": string,"default_dimension": Database["public"]['Enums']["dimension"],"default_shelf_life_days": number | null,"density_g_per_ml": number | null,"id": string,"is_staple": boolean,"is_validated": boolean,"name": string,"piece_weight_g": number | null,"slug": string,"updated_at": string
+                    "category": string,"created_at": string,"default_dimension": Database["public"]['Enums']["dimension"],"default_shelf_life_days": number | null,"density_g_per_ml": number | null,"id": string,"is_staple": boolean,"is_validated": boolean,"name": string,"parent_id": string | null,"piece_weight_g": number | null,"slug": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "category": string,"created_at"?: string,"default_dimension": Database["public"]['Enums']["dimension"],"default_shelf_life_days"?: number | null,"density_g_per_ml"?: number | null,"id"?: string,"is_staple"?: boolean,"is_validated"?: boolean,"name": string,"piece_weight_g"?: number | null,"slug": string,"updated_at"?: string
+                    "category": string,"created_at"?: string,"default_dimension": Database["public"]['Enums']["dimension"],"default_shelf_life_days"?: number | null,"density_g_per_ml"?: number | null,"id"?: string,"is_staple"?: boolean,"is_validated"?: boolean,"name": string,"parent_id"?: string | null,"piece_weight_g"?: number | null,"slug": string,"updated_at"?: string
                   }
                   Update: {
-                    "category"?: string,"created_at"?: string,"default_dimension"?: Database["public"]['Enums']["dimension"],"default_shelf_life_days"?: number | null,"density_g_per_ml"?: number | null,"id"?: string,"is_staple"?: boolean,"is_validated"?: boolean,"name"?: string,"piece_weight_g"?: number | null,"slug"?: string,"updated_at"?: string
+                    "category"?: string,"created_at"?: string,"default_dimension"?: Database["public"]['Enums']["dimension"],"default_shelf_life_days"?: number | null,"density_g_per_ml"?: number | null,"id"?: string,"is_staple"?: boolean,"is_validated"?: boolean,"name"?: string,"parent_id"?: string | null,"piece_weight_g"?: number | null,"slug"?: string,"updated_at"?: string
                   }
                   Relationships: [
-                    
+                    {
+      foreignKeyName: "ingredients_parent_id_fkey"
+      columns: ["parent_id"]
+isOneToOne: false
+      referencedRelation: "ingredients"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"meal_cookings": {
                   Row: {

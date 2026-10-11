@@ -3,7 +3,7 @@
 import { refresh } from "next/cache";
 import { z } from "zod";
 import { planCooking, type CookLot } from "@/domain/cooking";
-import type { IngredientInfo, RecipeLine } from "@/domain/shopping";
+import { remapVariantLots, type IngredientInfo, type RecipeLine } from "@/domain/shopping";
 import { fromBase, toBaseString } from "@/domain/units";
 import { todayIn } from "@/lib/dates";
 import { formatShoppingQuantity } from "@/lib/format-quantity";
@@ -78,7 +78,14 @@ export async function cookAction(_prev: CookState, formData: FormData): Promise<
     });
   }
 
-  const ingredientIds = [...info.keys()];
+  // Variantes : le stock de farfalle peut servir pour « Pâtes ».
+  const variants = await supabase
+    .from("ingredients")
+    .select("id, parent_id")
+    .in("parent_id", [...info.keys()]);
+  if (variants.error) return { status: "error", message: toActionError(variants.error).message };
+  const parentOf = new Map(variants.data.map((v) => [v.id, v.parent_id!]));
+  const ingredientIds = [...info.keys(), ...parentOf.keys()];
   const [pantry, staples] = await Promise.all([
     supabase
       .from("pantry_items")
@@ -102,12 +109,13 @@ export async function cookAction(_prev: CookState, formData: FormData): Promise<
     opened: p.opened_at !== null,
     version: p.version,
   }));
+  const required = new Set(lines.filter((l) => !l.optional).map((l) => l.ingredientId));
   const result = planCooking({
     lines,
     servings,
     baseServings: recipe.data.servings,
     ingredients: info,
-    lots,
+    lots: remapVariantLots(lots, parentOf, required),
     cupboard: new Set(staples.data.map((s) => s.ingredient_id)),
     today: todayIn(household.timezone),
   });

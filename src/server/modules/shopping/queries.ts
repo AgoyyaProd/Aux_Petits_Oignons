@@ -4,6 +4,7 @@ import { costMillicents, millicentsToCents } from "@/domain/pricing";
 import {
   computeShoppingList,
   purchaseQuantity,
+  remapVariantLots,
   type IngredientInfo,
   type PlannedMealInput,
   type ShoppingWarning,
@@ -90,7 +91,7 @@ export async function getShoppingPage(week?: string) {
     }),
     supabase
       .from("ingredients")
-      .select("id, name, category, default_dimension, density_g_per_ml, piece_weight_g"),
+      .select("id, name, category, default_dimension, density_g_per_ml, piece_weight_g, parent_id"),
     supabase
       .from("pantry_items")
       .select(
@@ -165,10 +166,15 @@ export async function getShoppingPage(week?: string) {
     .eq("household_id", household.id);
   if (staples.error) throw new Error(staples.error.message);
 
+  // Variantes : des farfalle en stock couvrent un besoin de « Pâtes ».
+  const parentOf = new Map(
+    ingredients.data!.filter((i) => i.parent_id).map((i) => [i.id, i.parent_id!]),
+  );
+  const required = new Set(meals.flatMap((m) => m.recipe.lines.map((l) => l.ingredientId)));
   const result = computeShoppingList({
     meals,
     ingredients: info,
-    stock,
+    stock: remapVariantLots(stock, parentOf, required),
     cupboard: new Set(staples.data.map((s) => s.ingredient_id)),
   });
 
