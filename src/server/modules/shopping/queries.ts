@@ -14,7 +14,7 @@ import { fromBase, type Dimension, type Quantity } from "@/domain/units";
 import { todayIn } from "@/lib/dates";
 import { addDays, isMonday, mondayOf } from "@/lib/week";
 import { getCurrentContext } from "@/server/modules/auth/session";
-import { loadPlanningCatalog } from "@/server/modules/planning/catalog";
+import { getPlanningCatalog } from "@/server/modules/planning/catalog";
 import { readPlan } from "@/server/modules/planning/repository";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 
@@ -84,11 +84,7 @@ export async function getShoppingPage(week?: string) {
 
   const [plan, catalog, ingredients, pantry, checks] = await Promise.all([
     readPlan(supabase, household.id, weekStart),
-    loadPlanningCatalog(supabase, {
-      id: household.id,
-      timezone: household.timezone,
-      maxPrepMinutes: settings.data.max_prep_minutes,
-    }),
+    getPlanningCatalog(household.id, household.timezone, settings.data.max_prep_minutes),
     supabase
       .from("ingredients")
       .select("id, name, category, default_dimension, density_g_per_ml, piece_weight_g, parent_id"),

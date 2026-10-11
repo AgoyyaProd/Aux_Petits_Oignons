@@ -5,7 +5,7 @@ import { todayIn } from "@/lib/dates";
 import { addDays, isMonday, mondayOf } from "@/lib/week";
 import { getCurrentContext } from "@/server/modules/auth/session";
 import { createSupabaseServerClient } from "@/server/supabase/server";
-import { costOfEntry, loadPlanningCatalog } from "./catalog";
+import { costOfEntry, getPlanningCatalog } from "./catalog";
 import { readPlan } from "./repository";
 
 export interface PlannerEntryView {
@@ -51,11 +51,7 @@ export async function getPlannerPage({ week, replace }: { week?: string; replace
 
   const [plan, catalog, lastPrice] = await Promise.all([
     readPlan(supabase, household.id, weekStart),
-    loadPlanningCatalog(supabase, {
-      id: household.id,
-      timezone: household.timezone,
-      maxPrepMinutes: settings.data.max_prep_minutes,
-    }),
+    getPlanningCatalog(household.id, household.timezone, settings.data.max_prep_minutes),
     supabase
       .from("reference_prices")
       .select("observed_to")

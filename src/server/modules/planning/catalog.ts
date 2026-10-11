@@ -1,4 +1,6 @@
 import "server-only";
+import { cache } from "react";
+import { createSupabaseServerClient } from "@/server/supabase/server";
 import { isMainDish, varietyKeys, type PlanCandidate } from "@/domain/planning";
 import {
   estimateRecipeCost,
@@ -181,3 +183,16 @@ export function costOfEntry(
     missingNames: estimate.missing.map((m) => meta.ingredientNames.get(m.ingredientId) ?? "?"),
   };
 }
+
+/**
+ * Catalogue mémorisé pour la durée d'une requête : la page d'accueil, le menu et la liste de
+ * courses peuvent en avoir besoin dans le même rendu sans relire recettes et prix.
+ */
+export const getPlanningCatalog = cache(
+  async (householdId: string, timezone: string, maxPrepMinutes: number | null) =>
+    loadPlanningCatalog(await createSupabaseServerClient(), {
+      id: householdId,
+      timezone,
+      maxPrepMinutes,
+    }),
+);
