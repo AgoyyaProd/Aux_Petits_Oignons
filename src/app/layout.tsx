@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "@fontsource-variable/fraunces/opsz.css";
 import "@fontsource-variable/inter/index.css";
 import "./globals.css";
+import { THEME_SCRIPT } from "@/lib/theme";
 
 export const metadata: Metadata = {
   title: { default: "Aux Petits Oignons", template: "%s · Aux Petits Oignons" },
@@ -27,7 +28,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="fr" className="h-full antialiased">
+    // data-theme est posé par le script avant l'hydratation : écart attendu.
+    <html lang="fr" className="h-full antialiased" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body className="flex min-h-full flex-col">{children}</body>
     </html>
   );

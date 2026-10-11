@@ -54,8 +54,47 @@
   --shadow-md: 0 6px 20px -8px rgb(14 59 46 / 0.18);
 }
 
+/*
+ * Thème sombre : choisi dans « Mes préférences » (data-theme="dark" sur <html>), ou suivi
+ * du système quand le choix est « Automatique » (le script de lib/theme le résout avant
+ * l'affichage). Sans JavaScript, on retombe sur le réglage du système.
+ */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #0b1c16;
+  --surface: #11271f;
+  --surface-muted: #163128;
+  --foreground: #f4ecdd;
+  --muted: #b3a998;
+  --border: #23413a;
+  --border-strong: #31554b;
+  --brand: #a9cfb2;
+  --brand-foreground: #0b1c16;
+  --brand-soft: #1b3a30;
+  --accent: #f08a6f;
+  --accent-strong: #f08a6f;
+  --accent-soft: #3b231b;
+  --highlight: #f4c145;
+  --highlight-soft: #3a3016;
+  --leaf: #a7bb9f;
+  --leaf-soft: #1f3329;
+  --danger: #f97066;
+  --danger-soft: #3a1a17;
+  --success: #6fcf97;
+  --success-soft: #16301f;
+  --warning: #f4c145;
+  --warning-soft: #3a3016;
+  --nav: #081510;
+  --nav-foreground: var(--foreground);
+  --nav-muted: #8fa597;
+  --focus: #f08a6f;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
+  --shadow-md: 0 6px 20px -8px rgb(0 0 0 / 0.5);
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]) {
+    color-scheme: dark;
     --background: #0b1c16;
     --surface: #11271f;
     --surface-muted: #163128;
@@ -85,6 +124,21 @@
     --focus: #f08a6f;
     --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
     --shadow-md: 0 6px 20px -8px rgb(0 0 0 / 0.5);
+  }
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme]), :root:not([data-theme]) *) {
+      @slot;
+    }
   }
 }
 

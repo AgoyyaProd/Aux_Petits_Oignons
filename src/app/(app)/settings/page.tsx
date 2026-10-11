@@ -5,6 +5,7 @@ import { AvoidedFoodsForm } from "@/components/settings/avoided-foods-form";
 import { HouseholdForm } from "@/components/settings/household-form";
 import { MembersSection } from "@/components/settings/members-section";
 import { FoodProfileForm } from "@/components/settings/food-profile-form";
+import { ThemeSelect } from "@/components/settings/theme-select";
 import { buttonClasses } from "@/components/ui/button";
 import { signOutAction } from "@/server/modules/auth/actions";
 import { PageHeader } from "@/components/ui/page-header";
@@ -99,6 +100,9 @@ async function SettingsContent() {
           avoidedFoods={settings.avoidedFoods}
           choices={choices}
         />
+      </Section>
+      <Section title="Apparence" id="apparence">
+        <ThemeSelect />
       </Section>
       <Section title="Compte" id="compte">
         <form action={signOutAction}>
