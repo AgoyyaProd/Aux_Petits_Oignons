@@ -253,6 +253,33 @@ select:not([multiple]) {
     font-size: 1rem;
     line-height: 1.35;
   }
+  /*
+   * Rangée de pastilles qui défile sur téléphone, sans jamais sortir des marges de la page ;
+   * à partir de sm, les pastilles passent simplement à la ligne.
+   */
+  .chip-scroll {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    padding-bottom: 0.25rem;
+  }
+  .chip-scroll::-webkit-scrollbar {
+    display: none;
+  }
+  .chip-scroll > * {
+    flex-shrink: 0;
+    scroll-snap-align: start;
+  }
+  @media (min-width: 40rem) {
+    .chip-scroll {
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      overflow: visible;
+      padding-bottom: 0;
+    }
+  }
   .type-meta {
     font-size: 0.8125rem;
     line-height: 1.45;

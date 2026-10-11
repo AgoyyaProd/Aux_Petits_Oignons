@@ -183,7 +183,7 @@ async function Catalog({ searchParams }: Pick<PageProps<"/recipes">, "searchPara
       </form>
 
       <nav aria-label="Filtres rapides">
-        <ul className="flex flex-wrap gap-2">
+        <ul className="chip-scroll">
           {chips.map((chip) => (
             <li key={chip.label} className="shrink-0">
               <Link

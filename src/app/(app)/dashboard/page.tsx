@@ -178,7 +178,7 @@ async function Greeting() {
             className="bg-surface border-border focus-visible:border-forest min-h-12 w-full rounded-full border pr-4 pl-11 text-base outline-none"
           />
         </form>
-        <ul className="flex flex-wrap gap-2" aria-label="Idées rapides">
+        <ul className="chip-scroll" aria-label="Idées rapides">
           {QUICK.map((q) => (
             <li key={q.href} className="shrink-0">
               <Link
@@ -408,7 +408,7 @@ async function Week() {
       <SectionTitle href="/planner" link="Voir">
         <span id="semaine">Ma semaine en un coup d&apos;œil</span>
       </SectionTitle>
-      <div className="-mx-4 snap-x scroll-px-4 overflow-x-auto px-4 pb-1 lg:mx-0 lg:px-0">
+      <div className="snap-x overflow-x-auto pb-1">
         <ol className="grid w-max grid-cols-[repeat(7,8.75rem)] gap-3 lg:w-auto lg:grid-cols-7">
           {days.map((day) => {
             const meals = page.entries.filter((e) => e.day === day);
