@@ -16,7 +16,7 @@ export function LeafShape({
       <path
         d="M30 42C22 31 15 19 9 8"
         fill="none"
-        stroke="#FBF7EF"
+        stroke="#FFF8EF"
         strokeWidth="1.6"
         strokeLinecap="round"
         opacity="0.7"
@@ -27,7 +27,7 @@ export function LeafShape({
 
 export function DotShape({
   className = "",
-  color = "#F4B942",
+  color = "#F4C145",
 }: {
   className?: string;
   color?: string;
@@ -63,15 +63,15 @@ export function BrandBadge({ variant }: { variant: "leaf" | "bowl" | "dot" | "mi
           <path
             d="M24 37C19 29 15 21 11 14"
             fill="none"
-            stroke="#FBF7EF"
+            stroke="#FFF8EF"
             strokeWidth="1.3"
             strokeLinecap="round"
           />
-          <circle cx="35" cy="34" r="6" fill="#F4B942" />
+          <circle cx="35" cy="34" r="6" fill="#F4C145" />
         </>
       ) : variant === "bowl" ? (
         <>
-          <circle cx="24" cy="14" r="8" fill="#F4B942" />
+          <circle cx="24" cy="14" r="8" fill="#F4C145" />
           <path d="M6 24h36c0 10-8 18-18 18S6 34 6 24Z" fill="#E76F51" />
         </>
       ) : variant === "dot" ? (
@@ -82,7 +82,7 @@ export function BrandBadge({ variant }: { variant: "leaf" | "bowl" | "dot" | "mi
       ) : (
         <>
           <path d="M20 24C11 23 7 16 8 7c9 2 14 8 12 17Z" fill="#8FA88A" />
-          <circle cx="32" cy="13" r="7" fill="#F4B942" />
+          <circle cx="32" cy="13" r="7" fill="#F4C145" />
           <path d="M6 27h36c0 9-8 16-18 16S6 36 6 27Z" fill="#0E3B2E" />
         </>
       )}

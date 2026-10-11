@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Logo, LogoMark } from "@/components/brand/logo";
-import { TabBarShell, TopNavShell } from "@/components/layout/app-nav";
+import { SideNavShell, TabBarShell } from "@/components/layout/app-nav";
 import { RecipeCard } from "@/components/recipes/recipe-card";
 import { RecipeVisual } from "@/components/recipes/recipe-visual";
 import { CheckLine } from "@/components/shopping/check-line";
@@ -178,8 +178,8 @@ export default function DesignPreview() {
 
       <section className="flex flex-col gap-4">
         <h2 className="type-section">Navigation</h2>
-        <div className="bg-surface border-border rounded-2xl border p-3">
-          <TopNavShell pathname="/planner" />
+        <div className="bg-surface border-border max-w-64 rounded-2xl border p-3">
+          <SideNavShell pathname="/planner" />
         </div>
         <div className="relative h-24 max-w-md overflow-hidden rounded-2xl border [&_nav]:absolute [&_nav]:!block">
           <TabBarShell pathname="/shopping" />

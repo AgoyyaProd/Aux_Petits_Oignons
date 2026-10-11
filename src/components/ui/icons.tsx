@@ -201,3 +201,10 @@ export const GaugeIcon = (p: IconProps) => (
     <path d="M4 16h2M18 16h2" />
   </svg>
 );
+export const MoreIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <circle cx="12" cy="5.5" r="1.1" fill="currentColor" />
+    <circle cx="12" cy="12" r="1.1" fill="currentColor" />
+    <circle cx="12" cy="18.5" r="1.1" fill="currentColor" />
+  </svg>
+);

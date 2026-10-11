@@ -69,7 +69,7 @@ async function PlannerContent({ searchParams }: Pick<PageProps<"/planner">, "sea
     <div className="flex flex-col gap-7">
       <header className="flex flex-wrap items-end justify-between gap-5">
         <div className="flex flex-col gap-3">
-          <h1 className="type-page">Menu de la semaine</h1>
+          <h1 className="type-page">Mon menu de la semaine</h1>
           <WeekNav page={page} />
         </div>
         {base ? (
@@ -286,23 +286,66 @@ function Summary({ page }: { page: PlannerPage }) {
 }
 
 /**
- * La semaine : une colonne par jour sur ordinateur (midi en haut, soir en bas), une liste
- * chronologique sur téléphone. Un seul DOM, deux mises en page.
+ * La semaine : sur ordinateur, une grille « Déjeuner / Dîner × 7 jours » ; sur téléphone,
+ * une liste chronologique précédée de pastilles de jours. Un seul DOM, deux mises en page :
+ * chaque jour devient `display: contents` sur ordinateur et ses cases se rangent dans la
+ * colonne du jour.
  */
 function WeekGrid({ page, base }: { page: PlannerPage; base: Base }) {
   const days = [...new Set(page.slots.map((s) => s.day))];
   const unplaced = page.entries.filter((e) => !e.day);
   return (
     <section aria-label="Repas de la semaine" className="flex flex-col gap-6">
-      <ol className="grid gap-6 lg:grid-cols-7 lg:gap-3">
-        {days.map((day) => {
+      <nav aria-label="Aller au jour" className="-mx-4 overflow-x-auto px-4 lg:hidden">
+        <ul className="flex gap-2">
+          {days.map((day) => {
+            const isToday = day === page.today;
+            return (
+              <li key={day} className="shrink-0">
+                <a
+                  href={`#jour-${day}`}
+                  className={[
+                    "flex min-h-14 w-12 flex-col items-center justify-center rounded-xl border text-xs font-semibold",
+                    isToday
+                      ? "border-accent bg-accent-soft text-accent-strong"
+                      : "border-border bg-surface",
+                  ].join(" ")}
+                >
+                  {formatDay(day).split(" ")[0]!.slice(0, 3)}
+                  <span className="font-display text-lg leading-none">
+                    {day.slice(8).replace(/^0/, "")}
+                  </span>
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+      <ol className="grid gap-6 lg:grid-cols-[5.5rem_repeat(7,minmax(0,1fr))] lg:gap-x-3 lg:gap-y-3">
+        <li aria-hidden="true" className="hidden lg:col-start-1 lg:row-start-1 lg:block" />
+        {(["lunch", "dinner"] as const).map((slot, i) => (
+          <li
+            key={slot}
+            aria-hidden="true"
+            className={`text-muted hidden pt-2 text-sm font-semibold lg:col-start-1 lg:block ${i === 0 ? "lg:row-start-2" : "lg:row-start-3"}`}
+          >
+            {slot === "lunch" ? "Déjeuner" : "Dîner"}
+          </li>
+        ))}
+        {days.map((day, column) => {
           const isToday = day === page.today;
           const past = day < page.today;
+          const col = { gridColumnStart: column + 2 };
           return (
-            <li key={day} className="flex flex-col gap-2.5">
+            <li
+              key={day}
+              id={`jour-${day}`}
+              className="flex scroll-mt-20 flex-col gap-2.5 lg:contents"
+            >
               <h2
+                style={col}
                 className={[
-                  "flex items-baseline gap-2 lg:flex-col lg:gap-0 lg:rounded-xl lg:px-3 lg:py-2",
+                  "flex items-baseline gap-2 lg:row-start-1 lg:flex-col lg:items-center lg:gap-0 lg:rounded-xl lg:px-3 lg:py-2",
                   isToday ? "text-accent-strong lg:bg-accent-soft" : "",
                   past && !isToday ? "text-muted" : "",
                 ].join(" ")}
@@ -318,9 +361,13 @@ function WeekGrid({ page, base }: { page: PlannerPage; base: Base }) {
               {(["lunch", "dinner"] as const).map((slot) => {
                 const meals = page.entries.filter((e) => e.day === day && e.slot === slot);
                 return (
-                  <div key={slot} className="flex flex-col gap-1.5">
-                    <span className="text-muted text-xs font-semibold">
-                      {slot === "lunch" ? "Midi" : "Soir"}
+                  <div
+                    key={slot}
+                    style={col}
+                    className={`flex flex-col gap-1.5 ${slot === "lunch" ? "lg:row-start-2" : "lg:row-start-3"}`}
+                  >
+                    <span className="text-muted text-xs font-semibold lg:sr-only">
+                      {slot === "lunch" ? "Déjeuner" : "Dîner"}
                     </span>
                     {meals.length ? (
                       meals.map((m) => (
@@ -332,10 +379,10 @@ function WeekGrid({ page, base }: { page: PlannerPage; base: Base }) {
                         fields={{ ...base, key: page.newKey(), slot: `${day}:${slot}` }}
                         label={`Proposer un plat pour ${formatDay(day)} ${slot === "lunch" ? "midi" : "soir"}`}
                         pendingLabel="…"
-                        className="border-border-strong text-muted hover:border-brand hover:text-brand flex min-h-14 w-full items-center justify-center gap-1.5 rounded-xl border border-dashed text-sm font-medium transition-colors lg:min-h-24"
+                        className="border-border-strong text-muted hover:border-accent hover:text-accent-strong bg-surface/60 flex min-h-14 w-full items-center justify-center gap-1.5 rounded-xl border border-dashed text-sm font-medium transition-colors lg:min-h-40 lg:flex-col"
                       >
-                        <PlusIcon size={16} />
-                        Ajouter
+                        <PlusIcon size={20} />
+                        <span className="lg:sr-only">Ajouter</span>
                       </PlanActionButton>
                     )}
                   </div>

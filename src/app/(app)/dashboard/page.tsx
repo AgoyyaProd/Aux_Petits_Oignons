@@ -4,7 +4,6 @@ import { Suspense, type ReactNode } from "react";
 import { RecipeVisual } from "@/components/recipes/recipe-visual";
 import { Badge, type BadgeTone } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";
-import { BrandBadge, DotShape, LeafShape } from "@/components/brand/shapes";
 import {
   ArrowRightIcon,
   BasketIcon,
@@ -16,6 +15,9 @@ import {
 import { formatCents } from "@/domain/money";
 import { expiryState } from "@/domain/pantry/priority";
 import { formatLongDate, hourIn } from "@/lib/dates";
+import { formatShoppingQuantity } from "@/lib/format-quantity";
+import { ImageSlot } from "@/components/ui/image-slot";
+import { ingredientImage } from "@/lib/images";
 import { formatDay } from "@/lib/week";
 import { getCurrentContext } from "@/server/modules/auth/session";
 import { getPantry } from "@/server/modules/pantry/queries";
@@ -38,33 +40,63 @@ export default function DashboardPage() {
         <Greeting />
       </Suspense>
 
-      <div className="grid gap-5 lg:grid-cols-[1.45fr_1fr]">
-        <Suspense fallback={<Block className="h-72" />}>
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <Suspense fallback={<Block className="h-80" />}>
           <Today />
         </Suspense>
-        <div className="flex flex-col gap-5">
-          <Suspense fallback={<Block className="h-32" />}>
-            <Shopping />
-          </Suspense>
-          <Suspense fallback={<Block className="h-32" />}>
-            <Budget />
-          </Suspense>
-        </div>
+        <Suspense fallback={<Block className="h-80" />}>
+          <Shopping />
+        </Suspense>
+        <Suspense fallback={<Block className="h-80" />}>
+          <UseSoon />
+        </Suspense>
       </div>
 
       <Suspense fallback={<Block className="h-40" />}>
         <Week />
       </Suspense>
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_1.45fr] lg:gap-10">
-        <Suspense fallback={<Block className="h-48" />}>
-          <UseSoon />
+      <div className="grid gap-8 lg:grid-cols-[1fr_1.6fr] lg:gap-10">
+        <Suspense fallback={<Block className="h-40" />}>
+          <Budget />
         </Suspense>
         <Suspense fallback={<Block className="h-48" />}>
           <Suggestions />
         </Suspense>
       </div>
     </div>
+  );
+}
+
+/** Carte du tableau de bord : titre en serif, lien « Voir » en haut à droite. */
+function Card({
+  title,
+  href,
+  link,
+  children,
+  id,
+}: {
+  title: string;
+  href: string;
+  link: string;
+  children: ReactNode;
+  id: string;
+}) {
+  return (
+    <section
+      aria-labelledby={id}
+      className="bg-surface border-border flex flex-col gap-4 rounded-2xl border p-5 shadow-sm"
+    >
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 id={id} className="type-section text-[1.1875rem]">
+          {title}
+        </h2>
+        <Link href={href} className="text-brand shrink-0 text-sm font-semibold hover:underline">
+          {link}
+        </Link>
+      </div>
+      {children}
+    </section>
   );
 }
 
@@ -102,17 +134,31 @@ async function Greeting() {
   const hello = hour >= 18 || hour < 5 ? "Bonsoir" : "Bonjour";
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(new Date());
   return (
-    <header className="bg-surface-muted relative grid gap-6 overflow-hidden rounded-3xl p-6 sm:p-8 lg:grid-cols-[1fr_auto] lg:items-end">
-      <LeafShape className="absolute -top-2 right-24 w-16 -rotate-12 opacity-90 max-sm:right-16 max-sm:w-12" />
-      <DotShape className="absolute -top-6 -right-6 w-28 max-sm:w-20" />
-      <div className="relative flex flex-col gap-2">
-        <p className="text-muted text-sm font-medium">{formatLongDate(today)}</p>
-        <h1 className="type-page text-forest dark:text-foreground">
-          {hello}
-          {profile.displayName ? ` ${profile.displayName}` : ""} !
-        </h1>
-        <p className="text-muted">Que cuisine-t-on aujourd&apos;hui ?</p>
-        <form action="/recipes" role="search" className="relative mt-2 max-w-xl">
+    <header className="flex flex-col gap-5">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div className="flex flex-col gap-1.5">
+          <p className="text-muted text-sm font-medium first-letter:uppercase">
+            {formatLongDate(today)}
+          </p>
+          <h1 className="type-page text-forest dark:text-foreground">
+            {hello}
+            {profile.displayName ? ` ${profile.displayName}` : ""} !
+          </h1>
+          <p className="text-muted">Que cuisine-t-on aujourd&apos;hui ?</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/pantry/new" className={buttonClasses("secondary")}>
+            <PlusIcon size={18} />
+            Ajouter au garde-manger
+          </Link>
+          <Link href="/planner" className={buttonClasses("primary")}>
+            Mon menu
+            <ArrowRightIcon size={18} />
+          </Link>
+        </div>
+      </div>
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+        <form action="/recipes" role="search" className="relative w-full lg:max-w-md">
           <label htmlFor="dash-search" className="sr-only">
             Rechercher une recette
           </label>
@@ -128,45 +174,35 @@ async function Greeting() {
             className="bg-surface border-border focus-visible:border-forest min-h-12 w-full rounded-full border pr-4 pl-11 text-base outline-none"
           />
         </form>
-        <ul className="mt-3 flex gap-4 overflow-x-auto pb-1" aria-label="Idées rapides">
+        <ul
+          className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:px-0 lg:pb-0"
+          aria-label="Idées rapides"
+        >
           {QUICK.map((q) => (
             <li key={q.href} className="shrink-0">
               <Link
                 href={q.href}
-                className="flex w-20 flex-col items-center gap-1.5 text-center text-xs font-medium"
+                className="border-border bg-surface hover:border-border-strong inline-flex min-h-10 items-center rounded-full border px-4 text-sm font-medium"
               >
-                <span className={`flex size-14 items-center justify-center rounded-full ${q.bg}`}>
-                  <BrandBadge variant={q.badge} />
-                </span>
                 {q.label}
               </Link>
             </li>
           ))}
         </ul>
       </div>
-      <div className="relative flex flex-wrap gap-2">
-        <Link href="/pantry/new" className={buttonClasses("secondary")}>
-          <PlusIcon size={18} />
-          Ajouter au garde-manger
-        </Link>
-        <Link href="/planner" className={buttonClasses("primary")}>
-          Mon menu
-          <ArrowRightIcon size={18} />
-        </Link>
-      </div>
     </header>
   );
 }
 
 const QUICK = [
-  { href: "/recipes?temps=30", label: "Rapide", badge: "bowl", bg: "bg-highlight-soft" },
-  { href: "/recipes?regime=vegetarian", label: "Végétarien", badge: "leaf", bg: "bg-leaf-soft" },
-  { href: "/recipes?budget=1", label: "Petit budget", badge: "dot", bg: "bg-accent-soft" },
-  { href: "/recipes?stock=1", label: "Avec mon stock", badge: "mix", bg: "bg-surface" },
-  { href: "/recipes?vite=1", label: "À finir", badge: "leaf", bg: "bg-accent-soft" },
+  { href: "/recipes?temps=30", label: "Rapide" },
+  { href: "/recipes?regime=vegetarian", label: "Végétarien" },
+  { href: "/recipes?budget=1", label: "Petit budget" },
+  { href: "/recipes?stock=1", label: "Avec mon stock" },
+  { href: "/recipes?vite=1", label: "À finir" },
 ] as const;
 
-/** Repas d'aujourd'hui : le moment fort de l'écran, sur fond vert forêt. */
+/** Menu du jour : les repas placés aujourd'hui, avec le visuel du plat principal. */
 async function Today() {
   const page = await getPlannerPage({});
   if (!page) return null;
@@ -174,80 +210,68 @@ async function Today() {
   if (!page.plan || meals.length === 0) {
     const next = page.entries.find((e) => !e.cooked && e.day && e.day > page.today);
     return (
-      <section
-        aria-label="Aujourd'hui"
-        className="bg-forest text-cream flex min-h-64 flex-col justify-between gap-6 rounded-2xl p-6 sm:p-8"
-      >
-        <div className="flex flex-col gap-3">
-          <h2 className="type-page">
-            {page.plan ? "Rien de prévu aujourd'hui" : "Ta semaine n'est pas encore prévue"}
-          </h2>
-          <p className="max-w-md text-[#d8e2da]">
-            {page.plan
-              ? next
-                ? `Prochain repas : ${next.title}, ${formatDay(next.day!).toLowerCase()}.`
-                : "Place un plat sur aujourd'hui depuis le menu de la semaine."
-              : "Indique le nombre de repas, de personnes et ton budget : on te propose des plats qui utilisent d'abord ce que tu as."}
-          </p>
-        </div>
-        <Link
-          href="/planner"
-          className={buttonClasses("secondary", "self-start border-transparent")}
-        >
+      <Card id="jour" title="Menu du jour" href="/planner" link="Voir">
+        <ImageSlot alt="" className="aspect-[16/9] rounded-xl" tone="sage" />
+        <p className="font-semibold">
+          {page.plan ? "Rien de prévu aujourd'hui" : "Ta semaine n'est pas encore prévue"}
+        </p>
+        <p className="text-muted text-sm leading-relaxed">
+          {page.plan
+            ? next
+              ? `Prochain repas : ${next.title}, ${formatDay(next.day!).toLowerCase()}.`
+              : "Place un plat sur aujourd'hui depuis le menu de la semaine."
+            : "Indique le nombre de repas, de personnes et ton budget : on te propose des plats qui utilisent d'abord ce que tu as."}
+        </p>
+        <Link href="/planner" className={buttonClasses("primary", "mt-auto self-start")}>
           {page.plan ? "Ouvrir le menu" : "Générer mon menu"}
         </Link>
-      </section>
+      </Card>
     );
   }
   const main = meals.find((m) => m.slot === "dinner" && !m.cooked) ?? meals[0]!;
   return (
-    <section
-      aria-label="Aujourd'hui"
-      className="bg-forest text-cream grid overflow-hidden rounded-2xl sm:grid-cols-[1fr_0.85fr]"
-    >
-      <div className="flex flex-col gap-5 p-6 sm:p-8">
-        <h2 className="text-ocre text-sm font-semibold">Aujourd&apos;hui</h2>
-        <ul className="flex flex-col gap-5">
-          {meals.map((m) => (
-            <li key={m.position} className="flex flex-col gap-1.5">
-              <span className="text-sm text-[#b9cbb1]">{m.slot === "lunch" ? "Midi" : "Soir"}</span>
-              {m.slug ? (
-                <Link
-                  href={`/recipes/${m.slug}`}
-                  className="font-display text-2xl leading-tight font-semibold hover:underline sm:text-[1.75rem]"
-                >
-                  {m.title}
-                </Link>
-              ) : (
-                <span className="font-display text-2xl font-semibold">{m.title}</span>
-              )}
-              <span className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[#d8e2da]">
-                {m.totalMinutes !== null ? (
-                  <span className="inline-flex items-center gap-1.5">
-                    <ClockIcon size={16} /> {m.totalMinutes} min
-                  </span>
-                ) : null}
-                <span>
-                  {m.servings} portion{m.servings > 1 ? "s" : ""}
+    <Card id="jour" title="Menu du jour" href="/planner" link="Voir">
+      <RecipeVisual
+        slug={main.slug ?? main.title}
+        title={main.title}
+        className="aspect-[16/9] rounded-xl"
+      />
+      <ul className="flex flex-col gap-3">
+        {meals.map((m) => (
+          <li key={m.position} className="flex flex-col gap-0.5">
+            <span className="text-accent-strong text-xs font-semibold tracking-wide uppercase">
+              {m.slot === "lunch" ? "Déjeuner" : "Dîner"}
+            </span>
+            {m.slug ? (
+              <Link href={`/recipes/${m.slug}`} className="type-card hover:underline">
+                {m.title}
+              </Link>
+            ) : (
+              <span className="type-card">{m.title}</span>
+            )}
+            <span className="text-muted flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+              {m.totalMinutes !== null ? (
+                <span className="inline-flex items-center gap-1">
+                  <ClockIcon size={15} /> {m.totalMinutes} min
                 </span>
-                {m.cooked ? <Badge tone="leaf">Cuisiné</Badge> : null}
+              ) : null}
+              <span>
+                {m.servings} portion{m.servings > 1 ? "s" : ""}
               </span>
-            </li>
-          ))}
-        </ul>
-        {main.slug && !main.cooked ? (
-          <Link
-            href={`/recipes/${main.slug}`}
-            className={buttonClasses("accent", "dark:text-forest mt-auto self-start")}
-          >
-            Cuisiner {meals.length > 1 ? "le plat du soir" : "ce plat"}
-          </Link>
-        ) : null}
-      </div>
-      <div className="hidden min-h-56 sm:block">
-        <RecipeVisual slug={main.slug ?? main.title} title={main.title} tags={main.tags} />
-      </div>
-    </section>
+              {m.cooked ? <Badge tone="leaf">Cuisiné</Badge> : null}
+            </span>
+          </li>
+        ))}
+      </ul>
+      {main.slug && !main.cooked ? (
+        <Link
+          href={`/recipes/${main.slug}`}
+          className={buttonClasses("primary", "mt-auto self-start")}
+        >
+          Cuisiner {meals.length > 1 ? "le plat du soir" : "ce plat"}
+        </Link>
+      ) : null}
+    </Card>
   );
 }
 
@@ -255,63 +279,75 @@ async function Shopping() {
   const page = await getShoppingPage();
   if (!page || !page.plan || !("totals" in page)) {
     return (
-      <Link
-        href="/shopping"
-        className="bg-surface border-border hover:border-border-strong flex items-center gap-4 rounded-2xl border p-5"
-      >
-        <span className="bg-highlight-soft text-warning flex size-11 shrink-0 items-center justify-center rounded-full">
+      <Card id="liste" title="Ma liste de courses" href="/shopping" link="Voir">
+        <span className="bg-highlight-soft text-warning flex size-11 items-center justify-center rounded-full">
           <BasketIcon size={22} />
         </span>
-        <span className="flex flex-col">
-          <span className="font-semibold">Liste de courses</span>
-          <span className="text-muted text-sm">Elle se remplit dès que le menu est prêt.</span>
-        </span>
-      </Link>
+        <p className="text-muted text-sm">Elle se remplit dès que le menu est prêt.</p>
+      </Card>
     );
   }
   const { totals } = page;
   const done = Boolean(page.plan.shoppingDoneAt);
   const ratio = totals.lines ? totals.checked / totals.lines : 1;
+  const remaining = page.aisles
+    .flatMap((a) => a.lines)
+    .filter((l) => !l.checked)
+    .slice(0, 5);
   return (
-    <Link
-      href="/shopping"
-      className="bg-accent-soft hover:bg-peach flex flex-col gap-3 rounded-2xl p-5 transition-colors"
-    >
-      <span className="flex items-center justify-between gap-3">
-        <span className="flex items-center gap-2 font-semibold">
-          <BasketIcon size={20} /> Courses
-        </span>
-        {done ? <Badge tone="leaf">Faites</Badge> : null}
-      </span>
+    <Card id="liste" title="Ma liste de courses" href="/shopping" link="Voir">
       {done ? (
-        <span className="text-sm">Marque tes plats « Cuisiné » depuis leur recette.</span>
+        <>
+          <Badge tone="leaf">Courses faites</Badge>
+          <p className="text-sm">Marque tes plats « Cuisiné » depuis leur recette.</p>
+        </>
       ) : totals.lines === 0 ? (
-        <span className="text-sm">Rien à acheter : tout est déjà chez toi.</span>
+        <p className="text-sm">Rien à acheter : tout est déjà chez toi.</p>
       ) : (
         <>
           <span className="flex items-baseline gap-2">
             <span className="font-display text-3xl font-semibold">
               {totals.lines - totals.checked}
             </span>
-            <span className="text-sm">
-              article{totals.lines - totals.checked > 1 ? "s" : ""} à acheter, environ{" "}
-              {totals.unpriced ? "au moins " : ""}
-              {formatCents(totals.knownCents)}
+            <span className="text-muted text-sm">
+              article{totals.lines - totals.checked > 1 ? "s" : ""} à acheter
             </span>
           </span>
-          <span
-            role="img"
-            aria-label={`${totals.checked} sur ${totals.lines} dans le panier`}
-            className="bg-surface/70 h-2 overflow-hidden rounded-full"
-          >
+          {remaining.length ? (
+            <ul className="divide-border flex flex-col divide-y text-sm">
+              {remaining.map((l) => (
+                <li
+                  key={`${l.ingredientId}|${l.dimension}`}
+                  className="flex items-center justify-between gap-3 py-2"
+                >
+                  <span className="truncate">{l.name}</span>
+                  <span className="text-muted shrink-0">{formatShoppingQuantity(l.toBuy)}</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          <div className="mt-auto flex flex-col gap-2">
+            <span className="flex items-center justify-between text-sm">
+              <span className="text-muted">Total estimé</span>
+              <span className="font-semibold">
+                {totals.unpriced ? "≥ " : "≈ "}
+                {formatCents(totals.knownCents)}
+              </span>
+            </span>
             <span
-              className="bg-accent-strong block h-full rounded-full"
-              style={{ width: `${Math.round(ratio * 100)}%` }}
-            />
-          </span>
+              role="img"
+              aria-label={`${totals.checked} sur ${totals.lines} dans le panier`}
+              className="bg-surface-muted h-2 overflow-hidden rounded-full"
+            >
+              <span
+                className="bg-accent-strong block h-full rounded-full"
+                style={{ width: `${Math.round(ratio * 100)}%` }}
+              />
+            </span>
+          </div>
         </>
       )}
-    </Link>
+    </Card>
   );
 }
 
@@ -327,7 +363,7 @@ async function Budget() {
       className="bg-surface border-border hover:border-border-strong flex flex-col gap-3 rounded-2xl border p-5"
     >
       <span className="flex items-center gap-2 font-semibold">
-        <WalletIcon size={20} /> Budget de la semaine
+        <WalletIcon size={20} /> Mon budget de la semaine
       </span>
       <span className="flex items-baseline gap-2">
         <span className="font-display text-3xl font-semibold">
@@ -368,11 +404,11 @@ async function Week() {
   const days = [...new Set(page.slots.map((s) => s.day))];
   return (
     <section aria-labelledby="semaine" className="flex flex-col gap-4">
-      <SectionTitle href="/planner" link="Tout le menu">
-        <span id="semaine">Cette semaine</span>
+      <SectionTitle href="/planner" link="Voir le menu">
+        <span id="semaine">Ma semaine en un coup d&apos;œil</span>
       </SectionTitle>
       <div className="-mx-4 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
-        <ol className="grid min-w-[760px] grid-cols-7 gap-2">
+        <ol className="grid min-w-[840px] grid-cols-7 gap-3">
           {days.map((day) => {
             const meals = page.entries.filter((e) => e.day === day);
             const isToday = day === page.today;
@@ -380,21 +416,21 @@ async function Week() {
               <li
                 key={day}
                 className={[
-                  "flex min-h-32 flex-col gap-2 rounded-xl p-3",
-                  isToday ? "bg-brand text-brand-foreground" : "bg-surface border-border border",
+                  "bg-surface flex flex-col gap-2.5 rounded-xl border p-2.5",
+                  isToday ? "border-accent ring-accent/30 ring-2" : "border-border",
                   day < page.today && !isToday ? "opacity-70" : "",
                 ].join(" ")}
               >
-                <span className="text-sm font-semibold">
-                  {formatDay(day).replace(/ .*/, "").slice(0, 3)}{" "}
-                  <span className="font-display text-xl">{day.slice(8).replace(/^0/, "")}</span>
+                <span className="flex items-baseline justify-between px-0.5 text-sm font-semibold">
+                  <span>{formatDay(day).replace(/ .*/, "").slice(0, 3)}</span>
+                  <span className={isToday ? "text-accent-strong" : "text-muted"}>
+                    {day.slice(8).replace(/^0/, "")}
+                  </span>
                 </span>
                 {meals.length ? (
-                  meals.map((m) => <WeekMeal key={m.position} meal={m} inverted={isToday} />)
+                  meals.map((m) => <WeekMeal key={m.position} meal={m} />)
                 ) : (
-                  <span
-                    className={`text-xs ${isToday ? "text-brand-foreground/75" : "text-muted"}`}
-                  >
+                  <span className="bg-surface-muted text-muted grid aspect-[4/3] place-items-center rounded-lg text-xs">
                     Rien de prévu
                   </span>
                 )}
@@ -407,18 +443,31 @@ async function Week() {
   );
 }
 
-function WeekMeal({ meal, inverted }: { meal: PlannerEntryView; inverted: boolean }) {
-  return (
-    <span className="flex flex-col gap-0.5">
-      <span className={`text-[0.6875rem] ${inverted ? "text-brand-foreground/75" : "text-muted"}`}>
-        {meal.slot === "lunch" ? "Midi" : "Soir"}
+function WeekMeal({ meal }: { meal: PlannerEntryView }) {
+  const body = (
+    <>
+      <RecipeVisual
+        slug={meal.slug ?? meal.title}
+        title={meal.title}
+        className="aspect-[4/3] rounded-lg"
+        iconSize={18}
+      />
+      <span className="text-muted text-[0.6875rem] font-medium">
+        {meal.slot === "lunch" ? "Déjeuner" : "Dîner"}
       </span>
       <span
-        className={`text-[0.8125rem] leading-snug font-semibold ${meal.cooked ? "line-through opacity-60" : ""}`}
+        className={`line-clamp-2 text-[0.8125rem] leading-snug font-semibold ${meal.cooked ? "line-through opacity-60" : ""}`}
       >
         {meal.title}
       </span>
-    </span>
+    </>
+  );
+  return meal.slug ? (
+    <Link href={`/recipes/${meal.slug}`} className="flex flex-col gap-1 hover:underline">
+      {body}
+    </Link>
+  ) : (
+    <span className="flex flex-col gap-1">{body}</span>
   );
 }
 
@@ -447,10 +496,7 @@ async function UseSoon() {
   if (!pantry) return null;
   const urgent = pantry.items.filter((i) => i.priority);
   return (
-    <section aria-labelledby="vite" className="flex flex-col gap-4">
-      <SectionTitle href="/pantry" link="Garde-manger">
-        <span id="vite">À consommer vite</span>
-      </SectionTitle>
+    <Card id="vite" title="Produits à consommer" href="/pantry" link="Voir">
       {pantry.items.length === 0 ? (
         <p className="text-muted text-sm leading-relaxed">
           Ton garde-manger est vide. Ajoute ce que tu as : les menus utiliseront d&apos;abord ces
@@ -464,27 +510,32 @@ async function UseSoon() {
           Rien d&apos;urgent : aucune date limite proche, rien d&apos;entamé.
         </p>
       ) : (
-        <ul className="divide-border border-border bg-surface divide-y rounded-2xl border">
-          {urgent.slice(0, 6).map((item) => {
+        <ul className="divide-border flex flex-col divide-y">
+          {urgent.slice(0, 5).map((item) => {
             const b = expiryBadge(item, pantry.today);
             return (
-              <li
-                key={item.id}
-                className="flex min-h-13 items-center justify-between gap-3 px-4 py-2.5"
-              >
-                <span className="font-medium">{item.ingredientName}</span>
+              <li key={item.id} className="flex items-center gap-3 py-2.5">
+                <ImageSlot
+                  src={ingredientImage(item.ingredientId)}
+                  alt=""
+                  className="size-10 shrink-0 rounded-lg"
+                  iconSize={16}
+                />
+                <span className="min-w-0 flex-1 truncate text-sm font-medium">
+                  {item.ingredientName}
+                </span>
                 <Badge tone={b.tone}>{b.label}</Badge>
               </li>
             );
           })}
-          {urgent.length > 6 ? (
-            <li className="text-muted px-4 py-2.5 text-sm">
-              et {urgent.length - 6} autre{urgent.length - 6 > 1 ? "s" : ""}
+          {urgent.length > 5 ? (
+            <li className="text-muted py-2.5 text-sm">
+              et {urgent.length - 5} autre{urgent.length - 5 > 1 ? "s" : ""}
             </li>
           ) : null}
         </ul>
       )}
-    </section>
+    </Card>
   );
 }
 

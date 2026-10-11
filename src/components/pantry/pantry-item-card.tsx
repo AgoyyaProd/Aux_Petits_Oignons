@@ -5,12 +5,15 @@ import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
+import { MoreIcon } from "@/components/ui/icons";
+import { ImageSlot } from "@/components/ui/image-slot";
 import { SelectField } from "@/components/ui/select-field";
 import { expiryState } from "@/domain/pantry/priority";
 import { UNITS } from "@/domain/units";
 import { categoryLabel } from "@/lib/categories";
 import { formatShortDate } from "@/lib/dates";
 import { formatStockQuantity, unitsForDimension } from "@/lib/format-quantity";
+import { ingredientImage } from "@/lib/images";
 import { applyMovementAction, updateDetailsAction } from "@/server/modules/pantry/actions";
 import type { PantryItemView } from "@/server/modules/pantry/queries";
 import { LOCATION_LABEL, LOCATIONS, type PantryFormState } from "@/server/modules/pantry/schema";
@@ -35,6 +38,8 @@ export function PantryItemCard({
   initialKey: string;
 }) {
   const [mode, setMode] = useState<Mode>(null);
+  // Sur ordinateur, les actions se replient derrière le bouton « ⋮ » de la ligne.
+  const [open, setOpen] = useState(false);
   const [moveState, moveAction, movePending] = useActionState(applyMovementAction, initialState);
   const [detailsState, detailsAction, detailsPending] = useActionState(
     updateDetailsAction,
@@ -50,30 +55,66 @@ export function PantryItemCard({
   }));
   const lastMessage = mode === "details" ? detailsState : moveState;
 
+  const actionsOpen = open || mode !== null;
+
   return (
-    <li className="border-border bg-surface rounded-xl border p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <p className="truncate font-semibold">{item.ingredientName}</p>
-          <p className="text-sm">
-            <span className={unknown ? "text-muted italic" : "font-medium"}>
-              {formatStockQuantity(item.quantityBase, item.dimension, item.displayUnit)}
-            </span>
-            <span className="text-muted"> · {categoryLabel(item.category)}</span>
-          </p>
+    <li className="border-border bg-surface rounded-xl border p-3.5 lg:rounded-none lg:border-0 lg:px-4 lg:py-3">
+      <div className="flex items-center gap-3 lg:grid lg:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)_2.75rem] lg:gap-4">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <ImageSlot
+            src={ingredientImage(item.ingredientId)}
+            alt=""
+            className="size-12 shrink-0 rounded-lg"
+            iconSize={18}
+          />
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <p className="truncate font-semibold">{item.ingredientName}</p>
+            <p className="text-sm">
+              <span className={`lg:hidden ${unknown ? "text-muted italic" : "font-medium"}`}>
+                {formatStockQuantity(item.quantityBase, item.dimension, item.displayUnit)}
+                <span className="text-muted font-normal not-italic"> · </span>
+              </span>
+              <span className="text-muted">{categoryLabel(item.category)}</span>
+            </p>
+          </div>
         </div>
-        <ExpiryBadge item={item} today={today} />
+        <p className={`hidden text-sm lg:block ${unknown ? "text-muted italic" : "font-medium"}`}>
+          {formatStockQuantity(item.quantityBase, item.dimension, item.displayUnit)}
+        </p>
+        <div className="shrink-0 lg:min-w-0">
+          <ExpiryBadge item={item} today={today} />
+          {expiryState(item, today).kind === "none" && item.openedAt === null ? (
+            <span className="text-muted hidden text-sm lg:inline">—</span>
+          ) : null}
+        </div>
+        <p className="text-muted hidden text-sm lg:block">{LOCATION_LABEL[item.location]}</p>
+        <button
+          type="button"
+          aria-expanded={actionsOpen}
+          aria-label={`Actions pour ${item.ingredientName}`}
+          onClick={() => {
+            setOpen(!actionsOpen);
+            if (actionsOpen) setMode(null);
+          }}
+          className="text-muted hover:bg-surface-muted hover:text-foreground hidden size-10 items-center justify-center rounded-full lg:inline-flex"
+        >
+          <MoreIcon size={20} />
+        </button>
       </div>
 
       {lastMessage.message && mode === null ? (
-        <div className="mt-3">
+        <div className="mt-3 lg:ml-[3.75rem]">
           <Alert tone={lastMessage.status === "success" ? "success" : "error"}>
             {lastMessage.message}
           </Alert>
         </div>
       ) : null}
 
-      <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Actions">
+      <div
+        className={`mt-3 flex-wrap gap-2 lg:pl-[3.75rem] ${actionsOpen ? "flex" : "flex lg:hidden"}`}
+        role="group"
+        aria-label="Actions"
+      >
         {(Object.keys(MODE_LABEL) as Exclude<Mode, null>[]).map((m) => (
           <button
             key={m}
@@ -95,7 +136,7 @@ export function PantryItemCard({
       {mode === "consumption" || mode === "correction" || mode === "discard" ? (
         <form
           action={moveAction}
-          className="border-border mt-3 flex flex-col gap-3 border-t pt-3"
+          className="border-border mt-3 flex flex-col gap-3 border-t pt-3 lg:ml-[3.75rem] lg:max-w-xl"
           noValidate
         >
           <input type="hidden" name="itemId" value={item.id} />
@@ -154,7 +195,7 @@ export function PantryItemCard({
       {mode === "details" ? (
         <form
           action={detailsAction}
-          className="border-border mt-3 flex flex-col gap-3 border-t pt-3"
+          className="border-border mt-3 flex flex-col gap-3 border-t pt-3 lg:ml-[3.75rem] lg:max-w-xl"
         >
           <input type="hidden" name="itemId" value={item.id} />
           <input type="hidden" name="expectedVersion" value={item.version} />

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Suspense, type ReactNode } from "react";
+import { Suspense } from "react";
 import { CookButton } from "@/components/cooking/cook-button";
 import { AddToMenuButton } from "@/components/recipes/add-to-menu-button";
 import { CookMode } from "@/components/recipes/cook-mode";
@@ -11,7 +11,13 @@ import { FavoriteButton } from "@/components/recipes/favorite-button";
 import { RecipeVisual } from "@/components/recipes/recipe-visual";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeftIcon, ClockIcon, GaugeIcon, UsersIcon } from "@/components/ui/icons";
+import {
+  ChevronLeftIcon,
+  ClockIcon,
+  GaugeIcon,
+  UsersIcon,
+  WalletIcon,
+} from "@/components/ui/icons";
 import { DIFFICULTY_LABEL, DIFFICULTY_RULE } from "@/domain/recipes/difficulty";
 import { isInCurrentPlan } from "@/server/modules/planning/queries";
 import { PageSkeleton } from "@/components/ui/skeleton";
@@ -26,15 +32,6 @@ export const metadata: Metadata = { title: "Recette" };
 export default function RecipePage({ params }: PageProps<"/recipes/[slug]">) {
   return (
     <div className="flex flex-col gap-6">
-      <nav aria-label="Fil d'Ariane" className="text-muted flex items-center gap-1.5 text-sm">
-        <Link href="/dashboard" className="hover:text-foreground">
-          Accueil
-        </Link>
-        <ChevronLeftIcon size={14} className="rotate-180" />
-        <Link href="/recipes" className="hover:text-foreground">
-          Recettes
-        </Link>
-      </nav>
       <Suspense fallback={<PageSkeleton rows={4} />}>
         <RecipeContent params={params} />
       </Suspense>
@@ -51,12 +48,40 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
   const total = recipe.prepMinutes + recipe.cookMinutes;
   const [cook, inMenu] = await Promise.all([getCookStatus(recipe.id), isInCurrentPlan(recipe.id)]);
 
+  const perServing = recipe.cost ? Math.round(recipe.cost.cents / recipe.servings) : null;
+
   return (
     <article className="flex flex-col gap-10">
-      <header className="grid gap-6 lg:grid-cols-[1fr_1fr] lg:gap-12">
-        <div className="aspect-[4/3] overflow-hidden rounded-3xl">
-          <RecipeVisual slug={recipe.slug} title={recipe.title} tags={recipe.tags} />
-        </div>
+      <nav aria-label="Fil d'Ariane" className="text-muted -mb-4 text-sm">
+        <ol className="flex flex-wrap items-center gap-1.5">
+          <li>
+            <Link href="/dashboard" className="hover:text-foreground">
+              Accueil
+            </Link>
+          </li>
+          <li aria-hidden="true">
+            <ChevronLeftIcon size={14} className="rotate-180" />
+          </li>
+          <li>
+            <Link href="/recipes" className="hover:text-foreground">
+              Recettes
+            </Link>
+          </li>
+          <li aria-hidden="true">
+            <ChevronLeftIcon size={14} className="rotate-180" />
+          </li>
+          <li aria-current="page" className="text-foreground max-w-[16rem] truncate font-medium">
+            {recipe.title}
+          </li>
+        </ol>
+      </nav>
+      <header className="grid gap-6 lg:grid-cols-[1.1fr_1fr] lg:gap-12">
+        <RecipeVisual
+          slug={recipe.slug}
+          title={recipe.title}
+          className="aspect-[4/3] rounded-3xl"
+          iconSize={40}
+        />
         <div className="flex flex-col gap-5 lg:py-2">
           <h1 className="type-page">{recipe.title}</h1>
           <div className="flex flex-wrap gap-1.5">
@@ -74,30 +99,63 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
           {recipe.description ? (
             <p className="text-muted text-lg leading-relaxed">{recipe.description}</p>
           ) : null}
-          <ul className="text-muted flex flex-wrap gap-x-6 gap-y-2 text-sm">
-            <li className="inline-flex items-center gap-1.5">
-              <ClockIcon size={18} />
-              {total} min
-              <span className="sr-only">
-                (préparation {recipe.prepMinutes} min, cuisson {recipe.cookMinutes} min)
-              </span>
-            </li>
-            <li className="inline-flex items-center gap-1.5" title={DIFFICULTY_RULE}>
-              <GaugeIcon size={18} />
-              {DIFFICULTY_LABEL[recipe.difficulty]}
-            </li>
-            <li className="inline-flex items-center gap-1.5">
-              <UsersIcon size={18} />
-              {recipe.servings} personnes
-            </li>
-          </ul>
-          <p className="text-muted text-sm">
-            Préparation {recipe.prepMinutes} min
-            {recipe.cookMinutes > 0 ? `, cuisson ${recipe.cookMinutes} min` : ", sans cuisson"}.
-            {recipe.cost
-              ? ` Coût estimé ${recipe.cost.missingNames.length ? "minimum " : ""}${formatCents(recipe.cost.cents)}, soit ${formatCents(Math.round(recipe.cost.cents / recipe.servings))} la part${recipe.cost.missingNames.length ? ` (sans prix : ${recipe.cost.missingNames.join(", ")})` : ""}.`
-              : " Coût non estimé : aucun prix connu."}
-          </p>
+          <section
+            aria-labelledby="infos"
+            className="bg-surface border-border flex flex-col gap-3 rounded-2xl border p-4"
+          >
+            <h2 id="infos" className="text-sm font-semibold">
+              Informations
+            </h2>
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-4">
+              <div className="flex flex-col gap-0.5">
+                <dt className="text-muted inline-flex items-center gap-1.5">
+                  <ClockIcon size={16} /> Temps total
+                </dt>
+                <dd className="font-semibold">
+                  {total} min
+                  <span className="text-muted block text-xs font-normal">
+                    Prépa {recipe.prepMinutes} min
+                    {recipe.cookMinutes > 0
+                      ? `, cuisson ${recipe.cookMinutes} min`
+                      : ", sans cuisson"}
+                  </span>
+                </dd>
+              </div>
+              <div className="flex flex-col gap-0.5" title={DIFFICULTY_RULE}>
+                <dt className="text-muted inline-flex items-center gap-1.5">
+                  <GaugeIcon size={16} /> Difficulté
+                </dt>
+                <dd className="font-semibold">{DIFFICULTY_LABEL[recipe.difficulty]}</dd>
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <dt className="text-muted inline-flex items-center gap-1.5">
+                  <UsersIcon size={16} /> Portions
+                </dt>
+                <dd className="font-semibold">{recipe.servings} personnes</dd>
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <dt className="text-muted inline-flex items-center gap-1.5">
+                  <WalletIcon size={16} /> Coût estimé
+                </dt>
+                <dd className="font-semibold">
+                  {recipe.cost && perServing !== null ? (
+                    <>
+                      {recipe.cost.missingNames.length ? "≥ " : "≈ "}
+                      {formatCents(perServing)}
+                      <span className="text-muted font-normal"> la part</span>
+                    </>
+                  ) : (
+                    <span className="text-muted font-normal">Non estimé</span>
+                  )}
+                </dd>
+              </div>
+            </dl>
+            <p className="text-muted text-xs leading-relaxed">
+              {recipe.cost
+                ? `Total ${recipe.cost.missingNames.length ? "minimum " : ""}${formatCents(recipe.cost.cents)} pour la recette${recipe.cost.missingNames.length ? ` (sans prix : ${recipe.cost.missingNames.join(", ")})` : ""}.`
+                : "Aucun prix connu pour ces ingrédients."}
+            </p>
+          </section>
           {!recipe.exclusionLabel ? (
             <div className="flex flex-wrap items-start gap-3">
               <AddToMenuButton recipeId={recipe.id} variant="primary" />

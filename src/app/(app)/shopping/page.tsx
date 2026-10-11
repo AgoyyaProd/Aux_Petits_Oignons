@@ -12,6 +12,7 @@ import {
   CheckIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  PlusIcon,
 } from "@/components/ui/icons";
 import { PageSkeleton } from "@/components/ui/skeleton";
 import { formatCents } from "@/domain/money";
@@ -67,13 +68,25 @@ async function ShoppingContent({ searchParams }: Pick<PageProps<"/shopping">, "s
                 name="lines"
                 value={JSON.stringify(lines.map((l) => ({ i: l.ingredientId, d: l.dimension })))}
               />
-              <button type="submit" className={buttonClasses("ghost")}>
+              <button type="submit" className={buttonClasses("secondary")}>
                 <CheckIcon size={18} />
-                Tout cocher
+                Cocher les achats
+                <span className="text-muted tabular-nums">
+                  (
+                  {lines.filter((l) => l.checked).length +
+                    page.extras.filter((e) => e.checked).length}
+                  /{lines.length + page.extras.length})
+                </span>
               </button>
             </form>
           ) : null}
           {lines.length + page.extras.length > 0 ? <ExportListButton text={exportText} /> : null}
+          {page.isCurrentWeek ? (
+            <a href="#ajouts" className={buttonClasses("primary")}>
+              <PlusIcon size={18} />
+              Ajouter un produit
+            </a>
+          ) : null}
         </div>
       </header>
 
@@ -152,8 +165,12 @@ function WeekNav({ page }: { page: ShoppingPage }) {
 
 function Extras({ extras }: { extras: Extra[] }) {
   return (
-    <section aria-labelledby="ajouts" className="flex flex-col gap-2">
-      <h2 id="ajouts" className="flex items-baseline justify-between gap-3">
+    <section
+      id="ajouts"
+      aria-labelledby="ajouts-titre"
+      className="flex scroll-mt-24 flex-col gap-2"
+    >
+      <h2 id="ajouts-titre" className="flex items-baseline justify-between gap-3">
         <span className="text-lg font-semibold">Ajouts</span>
         <span className="text-muted text-sm">hors menu, quantités telles que saisies</span>
       </h2>
@@ -213,9 +230,12 @@ function ListView({ page, byRecipe }: { page: ListPage; byRecipe: boolean }) {
               <span className="text-sm font-semibold">
                 {totals.checked}/{totals.lines} dans le panier
               </span>
-              <span className="font-display text-lg font-semibold lg:text-2xl">
-                {totals.unpriced ? "≥ " : "≈ "}
-                {formatCents(totals.knownCents)}
+              <span className="flex items-baseline gap-2">
+                <span className="text-muted text-sm">Total estimé</span>
+                <span className="font-display text-lg font-semibold lg:text-2xl">
+                  {totals.unpriced ? "≥ " : "≈ "}
+                  {formatCents(totals.knownCents)}
+                </span>
               </span>
               <span className="text-muted hidden text-sm lg:inline">
                 Estimation pour {plan.mealCount} plat{plan.mealCount > 1 ? "s" : ""} ({plan.people}{" "}
@@ -293,13 +313,18 @@ function ListView({ page, byRecipe }: { page: ListPage; byRecipe: boolean }) {
           Ton garde-manger et ton placard couvrent tout le menu.
         </EmptyState>
       ) : (
-        <div className="gap-6 lg:columns-2 xl:columns-3">
+        <div className="flex flex-col gap-6">
+          <div
+            aria-hidden="true"
+            className="text-muted hidden grid-cols-[2.75rem_minmax(0,1fr)_9rem_7rem] gap-4 px-4 text-xs font-semibold tracking-wide uppercase lg:grid"
+          >
+            <span />
+            <span>Produit</span>
+            <span className="text-right">Quantité</span>
+            <span className="text-right">Prix estimé</span>
+          </div>
           {groups.map((group) => (
-            <section
-              key={group.key}
-              aria-label={group.label}
-              className="mb-6 flex break-inside-avoid flex-col gap-2"
-            >
+            <section key={group.key} aria-label={group.label} className="flex flex-col gap-2">
               <h2 className="flex items-baseline justify-between gap-3">
                 <span className="text-lg font-semibold">{group.label}</span>
                 <span className="text-muted text-sm">
@@ -315,24 +340,36 @@ function ListView({ page, byRecipe }: { page: ListPage; byRecipe: boolean }) {
                       dimension={line.dimension}
                       checked={line.checked}
                     >
-                      <span className="flex items-baseline justify-between gap-3">
-                        <span className="item-name text-base font-semibold">{line.name}</span>
-                        <span className="shrink-0 text-base font-semibold tabular-nums">
+                      <span className="flex flex-col gap-0.5 lg:grid lg:grid-cols-[minmax(0,1fr)_9rem_7rem] lg:items-center lg:gap-4">
+                        <span className="flex min-w-0 flex-col gap-0.5">
+                          <span className="flex items-baseline justify-between gap-3">
+                            <span className="item-name text-base font-semibold">{line.name}</span>
+                            <span className="shrink-0 text-base font-semibold tabular-nums lg:hidden">
+                              {formatShoppingQuantity(line.toBuy)}
+                            </span>
+                          </span>
+                          <span className="text-muted flex justify-between gap-3 text-sm">
+                            <span className="min-w-0 truncate">
+                              {line.fromStock.milli > 0
+                                ? `${formatShoppingQuantity(line.fromStock)} déjà chez toi, `
+                                : ""}
+                              {byRecipe
+                                ? line.recipes.length > 1
+                                  ? `aussi pour ${line.recipes.slice(1).join(", ")}`
+                                  : ""
+                                : line.recipes.join(", ")}
+                            </span>
+                            <span className="shrink-0 lg:hidden">
+                              {line.cents !== null ? `≈ ${formatCents(line.cents)}` : "sans prix"}
+                            </span>
+                          </span>
+                        </span>
+                        <span className="hidden text-right font-semibold tabular-nums lg:block">
                           {formatShoppingQuantity(line.toBuy)}
                         </span>
-                      </span>
-                      <span className="text-muted flex justify-between gap-3 text-sm">
-                        <span className="min-w-0 truncate">
-                          {line.fromStock.milli > 0
-                            ? `${formatShoppingQuantity(line.fromStock)} déjà chez toi, `
-                            : ""}
-                          {byRecipe
-                            ? line.recipes.length > 1
-                              ? `aussi pour ${line.recipes.slice(1).join(", ")}`
-                              : ""
-                            : line.recipes.join(", ")}
-                        </span>
-                        <span className="shrink-0">
+                        <span
+                          className={`hidden text-right tabular-nums lg:block ${line.cents === null ? "text-muted text-sm" : "font-medium"}`}
+                        >
                           {line.cents !== null ? `≈ ${formatCents(line.cents)}` : "sans prix"}
                         </span>
                       </span>

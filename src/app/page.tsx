@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 import { Logo, LogoMark } from "@/components/brand/logo";
 import { BrandBadge, DotShape, LeafShape } from "@/components/brand/shapes";
 import { RecipeVisual } from "@/components/recipes/recipe-visual";
+import { ImageSlot } from "@/components/ui/image-slot";
+import { SITE_IMAGES } from "@/lib/images";
 import { buttonClasses } from "@/components/ui/button";
 import {
   ArrowRightIcon,
@@ -57,11 +59,11 @@ export default function HomePage() {
           ))}
         </nav>
         <div className="flex items-center gap-2">
-          <Link href="/signup" className={buttonClasses("ghost", "max-sm:hidden")}>
-            Créer un compte
-          </Link>
-          <Link href="/login" className={buttonClasses("forest")}>
+          <Link href="/login" className={buttonClasses("secondary")}>
             Se connecter
+          </Link>
+          <Link href="/signup" className={buttonClasses("forest", "max-sm:hidden")}>
+            Créer un compte
           </Link>
         </div>
       </header>
@@ -99,7 +101,7 @@ export default function HomePage() {
             </div>
             <div className="relative min-h-80 lg:min-h-[32rem]">
               <div className="absolute inset-0 lg:left-16">
-                <RecipeVisual slug="ratatouille" title="Légumes rôtis" tags={["plat"]} />
+                <ImageSlot src={SITE_IMAGES.hero} alt="" tone="sage" iconSize={48} />
               </div>
               <LeafShape className="absolute top-10 left-2 hidden w-24 -rotate-12 lg:block" />
               <DotShape className="absolute top-6 right-[38%] w-20 lg:w-24" />

@@ -3,32 +3,43 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ComponentType, SVGProps } from "react";
-import { BasketIcon, BookIcon, CalendarIcon, HomeIcon, UserIcon } from "@/components/ui/icons";
+import {
+  BasketIcon,
+  BookIcon,
+  CalendarIcon,
+  HomeIcon,
+  PantryIcon,
+  SettingsIcon,
+  UserIcon,
+  WalletIcon,
+} from "@/components/ui/icons";
 
 type Icon = ComponentType<SVGProps<SVGSVGElement> & { size?: number }>;
 interface NavItem {
   href: string;
   label: string;
-  /** Autres chemins qui activent l'onglet (ex. le garde-manger sous « Profil » sur téléphone). */
+  icon: Icon;
+  /** Autres chemins qui activent l'entrée (ex. le garde-manger sous « Profil » sur téléphone). */
   also?: readonly string[];
 }
 
-/** Barre du haut (ordinateur) : les rubriques de l'application, dans l'ordre d'usage. */
-export const TOP: readonly NavItem[] = [
-  { href: "/dashboard", label: "Accueil" },
-  { href: "/recipes", label: "Recettes" },
-  { href: "/planner", label: "Menu" },
-  { href: "/shopping", label: "Courses" },
-  { href: "/pantry", label: "Garde-manger" },
-  { href: "/budget", label: "Budget" },
+/** Barre latérale (ordinateur) : toutes les rubriques, dans l'ordre d'usage. */
+export const SIDEBAR: readonly NavItem[] = [
+  { href: "/dashboard", label: "Accueil", icon: HomeIcon },
+  { href: "/recipes", label: "Recettes", icon: BookIcon, also: ["/ingredients"] },
+  { href: "/planner", label: "Mon menu", icon: CalendarIcon },
+  { href: "/shopping", label: "Ma liste de courses", icon: BasketIcon },
+  { href: "/pantry", label: "Mon garde-manger", icon: PantryIcon },
+  { href: "/budget", label: "Mon budget", icon: WalletIcon, also: ["/prices"] },
+  { href: "/settings", label: "Mes préférences", icon: SettingsIcon },
 ];
 
 /** Onglets (téléphone) : cinq entrées à portée de pouce. */
-const TABS: readonly (NavItem & { icon: Icon })[] = [
+const TABS: readonly NavItem[] = [
   { href: "/dashboard", label: "Accueil", icon: HomeIcon },
-  { href: "/recipes", label: "Recettes", icon: BookIcon },
+  { href: "/recipes", label: "Recettes", icon: BookIcon, also: ["/ingredients"] },
   { href: "/planner", label: "Menu", icon: CalendarIcon },
-  { href: "/shopping", label: "Liste", icon: BasketIcon },
+  { href: "/shopping", label: "Courses", icon: BasketIcon },
   {
     href: "/settings",
     label: "Profil",
@@ -46,35 +57,36 @@ function isActive(pathname: string | null, item: NavItem) {
 
 /**
  * usePathname() lit l'URL de la requête : avec les Cache Components, ces composants sont
- * rendus dans un <Suspense> dont le repli est la version « Shell » (sans onglet actif).
+ * rendus dans un <Suspense> dont le repli est la version « Shell » (sans entrée active).
  */
-export function TopNav() {
-  return <TopNavShell pathname={usePathname()} />;
+export function SideNav() {
+  return <SideNavShell pathname={usePathname()} />;
 }
 export function TabBar() {
   return <TabBarShell pathname={usePathname()} />;
 }
 
-/** Rubriques de la barre du haut : l'onglet actif est souligné en terracotta. */
-export function TopNavShell({ pathname }: { pathname: string | null }) {
+/** Rubriques de la barre latérale : l'entrée active est sur fond vert pâle, icône terracotta. */
+export function SideNavShell({ pathname }: { pathname: string | null }) {
   return (
     <nav aria-label="Navigation principale">
-      <ul className="flex items-center gap-1">
-        {TOP.map((it) => {
+      <ul className="flex flex-col gap-1">
+        {SIDEBAR.map((it) => {
           const active = isActive(pathname, it);
+          const Icon = it.icon;
           return (
             <li key={it.href}>
               <Link
                 href={it.href}
                 aria-current={active ? "page" : undefined}
                 className={[
-                  "relative flex min-h-11 items-center px-3 text-[0.9375rem] font-medium transition-colors",
-                  "after:bg-accent after:absolute after:inset-x-3 after:bottom-1 after:h-0.5 after:rounded-full after:transition-opacity",
+                  "flex min-h-11 items-center gap-3 rounded-xl px-3 text-[0.9375rem] font-medium transition-colors",
                   active
-                    ? "text-foreground after:opacity-100"
-                    : "text-muted hover:text-foreground after:opacity-0",
+                    ? "bg-brand-soft text-brand font-semibold"
+                    : "text-muted hover:bg-surface-muted hover:text-foreground",
                 ].join(" ")}
               >
+                <Icon size={20} className={active ? "text-accent-strong" : undefined} />
                 {it.label}
               </Link>
             </li>

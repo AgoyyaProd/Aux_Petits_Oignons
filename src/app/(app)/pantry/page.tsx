@@ -27,7 +27,7 @@ export default function PantryPage({ searchParams }: PageProps<"/pantry">) {
   return (
     <div className="flex flex-col gap-7">
       <PageHeader
-        title="Garde-manger"
+        title="Mon garde-manger"
         description="Ce que tu as au réfrigérateur, au congélateur et dans les placards. Les produits à utiliser vite passent en premier dans les menus."
         actions={
           <>
@@ -39,7 +39,7 @@ export default function PantryPage({ searchParams }: PageProps<"/pantry">) {
             </Link>
             <Link href="/pantry/new" className={buttonClasses("primary")}>
               <PlusIcon size={18} />
-              Ajouter
+              Ajouter un produit
             </Link>
           </>
         }
@@ -116,11 +116,14 @@ async function PantryContent({ searchParams }: Pick<PageProps<"/pantry">, "searc
 
   return (
     <div className="flex flex-col gap-6">
-      <nav aria-label="Emplacements" className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-        <ul className="flex gap-2">
+      <nav
+        aria-label="Emplacements"
+        className="border-border -mx-4 overflow-x-auto border-b px-4 sm:mx-0 sm:px-0"
+      >
+        <ul className="flex gap-1">
           <li>
             <Tab href={link({ lieu: null })} active={!where}>
-              Tout <span className="opacity-70">{items.length}</span>
+              Tous <span className="opacity-70">{items.length}</span>
             </Tab>
           </li>
           {LOCATIONS.map((l) => {
@@ -227,14 +230,44 @@ function Tab({
       aria-current={active ? "page" : undefined}
       scroll={false}
       className={[
-        "inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-semibold whitespace-nowrap transition-colors",
+        "-mb-px inline-flex min-h-11 shrink-0 items-center gap-2 border-b-2 px-3 text-sm font-semibold whitespace-nowrap transition-colors",
         active
-          ? "border-brand bg-brand text-brand-foreground"
-          : "border-border bg-surface hover:border-border-strong",
+          ? "border-accent text-foreground"
+          : "text-muted hover:text-foreground border-transparent",
       ].join(" ")}
     >
       {children}
     </Link>
+  );
+}
+
+/** En-tête de colonnes du tableau (ordinateur uniquement). */
+function TableHead() {
+  return (
+    <div
+      aria-hidden="true"
+      className="border-border text-muted bg-surface-muted hidden grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)_2.75rem] gap-4 border-b px-4 py-2.5 text-xs font-semibold tracking-wide uppercase lg:grid"
+    >
+      <span>Produit</span>
+      <span>Quantité</span>
+      <span>Date limite</span>
+      <span>Emplacement</span>
+      <span />
+    </div>
+  );
+}
+
+function Rows({ items, today }: { items: PantryItemView[]; today: string }) {
+  return (
+    <div className="lg:border-border lg:bg-surface lg:overflow-hidden lg:rounded-2xl lg:border">
+      <TableHead />
+      <ul className="lg:divide-border flex flex-col gap-3 lg:gap-0 lg:divide-y">
+        {items.map((item) => (
+          // Clé d'idempotence générée côté serveur pour la prochaine action sur ce produit.
+          <PantryItemCard key={item.id} item={item} today={today} initialKey={randomUUID()} />
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -247,16 +280,7 @@ function ItemList({
   today: string;
   groupByLocation: boolean;
 }) {
-  if (!groupByLocation) {
-    return (
-      <ul className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2">
-        {items.map((item) => (
-          // Clé d'idempotence générée côté serveur pour la prochaine action sur ce produit.
-          <PantryItemCard key={item.id} item={item} today={today} initialKey={randomUUID()} />
-        ))}
-      </ul>
-    );
-  }
+  if (!groupByLocation) return <Rows items={items} today={today} />;
   return (
     <div className="flex flex-col gap-8">
       {LOCATIONS.map((location) => {
@@ -274,11 +298,7 @@ function ItemList({
               {LOCATION_LABEL[location]}
               <span className="text-muted font-sans text-sm font-medium">{here.length}</span>
             </h2>
-            <ul className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2">
-              {here.map((item) => (
-                <PantryItemCard key={item.id} item={item} today={today} initialKey={randomUUID()} />
-              ))}
-            </ul>
+            <Rows items={here} today={today} />
           </section>
         );
       })}

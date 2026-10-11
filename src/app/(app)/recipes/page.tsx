@@ -71,7 +71,7 @@ export default function RecipesPage({ searchParams }: PageProps<"/recipes">) {
   return (
     <div className="flex flex-col gap-7">
       <PageHeader
-        title="Recettes"
+        title="Nos recettes"
         description="Des plats du quotidien, filtrés selon tes préférences. Celles qui utilisent ce que tu as passent en premier."
       />
       <Suspense fallback={<PageSkeleton rows={4} />}>
@@ -224,8 +224,13 @@ async function Catalog({ searchParams }: Pick<PageProps<"/recipes">, "searchPara
         </Alert>
       ) : null}
 
-      <p className="text-muted text-sm" aria-live="polite">
-        {catalog.cards.length} recette{catalog.cards.length > 1 ? "s" : ""}
+      <p className="border-border border-b pb-3 text-sm" aria-live="polite">
+        <span className="font-semibold">{catalog.cards.length}</span>
+        <span className="text-muted">
+          {" "}
+          recette{catalog.cards.length > 1 ? "s" : ""}
+          {anyFilter ? " correspondent à ta recherche" : ""}
+        </span>
       </p>
 
       {catalog.cards.length === 0 ? (

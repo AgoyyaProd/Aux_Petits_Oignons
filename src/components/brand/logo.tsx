@@ -10,8 +10,8 @@
 type Tone = "color" | "mono" | "inverse";
 
 const COLORS: Record<Tone, { bowl: string; dot: string; leaf: string; vein: string }> = {
-  color: { bowl: "#E76F51", dot: "#F4B942", leaf: "#8FA88A", vein: "#FBF7EF" },
-  inverse: { bowl: "#E76F51", dot: "#F4B942", leaf: "#A9C0A4", vein: "#0E3B2E" },
+  color: { bowl: "#E76F51", dot: "#F4C145", leaf: "#8FA88A", vein: "#FFF8EF" },
+  inverse: { bowl: "#E76F51", dot: "#F4C145", leaf: "#A9C0A4", vein: "#0E3B2E" },
   mono: { bowl: "currentColor", dot: "currentColor", leaf: "currentColor", vein: "transparent" },
 };
 
