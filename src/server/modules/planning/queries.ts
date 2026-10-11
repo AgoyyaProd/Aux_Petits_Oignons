@@ -12,6 +12,7 @@ import { addDays, formatSlot, isMonday, mondayOf } from "@/lib/week";
 import { getCurrentContext } from "@/server/modules/auth/session";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 import { costOfEntry, getPlanningCatalog } from "./catalog";
+import { recentRecipeIds } from "@/server/modules/recipes/ratings";
 import { readPlan } from "./repository";
 
 export interface PlannerEntryView {
@@ -28,6 +29,8 @@ export interface PlannerEntryView {
   available: boolean;
   /** Plat déjà cuisiné : ses ingrédients ont été retirés du garde-manger. */
   cooked: boolean;
+  /** Recette favorite du foyer. */
+  favorite: boolean;
   /** Jour et repas, ou null si le plat n'est pas encore placé. */
   day: string | null;
   slot: MealSlot | null;
@@ -84,6 +87,7 @@ export async function getPlannerPage({ week, replace }: { week?: string; replace
         cents: 0,
         missingNames: [],
         available: false,
+        favorite: false,
         cooked: plan!.cooked.has(i + 1),
         day: e.day ?? null,
         slot: e.slot ?? null,
@@ -101,6 +105,7 @@ export async function getPlannerPage({ week, replace }: { week?: string; replace
       cents: cost.cents,
       missingNames: cost.missingNames,
       available: meta.compatible,
+      favorite: meta.rating === 1,
       cooked: plan!.cooked.has(i + 1),
       day: e.day ?? null,
       slot: e.slot ?? null,
@@ -112,10 +117,12 @@ export async function getPlannerPage({ week, replace }: { week?: string; replace
   let replacements: ReplacementView[] = [];
   if (plan && replace && replace >= 1 && replace <= plan.entries.length) {
     const servings = plan.entries[replace - 1]!.servings;
+    const recent = await recentRecipeIds(supabase, household.id, weekStart);
     replacements = suggestReplacements(catalog.candidates, plan.entries, replace - 1, {
       people: servings,
       budgetCents: plan.budgetCents,
       seed: plan.seed,
+      recentRecipeIds: recent,
     }).flatMap((id) => {
       const meta = catalog.recipes.get(id);
       if (!meta) return [];

@@ -92,3 +92,14 @@ viendra avec la liste de courses et le décompte du stock.
 - Liste de courses : un plat est daté de son jour (`mealDateFor`) ; un plat d'un jour passé non
   cuisiné compte pour aujourd'hui ; un plat non placé compte pour aujourd'hui. Un produit du
   garde-manger dont la DLC tombe avant ce jour n'est pas compté comme disponible.
+
+## Addendum — favoris et historique (migration 0020)
+
+- `recipe_ratings` : un avis par foyer et par recette, `1` (on aime) ou `-1` (pas pour nous),
+  partagé par les membres ; pas de ligne = neutre. Auteur et date posés par un trigger.
+- Générateur : un favori reçoit un bonus de score (`FAVORITE_BONUS`, 2,5) ; un plat « pas pour
+  nous » n'est jamais candidat (il reste visible dans le catalogue, en fin de liste).
+- Historique : les recettes au menu des 2 semaines précédentes (`RECENT_WEEKS`) sont évitées
+  par une première passe ; si cela ne suffit pas à remplir le menu, elles redeviennent
+  possibles avant de relâcher la variété. Les remplacements proposent d'abord des plats non
+  récents. L'historique se lit dans `meal_plans` / `meal_cookings` : pas de table dédiée.

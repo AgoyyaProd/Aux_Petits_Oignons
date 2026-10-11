@@ -199,3 +199,59 @@ describe("familles et types de plats", () => {
     expect(isMainDish(["petit-dejeuner", "dessert", "poele"])).toBe(false);
   });
 });
+
+describe("favoris et historique", () => {
+  const plain = ["p1", "p2", "p3", "p4", "p5", "p6"].map((id) => candidate(id));
+
+  it("un favori est proposé quelle que soit la graine", () => {
+    const withFav = plain.map((c) => (c.id === "p6" ? { ...c, favorite: true } : c));
+    for (let seed = 0; seed < 20; seed += 1) {
+      const ids = generatePlan(withFav, { ...base, mealCount: 2, seed }).entries.map(
+        (e) => e.recipeId,
+      );
+      expect(ids).toContain("p6");
+    }
+  });
+
+  it("évite les plats des semaines précédentes tant qu'il reste d'autres choix", () => {
+    const recentRecipeIds = ["p1", "p2", "p3"];
+    for (let seed = 0; seed < 20; seed += 1) {
+      const ids = generatePlan(plain, { ...base, mealCount: 3, seed, recentRecipeIds }).entries.map(
+        (e) => e.recipeId,
+      );
+      expect(ids.sort()).toEqual(["p4", "p5", "p6"]);
+    }
+  });
+
+  it("reprend des plats récents s'il n'y a pas assez d'autres recettes", () => {
+    const result = generatePlan(plain, {
+      ...base,
+      mealCount: 5,
+      recentRecipeIds: ["p1", "p2", "p3"],
+    });
+    expect(result.entries).toHaveLength(5);
+    expect(result.status).toBe("ok");
+  });
+
+  it("un favori récent reste évité si d'autres plats sont possibles", () => {
+    const withFav = plain.map((c) => (c.id === "p1" ? { ...c, favorite: true } : c));
+    const ids = generatePlan(withFav, {
+      ...base,
+      mealCount: 3,
+      recentRecipeIds: ["p1"],
+    }).entries.map((e) => e.recipeId);
+    expect(ids).not.toContain("p1");
+  });
+
+  it("les remplacements proposent d'abord des plats non récents", () => {
+    const entries = [{ recipeId: "p1", servings: 2, locked: false }];
+    const ids = suggestReplacements(plain, entries, 0, {
+      people: 2,
+      budgetCents: null,
+      seed: 3,
+      limit: 3,
+      recentRecipeIds: ["p2", "p3", "p4"],
+    });
+    expect(ids.slice(0, 2).sort()).toEqual(["p5", "p6"]);
+  });
+});

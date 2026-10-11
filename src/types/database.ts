@@ -519,6 +519,32 @@ isOneToOne: false
       referencedColumns: ["code"]
     }
                   ]
+                },"recipe_ratings": {
+                  Row: {
+                    "household_id": string,"rated_by": string | null,"rating": number,"recipe_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "household_id": string,"rated_by"?: string | null,"rating": number,"recipe_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "household_id"?: string,"rated_by"?: string | null,"rating"?: number,"recipe_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "recipe_ratings_household_id_fkey"
+      columns: ["household_id"]
+isOneToOne: false
+      referencedRelation: "households"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "recipe_ratings_recipe_id_fkey"
+      columns: ["recipe_id"]
+isOneToOne: false
+      referencedRelation: "recipes"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"recipe_steps": {
                   Row: {
                     "instruction": string,"position": number,"recipe_id": string

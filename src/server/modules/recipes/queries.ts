@@ -13,6 +13,7 @@ import { fromBase } from "@/domain/units";
 import { todayIn } from "@/lib/dates";
 import { getCurrentContext } from "@/server/modules/auth/session";
 import { loadPriceBook } from "@/server/modules/prices/price-book";
+import { loadRatings, recipeHistory, type Rating } from "@/server/modules/recipes/ratings";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 
 export type Supabase = Awaited<ReturnType<typeof createSupabaseServerClient>>;
@@ -132,6 +133,8 @@ export interface RecipeCard {
   coverage: { inStock: number; total: number };
   compatibility: Compatibility;
   exclusionLabel: string | null;
+  /** Avis du foyer : 1 on aime, -1 pas pour nous, null sans avis. */
+  rating: Rating | null;
 }
 
 export interface CatalogFilters {
@@ -139,6 +142,7 @@ export interface CatalogFilters {
   maxMinutes?: number;
   tag?: string;
   showExcluded?: boolean;
+  favoritesOnly?: boolean;
 }
 
 /**
@@ -150,7 +154,7 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
   if (!household) return null;
   const supabase = await createSupabaseServerClient();
 
-  const [recipes, allergens, conflicts, ctx, names] = await Promise.all([
+  const [recipes, allergens, conflicts, ctx, names, ratings] = await Promise.all([
     supabase
       .from("recipes")
       .select(
@@ -162,6 +166,7 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
     supabase.from("recipe_diet_conflicts").select("recipe_id, diet_code"),
     householdContext(supabase, household.id),
     labels(supabase),
+    loadRatings(supabase, household.id),
   ]);
   if (recipes.error) fail("des recettes", recipes.error);
   if (allergens.error) fail("des allergènes de recettes", allergens.error);
@@ -200,6 +205,8 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
     const totalMinutes = r.prep_minutes + r.cook_minutes;
     if (filters.maxMinutes && totalMinutes > filters.maxMinutes) continue;
     if (filters.tag && !r.tags.includes(filters.tag)) continue;
+    const rating = ratings.get(r.id) ?? null;
+    if (filters.favoritesOnly && rating !== 1) continue;
     if (
       filters.q &&
       !matchesSearch(
@@ -231,6 +238,7 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
       ),
       compatibility,
       exclusionLabel: describeExclusion(compatibility, names, ingredientNames),
+      rating,
     });
   }
 
@@ -238,6 +246,9 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
     if (a.compatibility.compatible !== b.compatibility.compatible) {
       return a.compatibility.compatible ? -1 : 1;
     }
+    // Favoris d'abord, « pas pour nous » à la fin.
+    const pref = (c: RecipeCard) => (c.rating === 1 ? 0 : c.rating === -1 ? 2 : 1);
+    if (pref(a) !== pref(b)) return pref(a) - pref(b);
     const ra = a.coverage.total ? a.coverage.inStock / a.coverage.total : 0;
     const rb = b.coverage.total ? b.coverage.inStock / b.coverage.total : 0;
     return rb - ra || a.title.localeCompare(b.title, "fr");
@@ -252,6 +263,7 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
         ctx.constraints.avoidedIngredientIds.size >
       0,
     pantryIsEmpty: ctx.available.size === 0,
+    favoriteCount: [...ratings.values()].filter((v) => v === 1).length,
   };
 }
 
@@ -305,6 +317,8 @@ export interface RecipeDetail {
   toRemoveNames: string[];
   /** Coût estimé de la recette entière (ingrédients obligatoires au prix connu), en centimes. */
   cost: { cents: number; missingNames: string[] } | null;
+  rating: Rating | null;
+  history: Awaited<ReturnType<typeof recipeHistory>>;
 }
 
 export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
@@ -322,14 +336,22 @@ export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
   if (error) fail("de la recette", error);
   if (!r) return null;
 
-  const [allergens, conflicts, ctx, names, priceBook] = await Promise.all([
+  const [allergens, conflicts, ctx, names, priceBook, rating, history] = await Promise.all([
     supabase.from("recipe_allergens").select("allergen_code").eq("recipe_id", r.id),
     supabase.from("recipe_diet_conflicts").select("diet_code").eq("recipe_id", r.id),
     householdContext(supabase, household.id, household.timezone),
     labels(supabase),
     loadPriceBook(supabase, household.id),
+    supabase
+      .from("recipe_ratings")
+      .select("rating")
+      .eq("household_id", household.id)
+      .eq("recipe_id", r.id)
+      .maybeSingle(),
+    recipeHistory(supabase, household.id, r.id),
   ]);
   if (allergens.error) fail("des allergènes", allergens.error);
+  if (rating.error) fail("de l'avis", rating.error);
   if (conflicts.error) fail("des régimes", conflicts.error);
 
   const allergenCodes = allergens.data.flatMap((a) => (a.allergen_code ? [a.allergen_code] : []));
@@ -373,6 +395,8 @@ export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
     compatibility,
     exclusionLabel: describeExclusion(compatibility, names, ingredientNames),
     toRemoveNames: compatibility.toRemove.map((id) => ingredientNames.get(id) ?? "?"),
+    rating: rating.data ? (rating.data.rating === 1 ? 1 : -1) : null,
+    history,
     cost: (() => {
       const estimate = estimateRecipeCost(
         lines.map((l) => ({

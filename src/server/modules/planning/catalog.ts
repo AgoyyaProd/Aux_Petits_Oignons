@@ -12,6 +12,7 @@ import { checkCompatibility, stockCoverage } from "@/domain/recipes/compatibilit
 import { fromBase } from "@/domain/units";
 import { loadPriceBook, type PriceInfo } from "@/server/modules/prices/price-book";
 import { householdContext, type Supabase } from "@/server/modules/recipes/queries";
+import { loadRatings, type Rating } from "@/server/modules/recipes/ratings";
 
 export interface RecipeMeta {
   id: string;
@@ -25,6 +26,8 @@ export interface RecipeMeta {
   ingredientNames: Map<string, string>;
   compatible: boolean;
   mainDish: boolean;
+  /** Avis du foyer : 1 on aime, -1 pas pour nous, null sans avis. */
+  rating: Rating | null;
 }
 
 export interface PlanningCatalog {
@@ -70,7 +73,7 @@ export async function loadPlanningCatalog(
   supabase: Supabase,
   household: HouseholdForPlanning,
 ): Promise<PlanningCatalog> {
-  const [recipes, allergens, conflicts, ctx, priceBook] = await Promise.all([
+  const [recipes, allergens, conflicts, ctx, priceBook, ratings] = await Promise.all([
     supabase
       .from("recipes")
       .select(
@@ -81,6 +84,7 @@ export async function loadPlanningCatalog(
     supabase.from("recipe_diet_conflicts").select("recipe_id, diet_code"),
     householdContext(supabase, household.id, household.timezone),
     loadPriceBook(supabase, household.id),
+    loadRatings(supabase, household.id),
   ]);
   if (recipes.error) throw new Error(`Lecture des recettes impossible : ${recipes.error.message}`);
   if (allergens.error) throw new Error(allergens.error.message);
@@ -135,11 +139,13 @@ export async function loadPlanningCatalog(
       ingredientNames: new Map(rows.map((l) => [l.ingredient_id, l.ingredients?.name ?? "?"])),
       compatible: compatibility.compatible,
       mainDish: isMainDish(r.tags),
+      rating: ratings.get(r.id) ?? null,
     };
     metas.set(r.id, meta);
 
     const tooLong = household.maxPrepMinutes !== null && r.prep_minutes > household.maxPrepMinutes;
-    if (!meta.compatible || !meta.mainDish || tooLong) continue;
+    // Un plat « pas pour nous » n'est jamais proposé (il reste consultable dans le catalogue).
+    if (!meta.compatible || !meta.mainDish || tooLong || meta.rating === -1) continue;
 
     const required = rows.filter((l) => !l.is_optional);
     const estimate = estimateRecipeCost(lines, r.servings, r.servings, priceOf);
@@ -159,6 +165,7 @@ export async function loadPlanningCatalog(
         return c.total ? c.inStock / c.total : 0;
       })(),
       varietyKeys: varietyKeys(required.map((l) => l.ingredients?.slug ?? "")),
+      favorite: meta.rating === 1,
     });
   }
 

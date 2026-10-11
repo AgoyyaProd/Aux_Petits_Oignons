@@ -9,8 +9,11 @@ import { MAX_PER_FAMILY } from "./variety";
  *  1. les candidats sont déjà compatibles avec le foyer (filtrés en amont, contrôlés en base) ;
  *  2. budget : on ne choisit un plat que s'il laisse de quoi compléter le menu dans le budget ;
  *  3. anti-gaspillage : plats qui utilisent des produits à consommer en priorité, puis le stock ;
- *  4. variété : pas deux fois la même recette, au plus 2 plats par famille de féculent/protéine ;
- *  5. une part de hasard reproductible (graine) pour que « Relancer » propose autre chose.
+ *  4. variété : pas deux fois la même recette, au plus 2 plats par famille de féculent/protéine,
+ *     et si possible aucun plat déjà au menu des deux semaines précédentes ;
+ *  5. préférences : les favoris du foyer passent devant (les plats « pas pour nous » ne sont
+ *     jamais candidats, filtrés en amont) ;
+ *  6. une part de hasard reproductible (graine) pour que « Relancer » propose autre chose.
  */
 
 export interface PlanCandidate {
@@ -27,7 +30,12 @@ export interface PlanCandidate {
   /** Part des ingrédients obligatoires présents en stock, entre 0 et 1. */
   stockCoverage: number;
   varietyKeys: readonly string[];
+  /** Recette marquée « on aime » par le foyer. */
+  favorite?: boolean;
 }
+
+/** Bonus de score d'un favori : du même ordre qu'un ingrédient à consommer vite. */
+export const FAVORITE_BONUS = 2.5;
 
 export interface PlanRequest {
   mealCount: number;
@@ -37,6 +45,8 @@ export interface PlanRequest {
   locked: readonly { recipeId: string; servings: number }[];
   /** Recettes à ne pas proposer (ex. retirées par l'utilisateur). */
   excludeRecipeIds?: readonly string[];
+  /** Recettes déjà au menu récemment : évitées tant qu'il reste d'autres choix. */
+  recentRecipeIds?: readonly string[];
   seed: number;
 }
 
@@ -107,7 +117,11 @@ export function generatePlan(candidates: readonly PlanCandidate[], req: PlanRequ
     [...candidates].sort((a, b) => a.id.localeCompare(b.id)).map((c) => [c.id, random()]),
   );
   const score = (c: PlanCandidate) =>
-    3 * Math.min(c.priorityUses, 3) + 2 * c.stockCoverage + 1.5 * (jitter.get(c.id) ?? 0);
+    3 * Math.min(c.priorityUses, 3) +
+    2 * c.stockCoverage +
+    (c.favorite ? FAVORITE_BONUS : 0) +
+    1.5 * (jitter.get(c.id) ?? 0);
+  const recent = new Set(req.recentRecipeIds ?? []);
 
   const entries: PlanEntry[] = req.locked.map((l) => ({
     recipeId: l.recipeId,
@@ -127,18 +141,21 @@ export function generatePlan(candidates: readonly PlanCandidate[], req: PlanRequ
 
   const costFor = (c: PlanCandidate) => entryCost(c, req.people);
 
-  // Passes successives, du plus exigeant au plus souple : avec un budget, un plat sans prix
-  // n'arrive qu'après avoir relâché la variété (le budget prime sur la variété).
+  // Passes successives, du plus exigeant au plus souple : on relâche d'abord la nouveauté
+  // (plats récents), puis la variété ; avec un budget, un plat sans prix n'arrive qu'en dernier
+  // (le budget prime sur la variété).
   const passes =
     budget === null
       ? [
-          { variety: true, pricedOnly: false },
-          { variety: false, pricedOnly: false },
+          { fresh: true, variety: true, pricedOnly: false },
+          { fresh: false, variety: true, pricedOnly: false },
+          { fresh: false, variety: false, pricedOnly: false },
         ]
       : [
-          { variety: true, pricedOnly: true },
-          { variety: false, pricedOnly: true },
-          { variety: false, pricedOnly: false },
+          { fresh: true, variety: true, pricedOnly: true },
+          { fresh: false, variety: true, pricedOnly: true },
+          { fresh: false, variety: false, pricedOnly: true },
+          { fresh: false, variety: false, pricedOnly: false },
         ];
   for (const pass of passes) {
     while (entries.length < req.mealCount) {
@@ -149,6 +166,7 @@ export function generatePlan(candidates: readonly PlanCandidate[], req: PlanRequ
       const available = pool.filter(
         (c) =>
           !taken.has(c.id) &&
+          (!pass.fresh || !recent.has(c.id)) &&
           (!pass.variety || respectsVariety(c, counts)) &&
           (!pass.pricedOnly || c.costPerServingMillicents !== null),
       );
@@ -225,7 +243,14 @@ export function suggestReplacements(
     budgetCents,
     seed,
     limit = 3,
-  }: { people: number; budgetCents: number | null; seed: number; limit?: number },
+    recentRecipeIds = [],
+  }: {
+    people: number;
+    budgetCents: number | null;
+    seed: number;
+    limit?: number;
+    recentRecipeIds?: readonly string[];
+  },
 ): string[] {
   const current = entries[index];
   if (!current) throw new DomainError("INVALID_PLAN", "Plat introuvable dans le menu.");
@@ -249,10 +274,13 @@ export function suggestReplacements(
     const cost = entryCost(c, people);
     return cost !== null && othersCost + cost <= budget;
   };
+  const recent = new Set(recentRecipeIds);
   const score = (c: PlanCandidate) =>
     (fits(c) ? 100 : 0) +
+    (recent.has(c.id) ? 0 : 20) +
     3 * Math.min(c.priorityUses, 3) +
     2 * c.stockCoverage +
+    (c.favorite ? FAVORITE_BONUS : 0) +
     1.5 * (jitter.get(c.id) ?? 0);
 
   return candidates

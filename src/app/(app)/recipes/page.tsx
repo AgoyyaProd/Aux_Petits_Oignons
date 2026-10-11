@@ -29,6 +29,7 @@ function readParams(sp: Search) {
     maxMinutes: Number.isInteger(minutes) && minutes > 0 ? minutes : undefined,
     tag: tag in RECIPE_TAG_LABEL ? tag : undefined,
     showExcluded: one(sp.exclues) === "1",
+    favoritesOnly: one(sp.favoris) === "1",
   };
 }
 
@@ -54,6 +55,10 @@ async function Catalog({ searchParams }: Pick<PageProps<"/recipes">, "searchPara
   if (filters.tag) params.set("type", filters.tag);
   const withExcluded = new URLSearchParams(params);
   withExcluded.set("exclues", "1");
+  if (filters.favoritesOnly) params.set("favoris", "1");
+  const toggleFavorites = new URLSearchParams(params);
+  if (filters.favoritesOnly) toggleFavorites.delete("favoris");
+  else toggleFavorites.set("favoris", "1");
 
   return (
     <div className="flex flex-col gap-5">
@@ -100,7 +105,23 @@ async function Catalog({ searchParams }: Pick<PageProps<"/recipes">, "searchPara
             Filtrer
           </button>
         </div>
+        {filters.favoritesOnly ? <input type="hidden" name="favoris" value="1" /> : null}
       </form>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <Link
+          href={`/recipes${toggleFavorites.size ? `?${toggleFavorites}` : ""}`}
+          aria-pressed={filters.favoritesOnly}
+          className={[
+            "inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3 text-sm font-medium",
+            filters.favoritesOnly
+              ? "border-brand bg-brand text-brand-foreground"
+              : "border-border bg-surface hover:bg-brand-soft",
+          ].join(" ")}
+        >
+          ♥ Favoris{catalog.favoriteCount ? ` (${catalog.favoriteCount})` : ""}
+        </Link>
+      </div>
 
       {catalog.hasConstraints && catalog.excludedCount > 0 && !filters.showExcluded ? (
         <Alert tone="info">
@@ -123,7 +144,11 @@ async function Catalog({ searchParams }: Pick<PageProps<"/recipes">, "searchPara
 
       {catalog.cards.length === 0 ? (
         <div className="border-border bg-surface rounded-2xl border border-dashed p-6 text-center">
-          <p className="font-semibold">Aucune recette ne correspond.</p>
+          <p className="font-semibold">
+            {filters.favoritesOnly && catalog.favoriteCount === 0
+              ? "Pas encore de favori : ouvre une recette et appuie sur « On aime »."
+              : "Aucune recette ne correspond."}
+          </p>
           <Link
             href="/recipes"
             className="text-brand mt-2 inline-block text-sm font-semibold underline"

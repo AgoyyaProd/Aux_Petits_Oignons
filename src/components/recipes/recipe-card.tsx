@@ -11,11 +11,18 @@ export function RecipeCard({ recipe }: { recipe: RecipeCardData }) {
         href={`/recipes/${recipe.slug}`}
         className={[
           "border-border bg-surface hover:border-brand flex h-full flex-col gap-2 rounded-2xl border p-4 transition",
-          compatibility.compatible ? "" : "opacity-70",
+          compatibility.compatible && recipe.rating !== -1 ? "" : "opacity-70",
         ].join(" ")}
       >
         <div className="flex items-start justify-between gap-3">
-          <h3 className="font-semibold">{recipe.title}</h3>
+          <h3 className="font-semibold">
+            {recipe.rating === 1 ? (
+              <span className="text-brand" aria-label="Favori">
+                ♥{" "}
+              </span>
+            ) : null}
+            {recipe.title}
+          </h3>
           <span className="text-muted shrink-0 text-xs tabular-nums">
             {recipe.totalMinutes} min
           </span>
@@ -36,6 +43,7 @@ export function RecipeCard({ recipe }: { recipe: RecipeCardData }) {
           ) : recipe.vegetarian ? (
             <Tag tone="neutral">Végétarien</Tag>
           ) : null}
+          {recipe.rating === -1 ? <Tag tone="neutral">Pas pour nous</Tag> : null}
           {compatibility.toRemove.length > 0 ? (
             <Tag tone="warning">Un ingrédient à retirer</Tag>
           ) : null}

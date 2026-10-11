@@ -4,13 +4,15 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { Tag } from "@/components/recipes/recipe-card";
 import { CookButton } from "@/components/cooking/cook-button";
+import { RatingButtons } from "@/components/recipes/rating-buttons";
 import { RecipeIngredients } from "@/components/recipes/recipe-ingredients";
 import { Alert } from "@/components/ui/alert";
 import { PageSkeleton } from "@/components/ui/skeleton";
 import { formatCents } from "@/domain/money";
-import { formatDateTime } from "@/lib/dates";
+import { formatDateTime, formatShortDate } from "@/lib/dates";
+import { formatWeek } from "@/lib/week";
 import { getCookStatus } from "@/server/modules/cooking/queries";
-import { getRecipe, RECIPE_TAG_LABEL } from "@/server/modules/recipes/queries";
+import { getRecipe, RECIPE_TAG_LABEL, type RecipeDetail } from "@/server/modules/recipes/queries";
 
 export const metadata: Metadata = { title: "Recette" };
 
@@ -90,6 +92,11 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
         </div>
       </header>
 
+      <section aria-label="Avis et historique" className="flex flex-col gap-2">
+        <RatingButtons recipeId={recipe.id} rating={recipe.rating} />
+        <History history={recipe.history} />
+      </section>
+
       {recipe.exclusionLabel ? (
         <Alert tone="error">
           Incompatible avec ton foyer — {recipe.exclusionLabel}. Cette recette n&apos;est pas
@@ -147,4 +154,20 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
       </footer>
     </article>
   );
+}
+
+function History({ history }: { history: RecipeDetail["history"] }) {
+  if (history.cookedCount === 0 && history.plannedWeeks === 0) {
+    return <p className="text-muted text-sm">Jamais encore au menu du foyer.</p>;
+  }
+  const parts: string[] = [];
+  if (history.cookedCount > 0 && history.lastCookedAt) {
+    parts.push(
+      `Cuisiné ${history.cookedCount} fois, la dernière le ${formatShortDate(history.lastCookedAt.slice(0, 10))}`,
+    );
+  }
+  if (history.lastPlannedWeek) {
+    parts.push(`dernier menu : ${formatWeek(history.lastPlannedWeek).toLowerCase()}`);
+  }
+  return <p className="text-muted text-sm">{parts.join(" · ")}.</p>;
 }

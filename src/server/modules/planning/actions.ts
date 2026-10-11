@@ -8,6 +8,7 @@ import { ActionError } from "@/server/errors";
 import { getCurrentContext } from "@/server/modules/auth/session";
 import { firstErrors } from "@/server/modules/households/schema";
 import { createSupabaseServerClient } from "@/server/supabase/server";
+import { recentRecipeIds } from "@/server/modules/recipes/ratings";
 import { loadPlanningCatalog } from "./catalog";
 import { readPlan, savePlan, type StoredPlan } from "./repository";
 import {
@@ -74,9 +75,10 @@ export async function generatePlanAction(
   const input = parsed.data;
   try {
     const { household, supabase } = await context();
-    const [plan, catalog] = await Promise.all([
+    const [plan, catalog, recent] = await Promise.all([
       readPlan(supabase, household.id, input.week),
       catalogFor(supabase, household),
+      recentRecipeIds(supabase, household.id, input.week),
     ]);
     if (plan && input.version === null) {
       throw new ActionError(
@@ -105,6 +107,7 @@ export async function generatePlanAction(
       people: input.people,
       budgetCents: input.budget,
       locked: locked.map((e) => ({ recipeId: e.recipeId, servings: e.servings })),
+      recentRecipeIds: recent,
       seed,
     });
     // Les plats gardés conservent leur jour ; les nouveaux remplissent les cases libres.
@@ -240,8 +243,12 @@ export async function addEntryAction(
   const state = await editEntries(parsed.data, async (entries, plan) => {
     if (entries.length >= 21) throw new ActionError("invalid", "Au plus 21 plats par semaine.");
     const { household, supabase } = await context();
-    const catalog = await catalogFor(supabase, household);
+    const [catalog, recent] = await Promise.all([
+      catalogFor(supabase, household),
+      recentRecipeIds(supabase, household.id, input.week),
+    ]);
     const result = generatePlan(catalog.candidates, {
+      recentRecipeIds: recent,
       mealCount: entries.length + 1,
       people: plan.people,
       budgetCents: plan.budgetCents,

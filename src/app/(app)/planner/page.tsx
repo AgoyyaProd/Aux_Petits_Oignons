@@ -303,6 +303,11 @@ function EntryCard({
         <div className="flex min-w-0 flex-col gap-0.5">
           {entry.slug ? (
             <Link href={`/recipes/${entry.slug}`} className="font-semibold hover:underline">
+              {entry.favorite ? (
+                <span className="text-brand" aria-label="Favori">
+                  ♥{" "}
+                </span>
+              ) : null}
               {entry.title}
             </Link>
           ) : (
