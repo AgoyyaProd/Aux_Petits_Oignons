@@ -7,6 +7,7 @@ import { createSupabaseServerClient } from "@/server/supabase/server";
 import { resolveIngredient } from "@/server/modules/pantry/repository";
 import {
   avoidedFoodSchema,
+  foodProfileSchema,
   firstErrors,
   householdSettingsSchema,
   preferencesSchema,
@@ -130,4 +131,37 @@ export async function removeAvoidedFoodAction(formData: FormData): Promise<void>
     .eq("ingredient_id", parsed.data.ingredientId);
   if (error) throw new Error(toActionError(error).message);
   refresh();
+}
+
+/** Régime, objectifs, allergies et matériel, enregistrés ensemble (set_food_profile). */
+export async function saveFoodProfileAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  await requireUser();
+  const parsed = foodProfileSchema.safeParse({
+    householdId: formData.get("householdId"),
+    style: formData.get("style"),
+    noPork: formData.get("noPork") === "on",
+    allergens: formData.getAll("allergens"),
+    objectives: formData.getAll("objectives"),
+    equipment: formData.getAll("equipment"),
+  });
+  if (!parsed.success) return { status: "error", message: "Sélection invalide." };
+  const d = parsed.data;
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.rpc("set_food_profile", {
+    p_household_id: d.householdId,
+    p_eating_style: d.style,
+    p_no_pork: d.noPork,
+    p_allergens: d.allergens,
+    p_objectives: d.objectives,
+    p_equipment: d.equipment,
+  });
+  if (error) return { status: "error", message: toActionError(error).message };
+  refresh();
+  return {
+    status: "success",
+    message: "Préférences enregistrées : les prochains menus en tiennent compte.",
+  };
 }

@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { AvoidedFoodsForm } from "@/components/settings/avoided-foods-form";
 import { HouseholdForm } from "@/components/settings/household-form";
 import { MembersSection } from "@/components/settings/members-section";
-import { PreferencesForm } from "@/components/settings/preferences-form";
+import { FoodProfileForm } from "@/components/settings/food-profile-form";
 import { buttonClasses } from "@/components/ui/button";
 import { signOutAction } from "@/server/modules/auth/actions";
 import { PageHeader } from "@/components/ui/page-header";
@@ -70,13 +70,13 @@ async function SettingsContent() {
           households={members.households}
         />
       </Section>
-      <Section title="Régimes et allergies" id="preferences">
-        <PreferencesForm
+      <Section title="Préférences alimentaires" id="preferences">
+        <FoodProfileForm
           householdId={settings.household.id}
-          diets={settings.diets}
           allergens={settings.allergens}
-          selectedDiets={settings.selectedDiets}
           selectedAllergens={settings.selectedAllergens}
+          equipmentOptions={settings.equipmentOptions}
+          profile={settings.foodProfile}
         />
       </Section>
       <Section title="Budget, prix et magasin" id="budget">
@@ -151,7 +151,7 @@ function ProfileCard({
       href: "#preferences",
       icon: LeafIcon,
       label: "Mes préférences alimentaires",
-      sub: "Régimes, allergies, aliments évités",
+      sub: "Régime, objectifs, matériel, allergies",
     },
     {
       href: "#foyer",

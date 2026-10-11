@@ -103,3 +103,17 @@ viendra avec la liste de courses et le décompte du stock.
   par une première passe ; si cela ne suffit pas à remplir le menu, elles redeviennent
   possibles avant de relâcher la variété. Les remplacements proposent d'abord des plats non
   récents. L'historique se lit dans `meal_plans` / `meal_cookings` : pas de table dédiée.
+
+## Addendum — profil alimentaire (migration 0022)
+
+- **Régime** (un seul) : omnivore, flexitarien, pescétarien, végétarien, végétalien, plus
+  « sans porc ». Les régimes stricts restent des exclusions portées par `household_diets`
+  (contrôlées aussi par `meal_plan_save`). **Flexitarien** est une préférence douce : au plus
+  un plat sur trois avec viande (`flexitarianMeatCap`), relâchée en dernier recours plutôt
+  que de laisser des repas vides.
+- **Objectifs** (plusieurs) : bonus de score fixes et cumulables (`profileBonus`) — moins
+  gaspiller, plus de légumes, manger mieux, découvrir (jamais mis au menu), économiser,
+  cuisiner plus vite. Ils n'excluent jamais une recette.
+- **Matériel** : `recipe_equipment` est déduit des étiquettes et des étapes par des règles
+  fixes en base (`_recipe_equipment_compute`, recalculé par trigger). Si le foyer a renseigné
+  son matériel, une recette qui demande un appareil absent est exclue (raison « Matériel »).

@@ -11,7 +11,7 @@ import { FavoriteButton } from "@/components/recipes/favorite-button";
 import { RecipeVisual } from "@/components/recipes/recipe-visual";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeftIcon, ClockIcon, GaugeIcon, UsersIcon } from "@/components/ui/icons";
+import { ChevronLeftIcon, ClockIcon, GaugeIcon, PotIcon, UsersIcon } from "@/components/ui/icons";
 import { DIFFICULTY_LABEL, DIFFICULTY_RULE } from "@/domain/recipes/difficulty";
 import { isInCurrentPlan } from "@/server/modules/planning/queries";
 import { PageSkeleton } from "@/components/ui/skeleton";
@@ -90,6 +90,12 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
               <UsersIcon size={18} />
               {recipe.servings} personnes
             </li>
+            {recipe.equipmentLabels.length ? (
+              <li className="inline-flex items-center gap-1.5">
+                <PotIcon size={18} />
+                {recipe.equipmentLabels.join(", ")}
+              </li>
+            ) : null}
           </ul>
           <p className="text-muted text-sm">
             Préparation {recipe.prepMinutes} min

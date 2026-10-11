@@ -9,6 +9,7 @@ import {
 import { isPriority } from "@/domain/pantry/priority";
 import { estimateRecipeCost, millicentsToCents } from "@/domain/pricing";
 import { recipeDifficulty, type Difficulty } from "@/domain/recipes/difficulty";
+import type { EatingStyle, FoodProfile, Objective } from "@/domain/planning";
 import { withParents } from "@/domain/shopping";
 import { fromBase } from "@/domain/units";
 import { todayIn } from "@/lib/dates";
@@ -46,7 +47,7 @@ export async function householdContext(
   householdId: string,
   timeZone = "Europe/Paris",
 ) {
-  const [diets, exclusions, pantry, staples, variants] = await Promise.all([
+  const [diets, exclusions, pantry, staples, variants, profile] = await Promise.all([
     supabase.from("household_diets").select("diet_code").eq("household_id", householdId),
     supabase
       .from("household_exclusions")
@@ -60,7 +61,13 @@ export async function householdContext(
       .gt("quantity_base", 0),
     supabase.from("household_staples").select("ingredient_id").eq("household_id", householdId),
     supabase.from("ingredients").select("id, parent_id").not("parent_id", "is", null),
+    supabase
+      .from("household_food_profile")
+      .select("eating_style, objectives, equipment")
+      .eq("household_id", householdId)
+      .maybeSingle(),
   ]);
+  if (profile.error) fail("du profil alimentaire", profile.error);
   if (diets.error) fail("des régimes", diets.error);
   if (exclusions.error) fail("des exclusions", exclusions.error);
   if (pantry.error) fail("du garde-manger", pantry.error);
@@ -75,6 +82,11 @@ export async function householdContext(
     avoidedIngredientIds: new Set(
       exclusions.data.flatMap((e) => (e.ingredient_id ? [e.ingredient_id] : [])),
     ),
+    equipment: profile.data?.equipment ? new Set(profile.data.equipment) : null,
+  };
+  const foodProfile: FoodProfile = {
+    style: (profile.data?.eating_style ?? "omnivore") as EatingStyle,
+    objectives: (profile.data?.objectives ?? []) as Objective[],
   };
   const today = todayIn(timeZone);
   const priority = withParents(
@@ -91,20 +103,23 @@ export async function householdContext(
   // Placard : présents par déclaration du foyer (sans quantité, jamais décomptés).
   const staple = new Set(staples.data.map((s) => s.ingredient_id));
   const available = withParents([...pantry.data.map((p) => p.ingredient_id), ...staple], parentOf);
-  return { constraints, available, priority, staple };
+  return { constraints, available, priority, staple, foodProfile };
 }
 
 /** Libellés des allergènes et régimes, pour expliquer une exclusion. */
 export async function labels(supabase: Supabase) {
-  const [allergens, diets] = await Promise.all([
+  const [allergens, diets, equipment] = await Promise.all([
     supabase.from("allergens").select("code, label"),
     supabase.from("diets").select("code, label"),
+    supabase.from("equipment").select("code, label").order("position"),
   ]);
   if (allergens.error) fail("des allergènes", allergens.error);
   if (diets.error) fail("des régimes", diets.error);
+  if (equipment.error) fail("du matériel", equipment.error);
   return {
     allergen: new Map(allergens.data.map((a) => [a.code, a.label])),
     diet: new Map(diets.data.map((d) => [d.code, d.label])),
+    equipment: new Map(equipment.data.map((e) => [e.code, e.label])),
   };
 }
 
@@ -176,7 +191,7 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
     supabase
       .from("recipes")
       .select(
-        "id, slug, title, description, servings, prep_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, is_optional, quantity_base, dimension, ingredients (name, density_g_per_ml, piece_weight_g)), recipe_steps (count)",
+        "id, slug, title, description, servings, prep_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, is_optional, quantity_base, dimension, ingredients (name, density_g_per_ml, piece_weight_g)), recipe_steps (count), recipe_equipment (equipment_code)",
       )
       .eq("status", "published")
       .order("title"),
@@ -213,6 +228,7 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
         allergens: allergensByRecipe.get(r.id) ?? [],
         dietConflicts: recipeConflicts,
         ingredients: lines.map((l) => ({ id: l.ingredient_id, optional: l.is_optional })),
+        equipment: (r.recipe_equipment ?? []).map((e) => e.equipment_code),
       },
       ctx.constraints,
     );
@@ -348,6 +364,8 @@ export function describeExclusion(
           return `Régime : ${r.codes.map((c) => names.diet.get(c) ?? c).join(", ")}`;
         case "ingredient":
           return `Non souhaité : ${r.ids.map((id) => ingredientNames.get(id) ?? "?").join(", ")}`;
+        case "equipment":
+          return `Matériel : ${r.codes.map((c) => names.equipment.get(c) ?? c).join(", ")}`;
       }
     })
     .join(" · ");
@@ -386,6 +404,8 @@ export interface RecipeDetail {
   rating: Rating | null;
   history: Awaited<ReturnType<typeof recipeHistory>>;
   difficulty: Difficulty;
+  /** Matériel requis (déduit des étapes), en libellés. */
+  equipmentLabels: string[];
 }
 
 export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
@@ -396,7 +416,7 @@ export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
   const { data: r, error } = await supabase
     .from("recipes")
     .select(
-      "id, slug, title, description, servings, prep_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, quantity, unit_code, quantity_base, dimension, is_optional, preparation_note, position, ingredients (name, density_g_per_ml, piece_weight_g)), recipe_steps (position, instruction)",
+      "id, slug, title, description, servings, prep_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, quantity, unit_code, quantity_base, dimension, is_optional, preparation_note, position, ingredients (name, density_g_per_ml, piece_weight_g)), recipe_steps (position, instruction), recipe_equipment (equipment_code)",
     )
     .eq("slug", slug)
     .maybeSingle();
@@ -424,11 +444,13 @@ export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
   const allergenCodes = allergens.data.flatMap((a) => (a.allergen_code ? [a.allergen_code] : []));
   const dietCodes = conflicts.data.flatMap((d) => (d.diet_code ? [d.diet_code] : []));
   const lines = [...(r.recipe_ingredients ?? [])].sort((a, b) => a.position - b.position);
+  const equipmentCodes = (r.recipe_equipment ?? []).map((e) => e.equipment_code);
   const compatibility = checkCompatibility(
     {
       allergens: allergenCodes,
       dietConflicts: dietCodes,
       ingredients: lines.map((l) => ({ id: l.ingredient_id, optional: l.is_optional })),
+      equipment: equipmentCodes,
     },
     ctx.constraints,
   );
@@ -469,6 +491,9 @@ export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
       cookMinutes: r.cook_minutes,
       steps: (r.recipe_steps ?? []).length,
     }),
+    equipmentLabels: [...names.equipment.entries()]
+      .filter(([code]) => equipmentCodes.includes(code))
+      .map(([, label]) => label),
     cost: (() => {
       const estimate = estimateRecipeCost(
         lines.map((l) => ({

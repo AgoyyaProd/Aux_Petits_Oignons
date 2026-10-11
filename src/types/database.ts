@@ -67,6 +67,20 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"equipment": {
+                  Row: {
+                    "code": string,"label": string,"position": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "code": string,"label": string,"position": number
+                  }
+                  Update: {
+                    "code"?: string,"label"?: string,"position"?: number
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"household_diets": {
                   Row: {
                     "created_at": string,"diet_code": string,"household_id": string
@@ -122,6 +136,26 @@ isOneToOne: false
       columns: ["ingredient_id"]
 isOneToOne: false
       referencedRelation: "ingredients"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"household_food_profile": {
+                  Row: {
+                    "eating_style": string,"equipment": (string)[] | null,"household_id": string,"objectives": (string)[],"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "eating_style"?: string,"equipment"?: (string)[] | null,"household_id": string,"objectives"?: (string)[],"updated_at"?: string
+                  }
+                  Update: {
+                    "eating_style"?: string,"equipment"?: (string)[] | null,"household_id"?: string,"objectives"?: (string)[],"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "household_food_profile_household_id_fkey"
+      columns: ["household_id"]
+isOneToOne: true
+      referencedRelation: "households"
       referencedColumns: ["id"]
     }
                   ]
@@ -487,6 +521,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"recipe_equipment": {
+                  Row: {
+                    "equipment_code": string,"recipe_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "equipment_code": string,"recipe_id": string
+                  }
+                  Update: {
+                    "equipment_code"?: string,"recipe_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "recipe_equipment_equipment_code_fkey"
+      columns: ["equipment_code"]
+isOneToOne: false
+      referencedRelation: "equipment"
+      referencedColumns: ["code"]
+    },{
+      foreignKeyName: "recipe_equipment_recipe_id_fkey"
+      columns: ["recipe_id"]
+isOneToOne: false
+      referencedRelation: "recipes"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"recipe_ingredients": {
                   Row: {
                     "dimension": Database["public"]['Enums']["dimension"] | null,"id": string,"ingredient_id": string,"is_optional": boolean,"position": number,"preparation_note": string | null,"quantity": number | null,"quantity_base": number | null,"recipe_id": string,"unit_code": string | null
@@ -787,7 +847,10 @@ isOneToOne: false
                 }
           }
           Functions: {
-            "_stock_begin_operation":
+            "_recipe_equipment_compute":
+{ Args: { "p_recipe_id": string }; Returns: undefined
+                           },
+"_stock_begin_operation":
 { Args: { "p_household_id": string,"p_idempotency_key": string,"p_kind": Database["public"]['Enums']["movement_kind"] }; Returns: Record<string, unknown>
                            },
 "_stock_finish_operation":
@@ -833,6 +896,9 @@ isOneToOne: false
                            },
 "resolve_ingredient":
 { Args: { "p_label": string }; Returns: string
+                           },
+"set_food_profile":
+{ Args: { "p_allergens": (string)[],"p_eating_style": string,"p_equipment": (string)[],"p_household_id": string,"p_no_pork": boolean,"p_objectives": (string)[] }; Returns: undefined
                            },
 "set_household_preferences":
 { Args: { "p_allergens": (string)[],"p_diets": (string)[],"p_household_id": string }; Returns: undefined

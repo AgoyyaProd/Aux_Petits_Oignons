@@ -130,3 +130,27 @@ describe("couverture par le stock", () => {
     expect(stockCoverage([], new Set(["riz"]))).toEqual({ inStock: 0, total: 0 });
   });
 });
+
+describe("matériel de cuisine", () => {
+  const gratin = { ...quiche, equipment: ["four", "plaques"] };
+
+  it("sans matériel renseigné, rien n'est exclu", () => {
+    expect(checkCompatibility(gratin, NO_CONSTRAINTS).compatible).toBe(true);
+  });
+
+  it("exclut une recette qui demande un appareil absent", () => {
+    const result = checkCompatibility(gratin, {
+      ...NO_CONSTRAINTS,
+      equipment: new Set(["plaques", "mixeur"]),
+    });
+    expect(result.compatible).toBe(false);
+    expect(result.reasons).toEqual([{ kind: "equipment", codes: ["four"] }]);
+  });
+
+  it("accepte si tout le matériel est là", () => {
+    expect(
+      checkCompatibility(gratin, { ...NO_CONSTRAINTS, equipment: new Set(["four", "plaques"]) })
+        .compatible,
+    ).toBe(true);
+  });
+});

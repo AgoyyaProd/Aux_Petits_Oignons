@@ -110,6 +110,7 @@ export async function generatePlanAction(
       budgetCents: input.budget,
       locked: locked.map((e) => ({ recipeId: e.recipeId, servings: e.servings })),
       recentRecipeIds: recent,
+      profile: catalog.profile,
       seed,
     });
     // Les plats gardés conservent leur jour ; les nouveaux remplissent les cases libres.
@@ -252,6 +253,7 @@ export async function addEntryAction(
     ]);
     const result = generatePlan(catalog.candidates, {
       recentRecipeIds: recent,
+      profile: catalog.profile,
       mealCount: entries.length + 1,
       people: plan.people,
       budgetCents: plan.budgetCents,
