@@ -15,6 +15,7 @@ import {
   ChevronLeftIcon,
   ClockIcon,
   GaugeIcon,
+  PotIcon,
   UsersIcon,
   WalletIcon,
 } from "@/components/ui/icons";
@@ -150,6 +151,13 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
                 </dd>
               </div>
             </dl>
+            {recipe.equipmentLabels.length ? (
+              <p className="inline-flex items-center gap-1.5 text-sm">
+                <PotIcon size={16} className="text-muted" />
+                <span className="text-muted">Matériel :</span>
+                <span className="font-medium">{recipe.equipmentLabels.join(", ")}</span>
+              </p>
+            ) : null}
             <p className="text-muted text-xs leading-relaxed">
               {recipe.cost
                 ? `Total ${recipe.cost.missingNames.length ? "minimum " : ""}${formatCents(recipe.cost.cents)} pour la recette${recipe.cost.missingNames.length ? ` (sans prix : ${recipe.cost.missingNames.join(", ")})` : ""}.`

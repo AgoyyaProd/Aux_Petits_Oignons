@@ -32,6 +32,65 @@ export interface PlanCandidate {
   varietyKeys: readonly string[];
   /** Recette marquée « on aime » par le foyer. */
   favorite?: boolean;
+  /** Contient de la viande (hors poisson) : compte pour le style flexitarien. */
+  hasMeat?: boolean;
+  /** Nombre d'ingrédients obligatoires de type légumes, fruits ou légumineuses. */
+  plantCount?: number;
+  /** Contient du poisson ou des légumineuses (repère « manger mieux »). */
+  fishOrPulses?: boolean;
+  /** Jamais au menu du foyer (repère « découvrir »). */
+  novel?: boolean;
+  /** Durée totale, en minutes. */
+  totalMinutes?: number;
+}
+
+export type EatingStyle = "omnivore" | "flexitarien" | "pescetarien" | "vegetarien" | "vegetalien";
+export type Objective =
+  "manger_mieux" | "plus_legumes" | "decouvrir" | "moins_gaspiller" | "economiser" | "rapide";
+
+export interface FoodProfile {
+  style?: EatingStyle;
+  objectives?: readonly Objective[];
+}
+
+/**
+ * Bonus de score selon les objectifs du foyer (règles fixes, cumulables) :
+ *  - moins gaspiller : produits à finir et stock pèsent davantage ;
+ *  - plus de légumes : + par ingrédient végétal (jusqu'à 4) ;
+ *  - manger mieux : + par ingrédient végétal, + poisson ou légumineuses ;
+ *  - découvrir : + pour un plat jamais mis au menu ;
+ *  - économiser : + pour les plats les moins chers par portion ;
+ *  - rapide : + pour un plat prêt en 30 min (moins en 45 min).
+ */
+export function profileBonus(
+  c: PlanCandidate,
+  objectives: ReadonlySet<Objective>,
+  maxCostPerServing: number,
+): number {
+  let bonus = 0;
+  const plants = Math.min(c.plantCount ?? 0, 4);
+  if (objectives.has("moins_gaspiller")) {
+    bonus += 2 * Math.min(c.priorityUses, 3) + 1 * c.stockCoverage;
+  }
+  if (objectives.has("plus_legumes")) bonus += 0.6 * plants;
+  if (objectives.has("manger_mieux")) bonus += 0.4 * plants + (c.fishOrPulses ? 1 : 0);
+  if (objectives.has("decouvrir") && c.novel) bonus += 2.5;
+  if (
+    objectives.has("economiser") &&
+    c.costPerServingMillicents !== null &&
+    maxCostPerServing > 0
+  ) {
+    bonus += 2 * (1 - c.costPerServingMillicents / maxCostPerServing);
+  }
+  if (objectives.has("rapide") && c.totalMinutes !== undefined) {
+    bonus += c.totalMinutes <= 30 ? 2 : c.totalMinutes <= 45 ? 1 : 0;
+  }
+  return bonus;
+}
+
+/** Flexitarien : au plus un plat sur trois avec de la viande (au moins un si demandé). */
+export function flexitarianMeatCap(mealCount: number): number {
+  return Math.max(1, Math.floor(mealCount / 3));
 }
 
 /** Bonus de score d'un favori : du même ordre qu'un ingrédient à consommer vite. */
@@ -47,6 +106,8 @@ export interface PlanRequest {
   excludeRecipeIds?: readonly string[];
   /** Recettes déjà au menu récemment : évitées tant qu'il reste d'autres choix. */
   recentRecipeIds?: readonly string[];
+  /** Style et objectifs du foyer (préférences douces). */
+  profile?: FoodProfile;
   seed: number;
 }
 
@@ -116,12 +177,17 @@ export function generatePlan(candidates: readonly PlanCandidate[], req: PlanRequ
   const jitter = new Map(
     [...candidates].sort((a, b) => a.id.localeCompare(b.id)).map((c) => [c.id, random()]),
   );
+  const objectives = new Set(req.profile?.objectives ?? []);
+  const maxCost = Math.max(0, ...candidates.map((c) => c.costPerServingMillicents ?? 0));
   const score = (c: PlanCandidate) =>
     3 * Math.min(c.priorityUses, 3) +
     2 * c.stockCoverage +
     (c.favorite ? FAVORITE_BONUS : 0) +
+    profileBonus(c, objectives, maxCost) +
     1.5 * (jitter.get(c.id) ?? 0);
   const recent = new Set(req.recentRecipeIds ?? []);
+  const flexi = req.profile?.style === "flexitarien";
+  const meatCap = flexitarianMeatCap(req.mealCount);
 
   const entries: PlanEntry[] = req.locked.map((l) => ({
     recipeId: l.recipeId,
@@ -157,15 +223,25 @@ export function generatePlan(candidates: readonly PlanCandidate[], req: PlanRequ
           { fresh: false, variety: false, pricedOnly: true },
           { fresh: false, variety: false, pricedOnly: false },
         ];
-  for (const pass of passes) {
+  // Flexitarien : la limite de plats avec viande tient dans toutes les passes sauf une
+  // dernière passe de secours (mieux vaut un plat de viande qu'un repas vide).
+  const allPasses = flexi
+    ? [
+        ...passes.map((p) => ({ ...p, meatCap: true })),
+        { fresh: false, variety: false, pricedOnly: false, meatCap: false },
+      ]
+    : passes.map((p) => ({ ...p, meatCap: false }));
+  for (const pass of allPasses) {
     while (entries.length < req.mealCount) {
       const counts = familyCounts(
         entries.map((e) => e.recipeId),
         byId,
       );
+      const meatCount = entries.filter((e) => byId.get(e.recipeId)?.hasMeat).length;
       const available = pool.filter(
         (c) =>
           !taken.has(c.id) &&
+          (!pass.meatCap || !c.hasMeat || meatCount < meatCap) &&
           (!pass.fresh || !recent.has(c.id)) &&
           (!pass.variety || respectsVariety(c, counts)) &&
           (!pass.pricedOnly || c.costPerServingMillicents !== null),
@@ -244,12 +320,14 @@ export function suggestReplacements(
     seed,
     limit = 3,
     recentRecipeIds = [],
+    profile,
   }: {
     people: number;
     budgetCents: number | null;
     seed: number;
     limit?: number;
     recentRecipeIds?: readonly string[];
+    profile?: FoodProfile;
   },
 ): string[] {
   const current = entries[index];
@@ -275,8 +353,11 @@ export function suggestReplacements(
     return cost !== null && othersCost + cost <= budget;
   };
   const recent = new Set(recentRecipeIds);
+  const objectives = new Set(profile?.objectives ?? []);
+  const maxCost = Math.max(0, ...candidates.map((c) => c.costPerServingMillicents ?? 0));
   const score = (c: PlanCandidate) =>
     (fits(c) ? 100 : 0) +
+    profileBonus(c, objectives, maxCost) +
     (recent.has(c.id) ? 0 : 20) +
     3 * Math.min(c.priorityUses, 3) +
     2 * c.stockCoverage +

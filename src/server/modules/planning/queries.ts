@@ -127,6 +127,7 @@ export async function getPlannerPage({ week, replace }: { week?: string; replace
       budgetCents: plan.budgetCents,
       seed: plan.seed,
       recentRecipeIds: recent,
+      profile: catalog.profile,
     }).flatMap((id) => {
       const meta = catalog.recipes.get(id);
       if (!meta) return [];

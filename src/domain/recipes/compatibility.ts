@@ -6,12 +6,16 @@
  * - Régime : exclusion si un ingrédient est incompatible.
  * - Aliment non souhaité : exclusion s'il est obligatoire dans la recette ;
  *   s'il n'est que facultatif, la recette reste proposée et l'ingrédient est à retirer.
+ * - Matériel : exclusion si la recette demande un appareil que le foyer n'a pas
+ *   (seulement quand le foyer a renseigné son matériel).
  */
 
 export interface RecipeFlags {
   allergens: readonly string[];
   dietConflicts: readonly string[];
   ingredients: readonly { id: string; optional: boolean }[];
+  /** Matériel requis (déduit des étapes) ; absent = inconnu, aucune exclusion. */
+  equipment?: readonly string[];
 }
 
 export interface HouseholdConstraints {
@@ -19,12 +23,15 @@ export interface HouseholdConstraints {
   diets: ReadonlySet<string>;
   /** Aliments que le foyer ne veut pas manger. */
   avoidedIngredientIds: ReadonlySet<string>;
+  /** Matériel possédé ; null ou absent = non renseigné (aucun filtre). */
+  equipment?: ReadonlySet<string> | null;
 }
 
 export type ExclusionReason =
   | { kind: "allergen"; codes: string[] }
   | { kind: "diet"; codes: string[] }
-  | { kind: "ingredient"; ids: string[] };
+  | { kind: "ingredient"; ids: string[] }
+  | { kind: "equipment"; codes: string[] };
 
 export interface Compatibility {
   compatible: boolean;
@@ -48,6 +55,11 @@ export function checkCompatibility(
   if (allergens.length) reasons.push({ kind: "allergen", codes: allergens });
   const diets = recipe.dietConflicts.filter((d) => household.diets.has(d)).sort();
   if (diets.length) reasons.push({ kind: "diet", codes: diets });
+  if (household.equipment) {
+    const have = household.equipment;
+    const missing = [...new Set(recipe.equipment ?? [])].filter((e) => !have.has(e)).sort();
+    if (missing.length) reasons.push({ kind: "equipment", codes: missing });
+  }
 
   const avoided = recipe.ingredients.filter((i) => household.avoidedIngredientIds.has(i.id));
   // Un même ingrédient peut figurer deux fois : obligatoire l'emporte sur facultatif.

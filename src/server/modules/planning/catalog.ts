@@ -1,7 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { createSupabaseServerClient } from "@/server/supabase/server";
-import { isMainDish, varietyKeys, type PlanCandidate } from "@/domain/planning";
+import { isMainDish, varietyKeys, type FoodProfile, type PlanCandidate } from "@/domain/planning";
 import {
   estimateRecipeCost,
   millicentsToCents,
@@ -34,6 +34,8 @@ export interface PlanningCatalog {
   recipes: Map<string, RecipeMeta>;
   candidates: PlanCandidate[];
   priceBook: Map<string, PriceInfo>;
+  /** Style et objectifs du foyer, à transmettre au générateur. */
+  profile: FoodProfile;
 }
 
 export interface HouseholdForPlanning {
@@ -58,11 +60,16 @@ interface RecipeRow {
     ingredients: {
       slug: string;
       name: string;
+      category: string;
       density_g_per_ml: number | null;
       piece_weight_g: number | null;
     } | null;
   }[];
+  recipe_equipment: { equipment_code: string }[];
 }
+
+/** Catégories comptées comme « végétales » (objectifs plus de légumes, manger mieux). */
+const PLANT_CATEGORIES = new Set(["legumes", "fruits", "legumineuses"]);
 
 /**
  * Catalogue du générateur : toutes les recettes visibles par le foyer (pour afficher un menu
@@ -73,11 +80,11 @@ export async function loadPlanningCatalog(
   supabase: Supabase,
   household: HouseholdForPlanning,
 ): Promise<PlanningCatalog> {
-  const [recipes, allergens, conflicts, ctx, priceBook, ratings] = await Promise.all([
+  const [recipes, allergens, conflicts, ctx, priceBook, ratings, planned] = await Promise.all([
     supabase
       .from("recipes")
       .select(
-        "id, slug, title, servings, prep_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, quantity_base, dimension, is_optional, ingredients (slug, name, density_g_per_ml, piece_weight_g))",
+        "id, slug, title, servings, prep_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, quantity_base, dimension, is_optional, ingredients (slug, name, category, density_g_per_ml, piece_weight_g)), recipe_equipment (equipment_code)",
       )
       .eq("status", "published"),
     supabase.from("recipe_allergens").select("recipe_id, allergen_code"),
@@ -85,7 +92,11 @@ export async function loadPlanningCatalog(
     householdContext(supabase, household.id, household.timezone),
     loadPriceBook(supabase, household.id),
     loadRatings(supabase, household.id),
+    // Recettes déjà mises au menu par le foyer (objectif « découvrir »).
+    supabase.from("meal_plan_entries").select("recipe_id").eq("household_id", household.id),
   ]);
+  if (planned.error) throw new Error(planned.error.message);
+  const everPlanned = new Set(planned.data.map((p) => p.recipe_id));
   if (recipes.error) throw new Error(`Lecture des recettes impossible : ${recipes.error.message}`);
   if (allergens.error) throw new Error(allergens.error.message);
   if (conflicts.error) throw new Error(conflicts.error.message);
@@ -124,6 +135,7 @@ export async function loadPlanningCatalog(
         allergens: allergensBy.get(r.id) ?? [],
         dietConflicts: conflictsBy.get(r.id) ?? [],
         ingredients: rows.map((l) => ({ id: l.ingredient_id, optional: l.is_optional })),
+        equipment: (r.recipe_equipment ?? []).map((e) => e.equipment_code),
       },
       ctx.constraints,
     );
@@ -166,10 +178,21 @@ export async function loadPlanningCatalog(
       })(),
       varietyKeys: varietyKeys(required.map((l) => l.ingredients?.slug ?? "")),
       favorite: meta.rating === 1,
+      hasMeat: required.some((l) => l.ingredients?.category === "viandes"),
+      plantCount: new Set(
+        required
+          .filter((l) => PLANT_CATEGORIES.has(l.ingredients?.category ?? ""))
+          .map((l) => l.ingredient_id),
+      ).size,
+      fishOrPulses: required.some((l) =>
+        ["poissons", "legumineuses"].includes(l.ingredients?.category ?? ""),
+      ),
+      novel: !everPlanned.has(r.id),
+      totalMinutes: meta.totalMinutes,
     });
   }
 
-  return { recipes: metas, candidates, priceBook };
+  return { recipes: metas, candidates, priceBook, profile: ctx.foodProfile };
 }
 
 /** Coût d'un plat pour un nombre de portions donné, avec les ingrédients sans prix. */

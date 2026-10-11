@@ -214,7 +214,8 @@ async function Catalog({ searchParams }: Pick<PageProps<"/recipes">, "searchPara
       {catalog.hasConstraints && catalog.excludedCount > 0 && !filters.showExcluded ? (
         <Alert tone="info">
           {catalog.excludedCount} recette{catalog.excludedCount > 1 ? "s" : ""} masquée
-          {catalog.excludedCount > 1 ? "s" : ""} selon tes allergies, régimes et aliments évités.{" "}
+          {catalog.excludedCount > 1 ? "s" : ""} selon tes allergies, ton régime, ton matériel et
+          tes aliments évités.{" "}
           <Link
             href={href({ ...filters, showExcluded: true })}
             className="text-brand font-semibold underline"

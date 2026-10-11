@@ -255,3 +255,72 @@ describe("favoris et historique", () => {
     expect(ids.slice(0, 2).sort()).toEqual(["p5", "p6"]);
   });
 });
+
+describe("profil alimentaire", () => {
+  const meat = ["m1", "m2", "m3", "m4"].map((id) =>
+    candidate(id, { hasMeat: true, priorityUses: 2 }),
+  );
+  const veggie = ["v1", "v2", "v3", "v4"].map((id) => candidate(id));
+
+  it("flexitarien : au plus un plat sur trois avec viande, même si la viande est prioritaire", () => {
+    for (let seed = 0; seed < 10; seed += 1) {
+      const result = generatePlan([...meat, ...veggie], {
+        ...base,
+        mealCount: 6,
+        seed,
+        profile: { style: "flexitarien" },
+      });
+      const meats = result.entries.filter((e) => e.recipeId.startsWith("m")).length;
+      expect(meats).toBeLessThanOrEqual(2);
+      expect(result.entries).toHaveLength(6);
+    }
+  });
+
+  it("flexitarien : complète avec de la viande plutôt que laisser des repas vides", () => {
+    const result = generatePlan([...meat, candidate("v1")], {
+      ...base,
+      mealCount: 4,
+      profile: { style: "flexitarien" },
+    });
+    expect(result.entries).toHaveLength(4);
+  });
+
+  it("objectif rapide : les plats de 30 min passent devant", () => {
+    const pool = [candidate("lent", { totalMinutes: 90 }), candidate("vite", { totalMinutes: 20 })];
+    for (let seed = 0; seed < 10; seed += 1) {
+      const ids = generatePlan(pool, {
+        ...base,
+        mealCount: 1,
+        seed,
+        profile: { objectives: ["rapide"] },
+      }).entries.map((e) => e.recipeId);
+      expect(ids).toEqual(["vite"]);
+    }
+  });
+
+  it("objectif découvrir : un plat jamais fait passe devant", () => {
+    const pool = [candidate("connu"), candidate("nouveau", { novel: true })];
+    for (let seed = 0; seed < 10; seed += 1) {
+      const ids = generatePlan(pool, {
+        ...base,
+        mealCount: 1,
+        seed,
+        profile: { objectives: ["decouvrir"] },
+      }).entries.map((e) => e.recipeId);
+      expect(ids).toEqual(["nouveau"]);
+    }
+  });
+
+  it("objectif plus de légumes : favorise les plats riches en végétaux", () => {
+    const pool = [candidate("pauvre", { plantCount: 0 }), candidate("riche", { plantCount: 4 })];
+    for (let seed = 0; seed < 10; seed += 1) {
+      const ids = generatePlan(pool, {
+        ...base,
+        mealCount: 1,
+        seed,
+        profile: { objectives: ["plus_legumes"] },
+      }).entries.map((e) => e.recipeId);
+      expect(ids).toEqual(["riche"]);
+    }
+  });
+});

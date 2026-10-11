@@ -118,3 +118,64 @@ export type InviteState = FormState<"email"> & {
   token?: string;
   email?: string;
 };
+
+// ---------------------------------------------------------------------------
+// Profil alimentaire (migration 0022)
+// ---------------------------------------------------------------------------
+
+export const EATING_STYLES = [
+  { code: "omnivore", label: "Omnivore", hint: "Je mange de tout." },
+  {
+    code: "flexitarien",
+    label: "Flexitarien",
+    hint: "Surtout végétarien : au plus un plat sur trois avec de la viande.",
+  },
+  { code: "pescetarien", label: "Pescétarien", hint: "Du poisson, mais pas de viande." },
+  { code: "vegetarien", label: "Végétarien", hint: "Ni viande ni poisson." },
+  { code: "vegetalien", label: "Végétalien", hint: "Aucun produit d'origine animale." },
+] as const;
+
+export const OBJECTIVES = [
+  {
+    code: "manger_mieux",
+    label: "Manger mieux",
+    hint: "Plus de végétaux, de poisson et de légumineuses.",
+  },
+  {
+    code: "plus_legumes",
+    label: "Plus de légumes",
+    hint: "Les plats riches en légumes passent devant.",
+  },
+  { code: "decouvrir", label: "Découvrir des plats", hint: "Des recettes jamais mises au menu." },
+  {
+    code: "moins_gaspiller",
+    label: "Moins gaspiller",
+    hint: "Ce qui est à finir et ton stock d'abord.",
+  },
+  {
+    code: "economiser",
+    label: "Faire des économies",
+    hint: "Les plats les moins chers par portion.",
+  },
+  { code: "rapide", label: "Cuisiner plus vite", hint: "Des plats prêts en 30 minutes." },
+] as const;
+
+export const foodProfileSchema = z.object({
+  householdId: z.uuid(),
+  style: z.enum(["omnivore", "flexitarien", "pescetarien", "vegetarien", "vegetalien"]),
+  noPork: z.boolean(),
+  allergens: z.array(z.string().regex(/^[a-z_]+$/)).max(20),
+  objectives: z
+    .array(
+      z.enum([
+        "manger_mieux",
+        "plus_legumes",
+        "decouvrir",
+        "moins_gaspiller",
+        "economiser",
+        "rapide",
+      ]),
+    )
+    .max(6),
+  equipment: z.array(z.enum(["plaques", "four", "mixeur", "micro_ondes"])).max(4),
+});
