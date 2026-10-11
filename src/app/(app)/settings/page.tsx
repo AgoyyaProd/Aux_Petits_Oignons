@@ -1,0 +1,50 @@
+import type { Metadata } from "next";
+import { Suspense } from "react";
+import { HouseholdForm } from "@/components/settings/household-form";
+import { PreferencesForm } from "@/components/settings/preferences-form";
+import { PageSkeleton } from "@/components/ui/skeleton";
+import { getHouseholdSettings } from "@/server/modules/households/queries";
+
+export const metadata: Metadata = { title: "Paramètres" };
+
+export default function SettingsPage() {
+  return (
+    <div className="flex flex-col gap-6">
+      <h1 className="text-2xl font-bold tracking-tight">Paramètres</h1>
+      <Suspense fallback={<PageSkeleton />}>
+        <SettingsContent />
+      </Suspense>
+    </div>
+  );
+}
+
+async function SettingsContent() {
+  const settings = await getHouseholdSettings();
+  if (!settings) return <p className="text-muted">Aucun foyer actif.</p>;
+
+  return (
+    <>
+      <Section title="Foyer">
+        <HouseholdForm household={settings.household} isOwner={settings.isOwner} />
+      </Section>
+      <Section title="Régimes et allergies">
+        <PreferencesForm
+          householdId={settings.household.id}
+          diets={settings.diets}
+          allergens={settings.allergens}
+          selectedDiets={settings.selectedDiets}
+          selectedAllergens={settings.selectedAllergens}
+        />
+      </Section>
+    </>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="border-border bg-surface flex flex-col gap-4 rounded-2xl border p-4">
+      <h2 className="text-lg font-semibold">{title}</h2>
+      {children}
+    </section>
+  );
+}

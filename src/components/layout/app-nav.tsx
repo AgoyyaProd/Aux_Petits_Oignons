@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 /** Écrans prévus au MVP ; ceux qui n'existent pas encore sont signalés « bientôt ». */
 const ITEMS = [
   { href: "/dashboard", label: "Accueil", ready: true },
-  { href: "/pantry", label: "Garde-manger", ready: false },
+  { href: "/pantry", label: "Garde-manger", ready: true },
   { href: "/recipes", label: "Recettes", ready: false },
   { href: "/planner", label: "Planning", ready: false },
   { href: "/shopping", label: "Courses", ready: false },

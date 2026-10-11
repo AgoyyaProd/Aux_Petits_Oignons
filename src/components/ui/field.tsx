@@ -23,7 +23,7 @@ export function Field({ label, error, hint, id, className = "", ...input }: Fiel
         aria-invalid={error ? true : undefined}
         aria-describedby={[hintId, errorId].filter(Boolean).join(" ") || undefined}
         className={[
-          "bg-surface min-h-11 rounded-xl border px-3 text-base outline-none",
+          "bg-surface min-h-11 w-full min-w-0 rounded-xl border px-3 text-base outline-none",
           "focus-visible:ring-brand focus-visible:ring-2",
           error ? "border-danger" : "border-border",
         ].join(" ")}

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 import { getCurrentContext } from "@/server/modules/auth/session";
 
@@ -8,10 +9,17 @@ const NEXT_STEPS = [
   {
     title: "Renseigne ton garde-manger",
     body: "Ajoute ce que tu as au réfrigérateur, au congélateur et dans les placards.",
+    href: "/pantry/new",
   },
-  { title: "Planifie ta semaine", body: "Des repas qui utilisent d'abord ce que tu possèdes." },
-  { title: "Fais tes courses", body: "Une liste qui ne contient que ce qui manque vraiment." },
-];
+  {
+    title: "Planifie ta semaine",
+    body: "Des repas qui utilisent d'abord ce que tu possèdes. Bientôt disponible.",
+  },
+  {
+    title: "Fais tes courses",
+    body: "Une liste qui ne contient que ce qui manque vraiment. Bientôt disponible.",
+  },
+] satisfies { title: string; body: string; href?: string }[];
 
 export default function DashboardPage() {
   return (
@@ -37,13 +45,21 @@ export default function DashboardPage() {
                 {index + 1}
               </span>
               <div className="flex flex-col gap-0.5">
-                <p className="font-semibold">{step.title}</p>
+                {step.href ? (
+                  <Link
+                    href={step.href}
+                    className="text-brand font-semibold underline-offset-4 hover:underline"
+                  >
+                    {step.title} →
+                  </Link>
+                ) : (
+                  <p className="font-semibold">{step.title}</p>
+                )}
                 <p className="text-muted text-sm">{step.body}</p>
               </div>
             </li>
           ))}
         </ol>
-        <p className="text-muted text-xs">Ces modules arrivent dans les prochaines phases.</p>
       </section>
     </div>
   );

@@ -47,6 +47,64 @@ export type Database = {
                   Relationships: [
                     
                   ]
+                },"household_diets": {
+                  Row: {
+                    "created_at": string,"diet_code": string,"household_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"diet_code": string,"household_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"diet_code"?: string,"household_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "household_diets_diet_code_fkey"
+      columns: ["diet_code"]
+isOneToOne: false
+      referencedRelation: "diets"
+      referencedColumns: ["code"]
+    },{
+      foreignKeyName: "household_diets_household_id_fkey"
+      columns: ["household_id"]
+isOneToOne: false
+      referencedRelation: "households"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"household_exclusions": {
+                  Row: {
+                    "allergen_code": string | null,"created_at": string,"household_id": string,"id": string,"ingredient_id": string | null,"is_allergy": boolean
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "allergen_code"?: string | null,"created_at"?: string,"household_id": string,"id"?: string,"ingredient_id"?: string | null,"is_allergy": boolean
+                  }
+                  Update: {
+                    "allergen_code"?: string | null,"created_at"?: string,"household_id"?: string,"id"?: string,"ingredient_id"?: string | null,"is_allergy"?: boolean
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "household_exclusions_allergen_code_fkey"
+      columns: ["allergen_code"]
+isOneToOne: false
+      referencedRelation: "allergens"
+      referencedColumns: ["code"]
+    },{
+      foreignKeyName: "household_exclusions_household_id_fkey"
+      columns: ["household_id"]
+isOneToOne: false
+      referencedRelation: "households"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "household_exclusions_ingredient_id_fkey"
+      columns: ["ingredient_id"]
+isOneToOne: false
+      referencedRelation: "ingredients"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"household_invitations": {
                   Row: {
                     "accepted_at": string | null,"accepted_by": string | null,"created_at": string,"created_by": string,"email": string,"expires_at": string,"household_id": string,"id": string,"token_hash": string
@@ -187,6 +245,38 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"pantry_items": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"dimension": Database["public"]['Enums']["dimension"],"display_unit": string,"expires_on": string | null,"expiry_kind": Database["public"]['Enums']["expiry_kind"] | null,"household_id": string,"id": string,"ingredient_id": string,"location": Database["public"]['Enums']["storage_loc"],"opened_at": string | null,"quantity_base": number | null,"status": Database["public"]['Enums']["item_status"],"updated_at": string,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"dimension": Database["public"]['Enums']["dimension"],"display_unit": string,"expires_on"?: string | null,"expiry_kind"?: Database["public"]['Enums']["expiry_kind"] | null,"household_id": string,"id"?: string,"ingredient_id": string,"location": Database["public"]['Enums']["storage_loc"],"opened_at"?: string | null,"quantity_base"?: number | null,"status"?: Database["public"]['Enums']["item_status"],"updated_at"?: string,"version"?: number
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"dimension"?: Database["public"]['Enums']["dimension"],"display_unit"?: string,"expires_on"?: string | null,"expiry_kind"?: Database["public"]['Enums']["expiry_kind"] | null,"household_id"?: string,"id"?: string,"ingredient_id"?: string,"location"?: Database["public"]['Enums']["storage_loc"],"opened_at"?: string | null,"quantity_base"?: number | null,"status"?: Database["public"]['Enums']["item_status"],"updated_at"?: string,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "pantry_items_display_unit_fkey"
+      columns: ["display_unit"]
+isOneToOne: false
+      referencedRelation: "units"
+      referencedColumns: ["code"]
+    },{
+      foreignKeyName: "pantry_items_household_id_fkey"
+      columns: ["household_id"]
+isOneToOne: false
+      referencedRelation: "households"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "pantry_items_ingredient_id_fkey"
+      columns: ["ingredient_id"]
+isOneToOne: false
+      referencedRelation: "ingredients"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"profiles": {
                   Row: {
                     "active_household_id": string | null,"created_at": string,"display_name": string | null,"id": string,"updated_at": string
@@ -202,6 +292,64 @@ isOneToOne: false
                     {
       foreignKeyName: "profiles_active_household_id_fkey"
       columns: ["active_household_id"]
+isOneToOne: false
+      referencedRelation: "households"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"stock_movements": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"delta_base": number | null,"household_id": string,"id": number,"ingredient_id": string,"kind": Database["public"]['Enums']["movement_kind"],"note": string | null,"operation_id": string,"pantry_item_id": string,"quantity_after_base": number | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"delta_base"?: number | null,"household_id": string,"id"?: never,"ingredient_id": string,"kind": Database["public"]['Enums']["movement_kind"],"note"?: string | null,"operation_id": string,"pantry_item_id": string,"quantity_after_base"?: number | null
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"delta_base"?: number | null,"household_id"?: string,"id"?: never,"ingredient_id"?: string,"kind"?: Database["public"]['Enums']["movement_kind"],"note"?: string | null,"operation_id"?: string,"pantry_item_id"?: string,"quantity_after_base"?: number | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "stock_movements_household_id_fkey"
+      columns: ["household_id"]
+isOneToOne: false
+      referencedRelation: "households"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "stock_movements_ingredient_id_fkey"
+      columns: ["ingredient_id"]
+isOneToOne: false
+      referencedRelation: "ingredients"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "stock_movements_operation_id_fkey"
+      columns: ["operation_id"]
+isOneToOne: false
+      referencedRelation: "stock_operations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "stock_movements_pantry_item_id_fkey"
+      columns: ["pantry_item_id"]
+isOneToOne: false
+      referencedRelation: "pantry_items"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"stock_operations": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"household_id": string,"id": string,"idempotency_key": string,"kind": Database["public"]['Enums']["movement_kind"],"result": Json | null,"source_id": string | null,"source_table": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"household_id": string,"id"?: string,"idempotency_key": string,"kind": Database["public"]['Enums']["movement_kind"],"result"?: Json | null,"source_id"?: string | null,"source_table"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"household_id"?: string,"id"?: string,"idempotency_key"?: string,"kind"?: Database["public"]['Enums']["movement_kind"],"result"?: Json | null,"source_id"?: string | null,"source_table"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "stock_operations_household_id_fkey"
+      columns: ["household_id"]
 isOneToOne: false
       referencedRelation: "households"
       referencedColumns: ["id"]
@@ -227,7 +375,13 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "accept_household_invitation":
+            "_stock_begin_operation":
+{ Args: { "p_household_id": string,"p_idempotency_key": string,"p_kind": Database["public"]['Enums']["movement_kind"] }; Returns: Record<string, unknown>
+                           },
+"_stock_finish_operation":
+{ Args: { "p_item_id": string,"p_operation_id": string,"p_result": Json }; Returns: Json
+                           },
+"accept_household_invitation":
 { Args: { "p_token": string }; Returns: string
                            },
 "create_household_invitation":
@@ -248,8 +402,20 @@ isOneToOne: false
 "normalize_alias":
 { Args: { "input": string }; Returns: string
                            },
+"pantry_add_item":
+{ Args: { "p_display_unit": string,"p_expires_on": string,"p_expiry_kind": Database["public"]['Enums']["expiry_kind"],"p_household_id": string,"p_idempotency_key": string,"p_ingredient_id": string,"p_location": Database["public"]['Enums']["storage_loc"],"p_note"?: string,"p_opened": boolean,"p_quantity": number }; Returns: Json
+                           },
+"pantry_apply_movement":
+{ Args: { "p_expected_version": number,"p_idempotency_key": string,"p_item_id": string,"p_kind": Database["public"]['Enums']["movement_kind"],"p_note"?: string,"p_quantity": number,"p_unit": string }; Returns: Json
+                           },
+"pantry_update_details":
+{ Args: { "p_expected_version": number,"p_expires_on": string,"p_expiry_kind": Database["public"]['Enums']["expiry_kind"],"p_item_id": string,"p_location": Database["public"]['Enums']["storage_loc"],"p_opened": boolean }; Returns: Json
+                           },
 "resolve_ingredient":
 { Args: { "p_label": string }; Returns: string
+                           },
+"set_household_preferences":
+{ Args: { "p_allergens": (string)[],"p_diets": (string)[],"p_household_id": string }; Returns: undefined
                            }
           }
           Enums: {

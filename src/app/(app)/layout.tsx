@@ -23,11 +23,16 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             <HouseholdName />
           </Suspense>
         </div>
-        <form action={signOutAction}>
-          <button type="submit" className={buttonClasses("ghost", "min-h-9 px-3 text-xs")}>
-            Se déconnecter
-          </button>
-        </form>
+        <div className="flex items-center gap-1">
+          <Link href="/settings" className={buttonClasses("ghost", "min-h-9 px-3 text-xs")}>
+            Paramètres
+          </Link>
+          <form action={signOutAction}>
+            <button type="submit" className={buttonClasses("ghost", "min-h-9 px-3 text-xs")}>
+              Se déconnecter
+            </button>
+          </form>
+        </div>
       </header>
       <div className="flex flex-1 flex-col md:flex-row">
         <div className="md:w-56 md:shrink-0">
