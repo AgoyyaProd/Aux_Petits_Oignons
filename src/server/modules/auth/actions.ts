@@ -54,13 +54,14 @@ export async function signUpAction(
     return { status: "error", fieldErrors: toFieldErrors(parsed.error), values };
   }
 
+  const next = safeRedirectPath(parsed.data.next);
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
       data: parsed.data.displayName ? { display_name: parsed.data.displayName } : {},
-      emailRedirectTo: `${publicEnv().NEXT_PUBLIC_SITE_URL}/auth/callback?next=/dashboard`,
+      emailRedirectTo: `${publicEnv().NEXT_PUBLIC_SITE_URL}/auth/callback?next=${encodeURIComponent(next)}`,
     },
   });
   if (error) {
@@ -78,7 +79,7 @@ export async function signUpAction(
       message: "Compte créé. Clique sur le lien reçu par e-mail pour l'activer.",
     };
   }
-  redirect("/dashboard");
+  redirect(next);
 }
 
 export async function magicLinkAction(

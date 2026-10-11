@@ -7,7 +7,7 @@ import { Field } from "@/components/ui/field";
 import { signUpAction } from "@/server/modules/auth/actions";
 import { idleState } from "@/server/modules/auth/schema";
 
-export function SignUpForm() {
+export function SignUpForm({ next }: { next?: string }) {
   const [state, action, pending] = useActionState(signUpAction, idleState);
 
   if (state.status === "success") {
@@ -17,6 +17,7 @@ export function SignUpForm() {
   return (
     <form action={action} className="flex flex-col gap-4" noValidate>
       {state.message ? <Alert tone="error">{state.message}</Alert> : null}
+      <input type="hidden" name="next" value={next ?? ""} />
       <Field
         label="Prénom ou pseudo"
         name="displayName"

@@ -3,9 +3,11 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { AvoidedFoodsForm } from "@/components/settings/avoided-foods-form";
 import { HouseholdForm } from "@/components/settings/household-form";
+import { MembersSection } from "@/components/settings/members-section";
 import { PreferencesForm } from "@/components/settings/preferences-form";
 import { buttonClasses } from "@/components/ui/button";
 import { PageSkeleton } from "@/components/ui/skeleton";
+import { getMembersSection } from "@/server/modules/households/members";
 import { getHouseholdSettings } from "@/server/modules/households/queries";
 import { getIngredientChoices } from "@/server/modules/pantry/queries";
 
@@ -23,13 +25,26 @@ export default function SettingsPage() {
 }
 
 async function SettingsContent() {
-  const [settings, choices] = await Promise.all([getHouseholdSettings(), getIngredientChoices()]);
-  if (!settings) return <p className="text-muted">Aucun foyer actif.</p>;
+  const [settings, members, choices] = await Promise.all([
+    getHouseholdSettings(),
+    getMembersSection(),
+    getIngredientChoices(),
+  ]);
+  if (!settings || !members) return <p className="text-muted">Aucun foyer actif.</p>;
 
   return (
     <>
       <Section title="Foyer">
         <HouseholdForm household={settings.household} isOwner={settings.isOwner} />
+      </Section>
+      <Section title="Membres du foyer">
+        <MembersSection
+          householdId={members.householdId}
+          isOwner={members.isOwner}
+          members={members.members}
+          invitations={members.invitations}
+          households={members.households}
+        />
       </Section>
       <Section title="Régimes et allergies">
         <PreferencesForm

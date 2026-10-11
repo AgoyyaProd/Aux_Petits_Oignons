@@ -39,9 +39,38 @@ export const getCurrentContext = cache(async () => {
 
   if (error) throw new Error(`Lecture du profil impossible : ${error.message}`);
 
+  let household = profile.households;
+  if (!household) household = await fallbackHousehold(supabase, user.id);
+
   return {
     user,
     profile: { id: profile.id, displayName: profile.display_name },
-    household: profile.households,
+    household,
   };
 });
+
+/**
+ * Le foyer actif n'est plus accessible (membre retiré, départ du foyer) : on bascule sur
+ * un autre foyer dont l'utilisateur est membre, en priorité le sien.
+ */
+async function fallbackHousehold(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  userId: string,
+) {
+  const { data: memberships } = await supabase
+    .from("household_members")
+    .select(
+      "role, joined_at, households (id, name, people_count, weekly_budget_cents, currency, timezone)",
+    )
+    .eq("user_id", userId)
+    .order("joined_at");
+  const pick =
+    memberships?.find((m) => m.role === "owner" && m.households) ??
+    memberships?.find((m) => m.households);
+  if (!pick?.households) return null;
+  await supabase
+    .from("profiles")
+    .update({ active_household_id: pick.households.id })
+    .eq("id", userId);
+  return pick.households;
+}

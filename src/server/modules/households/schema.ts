@@ -84,3 +84,37 @@ export function firstErrors<F extends string>(error: z.ZodError): Partial<Record
   }
   return out;
 }
+
+// ---------------------------------------------------------------------------
+// Membres et invitations
+// ---------------------------------------------------------------------------
+
+export const inviteSchema = z.object({
+  householdId: z.uuid(),
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .pipe(z.email({ error: "Adresse e-mail invalide." })),
+});
+
+export const memberSchema = z.object({
+  householdId: z.uuid(),
+  userId: z.uuid(),
+});
+
+export const invitationIdSchema = z.object({
+  householdId: z.uuid(),
+  invitationId: z.uuid(),
+});
+
+export const switchHouseholdSchema = z.object({ householdId: z.uuid() });
+
+/** Jeton d'invitation : 32 octets aléatoires en hexadécimal (voir migration 0002). */
+export const invitationTokenSchema = z.string().regex(/^[0-9a-f]{64}$/);
+
+export type InviteState = FormState<"email"> & {
+  /** Jeton clair, affiché une seule fois au propriétaire pour qu'il partage le lien. */
+  token?: string;
+  email?: string;
+};

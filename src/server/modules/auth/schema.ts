@@ -29,6 +29,7 @@ export const signUpSchema = z.object({
     .transform((v) => (v ? v : undefined)),
   email,
   password,
+  next: z.string().optional(),
 });
 
 export const magicLinkSchema = z.object({

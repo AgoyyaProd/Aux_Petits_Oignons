@@ -18,15 +18,6 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
       <Suspense fallback={<SignInForm />}>
         <LoginForm searchParams={searchParams} />
       </Suspense>
-      <p className="text-muted text-center text-sm">
-        Pas encore de compte ?{" "}
-        <Link
-          href="/signup"
-          className="text-brand font-semibold underline-offset-4 hover:underline"
-        >
-          Créer un compte
-        </Link>
-      </p>
     </div>
   );
 }
@@ -43,6 +34,15 @@ async function LoginForm({ searchParams }: Pick<PageProps<"/login">, "searchPara
         </Alert>
       ) : null}
       <SignInForm next={next} />
+      <p className="text-muted text-center text-sm">
+        Pas encore de compte ?{" "}
+        <Link
+          href={next === "/dashboard" ? "/signup" : `/signup?next=${encodeURIComponent(next)}`}
+          className="text-brand font-semibold underline-offset-4 hover:underline"
+        >
+          Créer un compte
+        </Link>
+      </p>
     </>
   );
 }
