@@ -35,7 +35,7 @@ async function householdContext(supabase: Supabase, householdId: string) {
     supabase.from("household_diets").select("diet_code").eq("household_id", householdId),
     supabase
       .from("household_exclusions")
-      .select("allergen_code, ingredient_id, is_allergy")
+      .select("allergen_code, ingredient_id")
       .eq("household_id", householdId),
     supabase
       .from("pantry_items")
@@ -51,8 +51,8 @@ async function householdContext(supabase: Supabase, householdId: string) {
   const constraints: HouseholdConstraints = {
     diets: new Set(diets.data.map((d) => d.diet_code)),
     allergens: new Set(exclusions.data.flatMap((e) => (e.allergen_code ? [e.allergen_code] : []))),
-    dislikedIngredientIds: new Set(
-      exclusions.data.flatMap((e) => (e.ingredient_id && !e.is_allergy ? [e.ingredient_id] : [])),
+    avoidedIngredientIds: new Set(
+      exclusions.data.flatMap((e) => (e.ingredient_id ? [e.ingredient_id] : [])),
     ),
   };
   return { constraints, available: new Set(pantry.data.map((p) => p.ingredient_id)) };
@@ -154,11 +154,14 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
       {
         allergens: allergensByRecipe.get(r.id) ?? [],
         dietConflicts: recipeConflicts,
-        ingredientIds: lines.map((l) => l.ingredient_id),
+        ingredients: lines.map((l) => ({ id: l.ingredient_id, optional: l.is_optional })),
       },
       ctx.constraints,
     );
     if (!compatibility.compatible) excludedCount += 1;
+    const ingredientNames = new Map(
+      lines.map((l) => [l.ingredient_id, l.ingredients?.name ?? "?"]),
+    );
 
     const totalMinutes = r.prep_minutes + r.cook_minutes;
     if (filters.maxMinutes && totalMinutes > filters.maxMinutes) continue;
@@ -193,7 +196,7 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
         ctx.available,
       ),
       compatibility,
-      exclusionLabel: describeExclusion(compatibility, names),
+      exclusionLabel: describeExclusion(compatibility, names, ingredientNames),
     });
   }
 
@@ -209,7 +212,11 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
   return {
     cards,
     excludedCount,
-    hasConstraints: ctx.constraints.allergens.size + ctx.constraints.diets.size > 0,
+    hasConstraints:
+      ctx.constraints.allergens.size +
+        ctx.constraints.diets.size +
+        ctx.constraints.avoidedIngredientIds.size >
+      0,
     pantryIsEmpty: ctx.available.size === 0,
   };
 }
@@ -217,14 +224,20 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
 function describeExclusion(
   compatibility: Compatibility,
   names: Awaited<ReturnType<typeof labels>>,
+  ingredientNames: ReadonlyMap<string, string>,
 ): string | null {
   if (compatibility.compatible) return null;
   return compatibility.reasons
-    .map((r) =>
-      r.kind === "allergen"
-        ? `Allergie : ${r.codes.map((c) => names.allergen.get(c) ?? c).join(", ")}`
-        : `Régime : ${r.codes.map((c) => names.diet.get(c) ?? c).join(", ")}`,
-    )
+    .map((r) => {
+      switch (r.kind) {
+        case "allergen":
+          return `Allergie : ${r.codes.map((c) => names.allergen.get(c) ?? c).join(", ")}`;
+        case "diet":
+          return `Régime : ${r.codes.map((c) => names.diet.get(c) ?? c).join(", ")}`;
+        case "ingredient":
+          return `Non souhaité : ${r.ids.map((id) => ingredientNames.get(id) ?? "?").join(", ")}`;
+      }
+    })
     .join(" · ");
 }
 
@@ -252,7 +265,8 @@ export interface RecipeDetail {
   vegan: boolean;
   compatibility: Compatibility;
   exclusionLabel: string | null;
-  dislikedNames: string[];
+  /** Ingrédients facultatifs non souhaités, à laisser de côté. */
+  toRemoveNames: string[];
 }
 
 export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
@@ -286,10 +300,11 @@ export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
     {
       allergens: allergenCodes,
       dietConflicts: dietCodes,
-      ingredientIds: lines.map((l) => l.ingredient_id),
+      ingredients: lines.map((l) => ({ id: l.ingredient_id, optional: l.is_optional })),
     },
     ctx.constraints,
   );
+  const ingredientNames = new Map(lines.map((l) => [l.ingredient_id, l.ingredients?.name ?? "?"]));
 
   return {
     id: r.id,
@@ -316,9 +331,7 @@ export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
     vegetarian: !dietCodes.includes("vegetarian"),
     vegan: !dietCodes.includes("vegan"),
     compatibility,
-    exclusionLabel: describeExclusion(compatibility, names),
-    dislikedNames: lines
-      .filter((l) => compatibility.disliked.includes(l.ingredient_id))
-      .map((l) => l.ingredients?.name ?? "?"),
+    exclusionLabel: describeExclusion(compatibility, names, ingredientNames),
+    toRemoveNames: compatibility.toRemove.map((id) => ingredientNames.get(id) ?? "?"),
   };
 }

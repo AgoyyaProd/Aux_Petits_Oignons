@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { AvoidedFoodsForm } from "@/components/settings/avoided-foods-form";
 import { HouseholdForm } from "@/components/settings/household-form";
 import { PreferencesForm } from "@/components/settings/preferences-form";
 import { PageSkeleton } from "@/components/ui/skeleton";
@@ -34,6 +35,13 @@ async function SettingsContent() {
           allergens={settings.allergens}
           selectedDiets={settings.selectedDiets}
           selectedAllergens={settings.selectedAllergens}
+        />
+      </Section>
+      <Section title="Aliments que tu ne veux pas manger">
+        <AvoidedFoodsForm
+          householdId={settings.household.id}
+          avoidedFoods={settings.avoidedFoods}
+          ingredientNames={settings.ingredientNames}
         />
       </Section>
     </>

@@ -52,6 +52,20 @@ export const preferencesSchema = z.object({
   allergens: z.array(z.string().regex(/^[a-z_]+$/)).max(20),
 });
 
+export const avoidedFoodSchema = z.object({
+  householdId: z.uuid(),
+  ingredient: z
+    .string()
+    .trim()
+    .min(1, { error: "Choisis un aliment dans la liste." })
+    .max(120, { error: "120 caractères maximum." }),
+});
+
+export const removeAvoidedFoodSchema = z.object({
+  householdId: z.uuid(),
+  ingredientId: z.uuid(),
+});
+
 export type SettingsFieldName = "name" | "peopleCount" | "weeklyBudget" | "maxPrepMinutes";
 
 export type FormState<F extends string = string> = {

@@ -95,3 +95,65 @@ describe("préférences du foyer", () => {
     expect(rows[0].n).toBe(1);
   });
 });
+
+describe("aliments non souhaités", () => {
+  const addAvoided = (user: TestUser, householdId: string, slug: string) =>
+    asUser(
+      user,
+      (db) =>
+        db.query(
+          `insert into public.household_exclusions (household_id, ingredient_id, is_allergy)
+           select $1, id, false from public.ingredients where slug = $2`,
+          [householdId, slug],
+        ),
+      { commit: true },
+    );
+  const avoidedOf = async (householdId: string) =>
+    (
+      await pool.query(
+        `select i.slug from public.household_exclusions e join public.ingredients i on i.id = e.ingredient_id
+         where e.household_id = $1 order by 1`,
+        [householdId],
+      )
+    ).rows.map((r) => r.slug);
+
+  it("un membre ajoute un aliment, un second ajout est refusé sans doublon", async () => {
+    await addAvoided(alice, alice.householdId, "champignon");
+    const code = await expectPgError(addAvoided(alice, alice.householdId, "champignon"));
+    expect(code).toBe("23505");
+    expect((await avoidedOf(alice.householdId)).filter((s) => s === "champignon")).toHaveLength(1);
+  });
+
+  it("un autre foyer ne peut ni ajouter, ni voir, ni retirer", async () => {
+    const code = await expectPgError(addAvoided(bob, alice.householdId, "coriandre"));
+    expect(code).toBe(PG.insufficientPrivilege);
+    const seen = await asUser(
+      bob,
+      async (db) =>
+        (
+          await db.query("select 1 from public.household_exclusions where household_id = $1", [
+            alice.householdId,
+          ])
+        ).rowCount,
+    );
+    expect(seen).toBe(0);
+    const deleted = await asUser(
+      bob,
+      async (db) =>
+        (
+          await db.query("delete from public.household_exclusions where household_id = $1", [
+            alice.householdId,
+          ])
+        ).rowCount,
+      { commit: true },
+    );
+    expect(deleted).toBe(0);
+    expect(await avoidedOf(alice.householdId)).toContain("champignon");
+  });
+
+  it("enregistrer régimes et allergies ne touche pas aux aliments non souhaités", async () => {
+    const before = await avoidedOf(alice.householdId);
+    await save(alice, alice.householdId, ["vegetarian"], ["milk"]);
+    expect(await avoidedOf(alice.householdId)).toEqual(before);
+  });
+});

@@ -8,24 +8,39 @@ export async function getHouseholdSettings() {
   if (!household) return null;
 
   const supabase = await createSupabaseServerClient();
-  const [membership, diets, allergens, chosenDiets, chosenAllergens] = await Promise.all([
-    supabase
-      .from("household_members")
-      .select("role")
-      .eq("household_id", household.id)
-      .eq("user_id", user.id)
-      .single(),
-    supabase.from("diets").select("code, label").order("label"),
-    supabase.from("allergens").select("code, label").order("label"),
-    supabase.from("household_diets").select("diet_code").eq("household_id", household.id),
-    supabase
-      .from("household_exclusions")
-      .select("allergen_code")
-      .eq("household_id", household.id)
-      .not("allergen_code", "is", null),
-  ]);
+  const [membership, diets, allergens, chosenDiets, chosenAllergens, avoided, ingredients] =
+    await Promise.all([
+      supabase
+        .from("household_members")
+        .select("role")
+        .eq("household_id", household.id)
+        .eq("user_id", user.id)
+        .single(),
+      supabase.from("diets").select("code, label").order("label"),
+      supabase.from("allergens").select("code, label").order("label"),
+      supabase.from("household_diets").select("diet_code").eq("household_id", household.id),
+      supabase
+        .from("household_exclusions")
+        .select("allergen_code")
+        .eq("household_id", household.id)
+        .not("allergen_code", "is", null),
+      supabase
+        .from("household_exclusions")
+        .select("ingredient_id, ingredients (name)")
+        .eq("household_id", household.id)
+        .not("ingredient_id", "is", null),
+      supabase.from("ingredients").select("name").order("name"),
+    ]);
 
-  for (const result of [membership, diets, allergens, chosenDiets, chosenAllergens]) {
+  for (const result of [
+    membership,
+    diets,
+    allergens,
+    chosenDiets,
+    chosenAllergens,
+    avoided,
+    ingredients,
+  ]) {
     if (result.error)
       throw new Error(`Lecture des paramètres impossible : ${result.error.message}`);
   }
@@ -46,5 +61,11 @@ export async function getHouseholdSettings() {
     selectedAllergens: (chosenAllergens.data ?? [])
       .map((a) => a.allergen_code)
       .filter((code): code is string => code !== null),
+    avoidedFoods: (avoided.data ?? [])
+      .flatMap((a) =>
+        a.ingredient_id ? [{ id: a.ingredient_id, name: a.ingredients?.name ?? "?" }] : [],
+      )
+      .sort((a, b) => a.name.localeCompare(b.name, "fr")),
+    ingredientNames: (ingredients.data ?? []).map((i) => i.name),
   };
 }

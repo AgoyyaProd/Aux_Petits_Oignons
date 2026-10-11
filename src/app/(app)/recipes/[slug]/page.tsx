@@ -72,9 +72,10 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
           proposée dans ton catalogue ni dans tes plannings.
         </Alert>
       ) : null}
-      {recipe.dislikedNames.length > 0 ? (
+      {recipe.toRemoveNames.length > 0 ? (
         <Alert tone="info">
-          Contient un ingrédient à éviter : {recipe.dislikedNames.join(", ")}.
+          Ingrédient facultatif que tu ne manges pas : {recipe.toRemoveNames.join(", ")}. La recette
+          se fait sans.
         </Alert>
       ) : null}
 

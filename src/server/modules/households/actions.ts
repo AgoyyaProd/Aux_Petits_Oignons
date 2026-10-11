@@ -4,10 +4,13 @@ import { refresh } from "next/cache";
 import { toActionError } from "@/server/errors";
 import { requireUser } from "@/server/modules/auth/session";
 import { createSupabaseServerClient } from "@/server/supabase/server";
+import { resolveIngredient } from "@/server/modules/pantry/repository";
 import {
+  avoidedFoodSchema,
   firstErrors,
   householdSettingsSchema,
   preferencesSchema,
+  removeAvoidedFoodSchema,
   type FormState,
   type SettingsFieldName,
 } from "./schema";
@@ -69,4 +72,62 @@ export async function savePreferencesAction(
 
   refresh();
   return { status: "success", message: "Préférences enregistrées." };
+}
+
+const UNIQUE_VIOLATION = "23505";
+
+/**
+ * Ajoute un aliment que le foyer ne veut pas manger. Idempotent : l'ajouter
+ * une seconde fois (double clic, nouvel essai réseau) ne change rien.
+ */
+export async function addAvoidedFoodAction(
+  _prev: FormState<"ingredient">,
+  formData: FormData,
+): Promise<FormState<"ingredient">> {
+  await requireUser();
+  const parsed = avoidedFoodSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) {
+    return { status: "error", fieldErrors: firstErrors<"ingredient">(parsed.error) };
+  }
+  const { householdId, ingredient } = parsed.data;
+
+  const supabase = await createSupabaseServerClient();
+  let ingredientId: string | null;
+  try {
+    ingredientId = await resolveIngredient(supabase, ingredient);
+  } catch {
+    return { status: "error", message: "Recherche de l'aliment impossible. Réessaie." };
+  }
+  if (!ingredientId) {
+    return {
+      status: "error",
+      fieldErrors: { ingredient: "Aliment inconnu : choisis-le dans la liste proposée." },
+    };
+  }
+
+  const { error } = await supabase
+    .from("household_exclusions")
+    .insert({ household_id: householdId, ingredient_id: ingredientId, is_allergy: false });
+  if (error && error.code !== UNIQUE_VIOLATION) {
+    return { status: "error", message: toActionError(error).message };
+  }
+
+  refresh();
+  return { status: "success", message: `« ${ingredient} » ajouté.` };
+}
+
+/** Retire un aliment de la liste. Idempotent : retirer un absent ne fait rien. */
+export async function removeAvoidedFoodAction(formData: FormData): Promise<void> {
+  await requireUser();
+  const parsed = removeAvoidedFoodSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return;
+
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase
+    .from("household_exclusions")
+    .delete()
+    .eq("household_id", parsed.data.householdId)
+    .eq("ingredient_id", parsed.data.ingredientId);
+  if (error) throw new Error(toActionError(error).message);
+  refresh();
 }

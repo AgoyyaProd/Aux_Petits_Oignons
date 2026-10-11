@@ -4,35 +4,39 @@
  * - Allergie déclarée : exclusion STRICTE, y compris si l'allergène vient d'un
  *   ingrédient facultatif (pour une allergie, le doute exclut).
  * - Régime : exclusion si un ingrédient est incompatible.
- * - Dégoût : la recette reste proposée mais signalée.
+ * - Aliment non souhaité : exclusion s'il est obligatoire dans la recette ;
+ *   s'il n'est que facultatif, la recette reste proposée et l'ingrédient est à retirer.
  */
 
 export interface RecipeFlags {
   allergens: readonly string[];
   dietConflicts: readonly string[];
-  ingredientIds: readonly string[];
+  ingredients: readonly { id: string; optional: boolean }[];
 }
 
 export interface HouseholdConstraints {
   allergens: ReadonlySet<string>;
   diets: ReadonlySet<string>;
-  dislikedIngredientIds: ReadonlySet<string>;
+  /** Aliments que le foyer ne veut pas manger. */
+  avoidedIngredientIds: ReadonlySet<string>;
 }
 
 export type ExclusionReason =
-  { kind: "allergen"; codes: string[] } | { kind: "diet"; codes: string[] };
+  | { kind: "allergen"; codes: string[] }
+  | { kind: "diet"; codes: string[] }
+  | { kind: "ingredient"; ids: string[] };
 
 export interface Compatibility {
   compatible: boolean;
   reasons: ExclusionReason[];
-  /** Ingrédients que le foyer préfère éviter (non bloquant). */
-  disliked: string[];
+  /** Ingrédients non souhaités mais facultatifs : la recette se fait sans eux. */
+  toRemove: string[];
 }
 
 export const NO_CONSTRAINTS: HouseholdConstraints = {
   allergens: new Set(),
   diets: new Set(),
-  dislikedIngredientIds: new Set(),
+  avoidedIngredientIds: new Set(),
 };
 
 export function checkCompatibility(
@@ -45,11 +49,15 @@ export function checkCompatibility(
   const diets = recipe.dietConflicts.filter((d) => household.diets.has(d)).sort();
   if (diets.length) reasons.push({ kind: "diet", codes: diets });
 
-  return {
-    compatible: reasons.length === 0,
-    reasons,
-    disliked: recipe.ingredientIds.filter((id) => household.dislikedIngredientIds.has(id)),
-  };
+  const avoided = recipe.ingredients.filter((i) => household.avoidedIngredientIds.has(i.id));
+  // Un même ingrédient peut figurer deux fois : obligatoire l'emporte sur facultatif.
+  const required = [...new Set(avoided.filter((i) => !i.optional).map((i) => i.id))];
+  if (required.length) reasons.push({ kind: "ingredient", ids: required });
+  const toRemove = [
+    ...new Set(avoided.filter((i) => i.optional && !required.includes(i.id)).map((i) => i.id)),
+  ];
+
+  return { compatible: reasons.length === 0, reasons, toRemove };
 }
 
 /** Minuscules, sans accents ni ponctuation : « Crème brûlée ! » -> « creme brulee ». */

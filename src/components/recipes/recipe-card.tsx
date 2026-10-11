@@ -36,7 +36,9 @@ export function RecipeCard({ recipe }: { recipe: RecipeCardData }) {
           ) : recipe.vegetarian ? (
             <Tag tone="neutral">Végétarien</Tag>
           ) : null}
-          {compatibility.disliked.length > 0 ? <Tag tone="warning">Contient un dégoût</Tag> : null}
+          {compatibility.toRemove.length > 0 ? (
+            <Tag tone="warning">Un ingrédient à retirer</Tag>
+          ) : null}
         </div>
       </Link>
     </li>

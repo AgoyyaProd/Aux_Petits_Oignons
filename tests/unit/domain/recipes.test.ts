@@ -11,13 +11,19 @@ import {
 const quiche = {
   allergens: ["eggs", "gluten", "milk"],
   dietConflicts: ["no_pork", "pescetarian", "vegan", "vegetarian"],
-  ingredientIds: ["pate", "lardon", "oeuf", "creme"],
+  ingredients: [
+    { id: "pate", optional: false },
+    { id: "lardon", optional: false },
+    { id: "oeuf", optional: false },
+    { id: "creme", optional: false },
+    { id: "ciboulette", optional: true },
+  ],
 };
 
 const household = (over: Partial<Record<keyof HouseholdConstraints, string[]>>) => ({
   allergens: new Set(over.allergens ?? []),
   diets: new Set(over.diets ?? []),
-  dislikedIngredientIds: new Set(over.dislikedIngredientIds ?? []),
+  avoidedIngredientIds: new Set(over.avoidedIngredientIds ?? []),
 });
 
 describe("compatibilité recette / foyer", () => {
@@ -25,7 +31,7 @@ describe("compatibilité recette / foyer", () => {
     expect(checkCompatibility(quiche, NO_CONSTRAINTS)).toEqual({
       compatible: true,
       reasons: [],
-      disliked: [],
+      toRemove: [],
     });
   });
 
@@ -54,9 +60,34 @@ describe("compatibilité recette / foyer", () => {
     ]);
   });
 
-  it("un simple dégoût signale sans exclure", () => {
-    const result = checkCompatibility(quiche, household({ dislikedIngredientIds: ["lardon"] }));
-    expect(result).toEqual({ compatible: true, reasons: [], disliked: ["lardon"] });
+  it("un aliment non souhaité obligatoire exclut la recette", () => {
+    const result = checkCompatibility(quiche, household({ avoidedIngredientIds: ["lardon"] }));
+    expect(result).toEqual({
+      compatible: false,
+      reasons: [{ kind: "ingredient", ids: ["lardon"] }],
+      toRemove: [],
+    });
+  });
+
+  it("un aliment non souhaité facultatif est à retirer, la recette reste proposée", () => {
+    const result = checkCompatibility(
+      quiche,
+      household({ avoidedIngredientIds: ["ciboulette", "olive"] }),
+    );
+    expect(result).toEqual({ compatible: true, reasons: [], toRemove: ["ciboulette"] });
+  });
+
+  it("obligatoire l'emporte si l'ingrédient figure deux fois", () => {
+    const recipe = {
+      ...quiche,
+      ingredients: [...quiche.ingredients, { id: "creme", optional: true }],
+    };
+    const result = checkCompatibility(recipe, household({ avoidedIngredientIds: ["creme"] }));
+    expect(result).toEqual({
+      compatible: false,
+      reasons: [{ kind: "ingredient", ids: ["creme"] }],
+      toRemove: [],
+    });
   });
 });
 
