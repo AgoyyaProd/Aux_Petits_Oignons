@@ -147,6 +147,22 @@ describe("matériel de cuisine", () => {
     expect(result.reasons).toEqual([{ kind: "equipment", codes: ["four"] }]);
   });
 
+  it("un faitout remplace la casserole, un plat à gratin le plat allant au four", () => {
+    const lasagnes = { ...quiche, equipment: ["casserole", "four", "plat_four"] };
+    expect(
+      checkCompatibility(lasagnes, {
+        ...NO_CONSTRAINTS,
+        equipment: new Set(["faitout", "four", "plat_gratin"]),
+      }).compatible,
+    ).toBe(true);
+    // L'inverse n'est pas vrai : une casserole ne remplace pas un faitout.
+    const result = checkCompatibility(
+      { ...quiche, equipment: ["faitout"] },
+      { ...NO_CONSTRAINTS, equipment: new Set(["casserole"]) },
+    );
+    expect(result.reasons).toEqual([{ kind: "equipment", codes: ["faitout"] }]);
+  });
+
   it("accepte si tout le matériel est là", () => {
     expect(
       checkCompatibility(gratin, { ...NO_CONSTRAINTS, equipment: new Set(["four", "plaques"]) })

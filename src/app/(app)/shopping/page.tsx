@@ -14,6 +14,7 @@ import {
   ChevronRightIcon,
   PlusIcon,
 } from "@/components/ui/icons";
+import { ACTIONS_ROW, Responsive } from "@/components/ui/page-header";
 import { PageSkeleton } from "@/components/ui/skeleton";
 import { formatCents } from "@/domain/money";
 import { formatShoppingQuantity } from "@/lib/format-quantity";
@@ -55,11 +56,11 @@ async function ShoppingContent({ searchParams }: Pick<PageProps<"/shopping">, "s
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex flex-col gap-3">
+        <div className="flex w-full flex-col gap-3 sm:w-auto">
           <h1 className="type-page">Ma liste de courses</h1>
           <WeekNav page={page} />
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className={ACTIONS_ROW}>
           {lines.length + page.extras.length > 0 && !allChecked ? (
             <form action={checkAllAction}>
               <input type="hidden" name="week" value={page.weekStart} />
@@ -68,9 +69,9 @@ async function ShoppingContent({ searchParams }: Pick<PageProps<"/shopping">, "s
                 name="lines"
                 value={JSON.stringify(lines.map((l) => ({ i: l.ingredientId, d: l.dimension })))}
               />
-              <button type="submit" className={buttonClasses("secondary")}>
+              <button type="submit" className={buttonClasses("secondary", "w-full")}>
                 <CheckIcon size={18} />
-                Cocher les achats
+                <Responsive short="Tout cocher" long="Cocher les achats" />
                 <span className="text-muted tabular-nums">
                   (
                   {lines.filter((l) => l.checked).length +
@@ -84,7 +85,7 @@ async function ShoppingContent({ searchParams }: Pick<PageProps<"/shopping">, "s
           {page.isCurrentWeek ? (
             <a href="#ajouts" className={buttonClasses("primary")}>
               <PlusIcon size={18} />
-              Ajouter un produit
+              <Responsive short="Ajouter" long="Ajouter un produit" />
             </a>
           ) : null}
         </div>
@@ -138,7 +139,7 @@ function buildExport(
 
 function WeekNav({ page }: { page: ShoppingPage }) {
   return (
-    <nav aria-label="Semaine" className="flex items-center gap-2">
+    <nav aria-label="Semaine" className="flex w-full items-center justify-between gap-2 sm:w-auto">
       <Link
         href={`/shopping?semaine=${page.previousWeek}`}
         className={iconButtonClasses()}
@@ -146,7 +147,7 @@ function WeekNav({ page }: { page: ShoppingPage }) {
       >
         <ChevronLeftIcon size={20} />
       </Link>
-      <span className="min-w-52 text-center font-semibold">
+      <span className="flex-1 text-center font-semibold sm:min-w-52">
         {formatWeek(page.weekStart).replace("Semaine du", "Du")}
         {page.isCurrentWeek ? (
           <span className="text-muted block text-xs font-medium">Cette semaine</span>
@@ -226,30 +227,30 @@ function ListView({ page, byRecipe }: { page: ListPage; byRecipe: boolean }) {
       >
         <div className="mx-auto flex max-w-xl items-center gap-4 lg:max-w-none">
           <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-            <div className="flex items-baseline justify-between gap-3 lg:justify-start lg:gap-6">
-              <span className="text-sm font-semibold">
+            <p className="text-muted flex items-center gap-2 text-xs whitespace-nowrap lg:text-sm">
+              <span>Total estimé</span>
+              <span aria-hidden="true">·</span>
+              <span className="tabular-nums">
                 {totals.checked}/{totals.lines} dans le panier
               </span>
-              <span className="flex items-baseline gap-2">
-                <span className="text-muted text-sm">Total estimé</span>
-                <span className="font-display text-lg font-semibold lg:text-2xl">
-                  {totals.unpriced ? "≥ " : "≈ "}
-                  {formatCents(totals.knownCents)}
-                </span>
+            </p>
+            <p className="flex items-baseline gap-3">
+              <span className="font-display text-xl font-semibold whitespace-nowrap lg:text-2xl">
+                {totals.unpriced ? "≥ " : "≈ "}
+                {formatCents(totals.knownCents)}
               </span>
               <span className="text-muted hidden text-sm lg:inline">
-                Estimation pour {plan.mealCount} plat{plan.mealCount > 1 ? "s" : ""} ({plan.people}{" "}
-                pers.)
+                Pour {plan.mealCount} plat{plan.mealCount > 1 ? "s" : ""} ({plan.people} pers.)
                 {totals.unpriced
                   ? `, ${totals.unpriced} article${totals.unpriced > 1 ? "s" : ""} sans prix`
                   : ""}
                 . Le prix payé en magasin peut différer.
               </span>
-            </div>
+            </p>
             <span
               role="img"
               aria-label={`${totals.checked} articles sur ${totals.lines}`}
-              className="bg-surface-muted h-2 overflow-hidden rounded-full lg:max-w-md"
+              className="bg-surface-muted h-1.5 overflow-hidden rounded-full lg:max-w-md"
             >
               <span
                 className="bg-forest dark:bg-brand block h-full rounded-full transition-[width]"
@@ -258,7 +259,9 @@ function ListView({ page, byRecipe }: { page: ListPage; byRecipe: boolean }) {
             </span>
           </div>
           {done ? (
-            <Badge tone="leaf">Courses faites</Badge>
+            <span className="shrink-0">
+              <Badge tone="leaf">Courses faites</Badge>
+            </span>
           ) : (
             <Link
               href={`/shopping/ranger?semaine=${page.weekStart}`}

@@ -18,6 +18,7 @@ import {
   PlusIcon,
   RefreshIcon,
 } from "@/components/ui/icons";
+import { ACTIONS_ROW, Responsive } from "@/components/ui/page-header";
 import { PageSkeleton } from "@/components/ui/skeleton";
 import { centsToInput, formatCents } from "@/domain/money";
 import { formatShortDate } from "@/lib/dates";
@@ -68,12 +69,12 @@ async function PlannerContent({ searchParams }: Pick<PageProps<"/planner">, "sea
   return (
     <div className="flex flex-col gap-7">
       <header className="flex flex-wrap items-end justify-between gap-5">
-        <div className="flex flex-col gap-3">
+        <div className="flex w-full flex-col gap-3 sm:w-auto">
           <h1 className="type-page">Mon menu de la semaine</h1>
           <WeekNav page={page} />
         </div>
         {base ? (
-          <div className="flex flex-wrap gap-2">
+          <div className={ACTIONS_ROW}>
             <PlanActionButton
               action={reorganizeAction}
               fields={{ ...base, key: page.newKey() }}
@@ -81,11 +82,11 @@ async function PlannerContent({ searchParams }: Pick<PageProps<"/planner">, "sea
               pendingLabel="Réorganisation…"
               className={buttonClasses("secondary")}
             >
-              Réorganiser ma semaine
+              <Responsive short="Réorganiser" long="Réorganiser ma semaine" />
             </PlanActionButton>
             <a href="#generer" className={buttonClasses("primary")}>
               <RefreshIcon size={18} />
-              Générer mon menu
+              <Responsive short="Générer" long="Générer mon menu" />
             </a>
           </div>
         ) : null}
@@ -111,7 +112,7 @@ async function PlannerContent({ searchParams }: Pick<PageProps<"/planner">, "sea
 
 function WeekNav({ page }: { page: PlannerPage }) {
   return (
-    <nav aria-label="Semaine" className="flex items-center gap-2">
+    <nav aria-label="Semaine" className="flex w-full items-center justify-between gap-2 sm:w-auto">
       <Link
         href={`/planner?semaine=${page.previousWeek}`}
         className={iconButtonClasses()}
@@ -119,7 +120,7 @@ function WeekNav({ page }: { page: PlannerPage }) {
       >
         <ChevronLeftIcon size={20} />
       </Link>
-      <span className="min-w-52 text-center font-semibold">
+      <span className="flex-1 text-center font-semibold sm:min-w-52">
         {formatWeek(page.weekStart).replace("Semaine du", "Du")}
         {page.isCurrentWeek ? (
           <span className="text-muted block text-xs font-medium">Cette semaine</span>
@@ -217,9 +218,9 @@ function Summary({ page }: { page: PlannerPage }) {
   return (
     <section
       aria-label="Résumé de la semaine"
-      className="border-border grid gap-x-8 gap-y-5 border-y py-5 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_auto] lg:items-center"
+      className="border-border grid grid-cols-2 gap-x-6 gap-y-5 border-y py-5 lg:grid-cols-[1.4fr_1fr_1fr_auto] lg:items-center lg:gap-x-8"
     >
-      <div className="flex flex-col gap-2">
+      <div className="col-span-2 flex flex-col gap-2 lg:col-span-1">
         <span className="text-muted text-sm">Coût estimé du menu</span>
         <span className="flex items-baseline gap-2">
           <span className="font-display text-3xl font-semibold">
@@ -264,17 +265,20 @@ function Summary({ page }: { page: PlannerPage }) {
         </span>
         <span className="text-muted text-sm">sur la semaine</span>
       </div>
-      <div className="flex flex-col gap-2 sm:col-span-2 lg:col-span-1">
+      <div className="col-span-2 flex flex-col items-start gap-2 lg:col-span-1">
         {plan.shoppingDoneAt ? (
           <Badge tone="leaf">Courses faites</Badge>
         ) : (
-          <Link href={`/shopping?semaine=${page.weekStart}`} className={buttonClasses("accent")}>
+          <Link
+            href={`/shopping?semaine=${page.weekStart}`}
+            className={buttonClasses("accent", "max-lg:w-full")}
+          >
             Voir la liste de courses
           </Link>
         )}
       </div>
       {entriesWithMissing > 0 ? (
-        <p className="text-muted text-sm sm:col-span-2 lg:col-span-4">
+        <p className="text-muted col-span-2 text-sm lg:col-span-4">
           Sans prix connu, non comptés : {missingNames.join(", ")}. Le total est donc un minimum.{" "}
           <Link href="/prices" className="text-brand font-semibold underline">
             Ajouter mes prix
@@ -296,16 +300,16 @@ function WeekGrid({ page, base }: { page: PlannerPage; base: Base }) {
   const unplaced = page.entries.filter((e) => !e.day);
   return (
     <section aria-label="Repas de la semaine" className="flex flex-col gap-6">
-      <nav aria-label="Aller au jour" className="-mx-4 overflow-x-auto px-4 lg:hidden">
-        <ul className="flex gap-2">
+      <nav aria-label="Aller au jour" className="lg:hidden">
+        <ul className="grid grid-cols-7 gap-1.5">
           {days.map((day) => {
             const isToday = day === page.today;
             return (
-              <li key={day} className="shrink-0">
+              <li key={day}>
                 <a
                   href={`#jour-${day}`}
                   className={[
-                    "flex min-h-14 w-12 flex-col items-center justify-center rounded-xl border text-xs font-semibold",
+                    "flex min-h-14 flex-col items-center justify-center rounded-xl border text-xs font-semibold",
                     isToday
                       ? "border-accent bg-accent-soft text-accent-strong"
                       : "border-border bg-surface",

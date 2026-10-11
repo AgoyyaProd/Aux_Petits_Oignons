@@ -1,5 +1,22 @@
 import type { ReactNode } from "react";
 
+/**
+ * Rangée d'actions d'un écran : sur téléphone, une grille de deux boutons pleine largeur
+ * (un bouton seul en dernière position prend toute la ligne) ; à partir de sm, une ligne.
+ */
+export const ACTIONS_ROW =
+  "grid w-full grid-cols-2 gap-2 [&>*]:w-full [&>*:last-child:nth-child(odd)]:col-span-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:[&>*]:w-auto";
+
+/** Libellé court sur téléphone, long à partir de sm. */
+export function Responsive({ short, long }: { short: ReactNode; long: ReactNode }) {
+  return (
+    <>
+      <span className="sm:hidden">{short}</span>
+      <span className="max-sm:hidden">{long}</span>
+    </>
+  );
+}
+
 /** En-tête d'écran : titre éditorial, phrase d'aide facultative, actions à droite. */
 export function PageHeader({
   title,
@@ -20,7 +37,7 @@ export function PageHeader({
         <h1 className="type-page">{title}</h1>
         {description ? <p className="text-muted leading-relaxed">{description}</p> : null}
       </div>
-      {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
+      {actions ? <div className={ACTIONS_ROW}>{actions}</div> : null}
     </header>
   );
 }

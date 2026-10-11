@@ -208,3 +208,8 @@ export const MoreIcon = (p: IconProps) => (
     <circle cx="12" cy="18.5" r="1.1" fill="currentColor" />
   </svg>
 );
+export const ChevronDownIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="m6 9 6 6 6-6" />
+  </svg>
+);

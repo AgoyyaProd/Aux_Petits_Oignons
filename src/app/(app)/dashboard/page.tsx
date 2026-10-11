@@ -4,6 +4,7 @@ import { Suspense, type ReactNode } from "react";
 import { RecipeVisual } from "@/components/recipes/recipe-visual";
 import { Badge, type BadgeTone } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";
+import { ACTIONS_ROW, Responsive } from "@/components/ui/page-header";
 import {
   ArrowRightIcon,
   BasketIcon,
@@ -119,7 +120,10 @@ function SectionTitle({
     <div className="flex items-baseline justify-between gap-4">
       <h2 className="type-section">{children}</h2>
       {href && link ? (
-        <Link href={href} className="text-brand text-sm font-semibold hover:underline">
+        <Link
+          href={href}
+          className="text-brand shrink-0 text-sm font-semibold whitespace-nowrap hover:underline"
+        >
           {link}
         </Link>
       ) : null}
@@ -146,10 +150,10 @@ async function Greeting() {
           </h1>
           <p className="text-muted">Que cuisine-t-on aujourd&apos;hui ?</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className={ACTIONS_ROW}>
           <Link href="/pantry/new" className={buttonClasses("secondary")}>
             <PlusIcon size={18} />
-            Ajouter au garde-manger
+            <Responsive short="Garde-manger" long="Ajouter au garde-manger" />
           </Link>
           <Link href="/planner" className={buttonClasses("primary")}>
             Mon menu
@@ -174,15 +178,12 @@ async function Greeting() {
             className="bg-surface border-border focus-visible:border-forest min-h-12 w-full rounded-full border pr-4 pl-11 text-base outline-none"
           />
         </form>
-        <ul
-          className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:px-0 lg:pb-0"
-          aria-label="Idées rapides"
-        >
+        <ul className="flex flex-wrap gap-2" aria-label="Idées rapides">
           {QUICK.map((q) => (
             <li key={q.href} className="shrink-0">
               <Link
                 href={q.href}
-                className="border-border bg-surface hover:border-border-strong inline-flex min-h-10 items-center rounded-full border px-4 text-sm font-medium"
+                className="border-border bg-surface hover:border-border-strong inline-flex min-h-10 items-center rounded-full border px-3.5 text-sm font-medium whitespace-nowrap"
               >
                 {q.label}
               </Link>
@@ -404,11 +405,11 @@ async function Week() {
   const days = [...new Set(page.slots.map((s) => s.day))];
   return (
     <section aria-labelledby="semaine" className="flex flex-col gap-4">
-      <SectionTitle href="/planner" link="Voir le menu">
+      <SectionTitle href="/planner" link="Voir">
         <span id="semaine">Ma semaine en un coup d&apos;œil</span>
       </SectionTitle>
-      <div className="-mx-4 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
-        <ol className="grid min-w-[840px] grid-cols-7 gap-3">
+      <div className="-mx-4 snap-x scroll-px-4 overflow-x-auto px-4 pb-1 lg:mx-0 lg:px-0">
+        <ol className="grid w-max grid-cols-[repeat(7,8.75rem)] gap-3 lg:w-auto lg:grid-cols-7">
           {days.map((day) => {
             const meals = page.entries.filter((e) => e.day === day);
             const isToday = day === page.today;
@@ -416,7 +417,7 @@ async function Week() {
               <li
                 key={day}
                 className={[
-                  "bg-surface flex flex-col gap-2.5 rounded-xl border p-2.5",
+                  "bg-surface flex snap-start flex-col gap-2.5 rounded-xl border p-2.5",
                   isToday ? "border-accent ring-accent/30 ring-2" : "border-border",
                   day < page.today && !isToday ? "opacity-70" : "",
                 ].join(" ")}
@@ -550,7 +551,7 @@ async function Suggestions() {
     .slice(0, 3);
   return (
     <section aria-labelledby="idees" className="flex flex-col gap-4">
-      <SectionTitle href="/recipes" link="Toutes les recettes">
+      <SectionTitle href="/recipes" link="Voir tout">
         <span id="idees">Avec ce que tu as</span>
       </SectionTitle>
       {picks.length === 0 ? (

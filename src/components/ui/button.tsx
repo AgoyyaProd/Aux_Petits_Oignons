@@ -25,7 +25,7 @@ const variants: Record<ButtonVariant, string> = {
 
 export function buttonClasses(variant: ButtonVariant = "primary", extra = "") {
   return [
-    "inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold",
+    "inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold whitespace-nowrap",
     "transition-colors disabled:cursor-not-allowed disabled:opacity-55",
     variants[variant],
     extra,

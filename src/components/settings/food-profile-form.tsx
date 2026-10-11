@@ -133,8 +133,9 @@ export function FoodProfileForm(props: Props) {
           ))}
         </div>
         <p className="text-muted text-xs">
-          Le matériel nécessaire à chaque recette est déduit de ses étapes (cuisson au four,
-          mixage…).
+          Le matériel nécessaire à chaque recette est déduit de ses étapes (poêle, casserole,
+          cuisson au four, moule…). Un faitout remplace une casserole et un plat à gratin un plat
+          allant au four. Aucune recette ne demande encore de friteuse sans huile.
         </p>
       </fieldset>
 

@@ -7,8 +7,19 @@
  * - Aliment non souhaité : exclusion s'il est obligatoire dans la recette ;
  *   s'il n'est que facultatif, la recette reste proposée et l'ingrédient est à retirer.
  * - Matériel : exclusion si la recette demande un appareil que le foyer n'a pas
- *   (seulement quand le foyer a renseigné son matériel).
+ *   (seulement quand le foyer a renseigné son matériel). Équivalences fixes : un faitout
+ *   fait office de casserole, un plat à gratin de plat allant au four.
  */
+
+/** Ce qui peut remplacer un ustensile demandé par une recette. */
+export const EQUIPMENT_SUBSTITUTES: Readonly<Record<string, readonly string[]>> = {
+  casserole: ["faitout"],
+  plat_four: ["plat_gratin"],
+};
+
+function hasEquipment(have: ReadonlySet<string>, code: string): boolean {
+  return have.has(code) || (EQUIPMENT_SUBSTITUTES[code] ?? []).some((c) => have.has(c));
+}
 
 export interface RecipeFlags {
   allergens: readonly string[];
@@ -57,7 +68,9 @@ export function checkCompatibility(
   if (diets.length) reasons.push({ kind: "diet", codes: diets });
   if (household.equipment) {
     const have = household.equipment;
-    const missing = [...new Set(recipe.equipment ?? [])].filter((e) => !have.has(e)).sort();
+    const missing = [...new Set(recipe.equipment ?? [])]
+      .filter((e) => !hasEquipment(have, e))
+      .sort();
     if (missing.length) reasons.push({ kind: "equipment", codes: missing });
   }
 

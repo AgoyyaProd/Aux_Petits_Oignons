@@ -118,7 +118,7 @@ async function Catalog({ searchParams }: Pick<PageProps<"/recipes">, "searchPara
       next: { ...filters, diet: filters.diet === "vegan" ? undefined : "vegan" },
     },
     {
-      label: `Petit budget (≤ ${formatCents(SMALL_BUDGET_CENTS)} la part)`,
+      label: `Petit budget (≤ ${formatCents(SMALL_BUDGET_CENTS)})`,
       active: filters.smallBudget,
       next: { ...filters, smallBudget: !filters.smallBudget },
     },
@@ -129,8 +129,8 @@ async function Catalog({ searchParams }: Pick<PageProps<"/recipes">, "searchPara
     <div className="flex flex-col gap-6">
       {/* Formulaire GET : fonctionne sans JavaScript, l'URL garde les filtres. */}
       <form action="/recipes" className="flex flex-col gap-3" role="search">
-        <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_11rem_11rem_auto]">
-          <label className="relative block">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 md:grid-cols-[minmax(0,1fr)_11rem_11rem_auto]">
+          <label className="relative block max-md:order-1">
             <span className="sr-only">Rechercher une recette ou un ingrédient</span>
             <SearchIcon
               size={20}
@@ -144,33 +144,34 @@ async function Catalog({ searchParams }: Pick<PageProps<"/recipes">, "searchPara
               className="bg-surface border-border hover:border-border-strong focus-visible:border-brand focus-visible:ring-brand/25 min-h-12 w-full rounded-full border pr-4 pl-11 text-base outline-none focus-visible:ring-2"
             />
           </label>
-          <select
-            name="type"
-            aria-label="Type de plat"
-            defaultValue={filters.tag ?? ""}
-            className="bg-surface border-border min-h-12 w-full rounded-full border px-4 text-base"
+          <div className="col-span-2 grid grid-cols-2 gap-3 max-md:order-3 md:contents">
+            <FilterSelect name="type" label="Type de plat" defaultValue={filters.tag ?? ""}>
+              <option value="">Tous les plats</option>
+              {TYPE_TAGS.map((t) => (
+                <option key={t} value={t}>
+                  {RECIPE_TAG_LABEL[t]}
+                </option>
+              ))}
+            </FilterSelect>
+            <FilterSelect
+              name="temps"
+              label="Durée maximale"
+              defaultValue={filters.maxMinutes ? String(filters.maxMinutes) : ""}
+            >
+              {TIME_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </FilterSelect>
+          </div>
+          <button
+            type="submit"
+            aria-label="Rechercher"
+            className={buttonClasses("primary", "min-h-12 max-md:order-2 max-md:w-12 max-md:px-0")}
           >
-            <option value="">Tous les plats</option>
-            {TYPE_TAGS.map((t) => (
-              <option key={t} value={t}>
-                {RECIPE_TAG_LABEL[t]}
-              </option>
-            ))}
-          </select>
-          <select
-            name="temps"
-            aria-label="Durée maximale"
-            defaultValue={filters.maxMinutes ? String(filters.maxMinutes) : ""}
-            className="bg-surface border-border min-h-12 w-full rounded-full border px-4 text-base"
-          >
-            {TIME_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-          <button type="submit" className={buttonClasses("primary", "min-h-12")}>
-            Rechercher
+            <SearchIcon size={20} className="md:hidden" />
+            <span className="max-md:hidden">Rechercher</span>
           </button>
         </div>
         {/* Les filtres rapides restent appliqués lors d'une nouvelle recherche. */}
@@ -181,8 +182,8 @@ async function Catalog({ searchParams }: Pick<PageProps<"/recipes">, "searchPara
         {filters.diet ? <input type="hidden" name="regime" value={filters.diet} /> : null}
       </form>
 
-      <nav aria-label="Filtres rapides" className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-        <ul className="flex gap-2 sm:flex-wrap">
+      <nav aria-label="Filtres rapides">
+        <ul className="flex flex-wrap gap-2">
           {chips.map((chip) => (
             <li key={chip.label} className="shrink-0">
               <Link
@@ -190,7 +191,7 @@ async function Catalog({ searchParams }: Pick<PageProps<"/recipes">, "searchPara
                 aria-pressed={chip.active}
                 scroll={false}
                 className={[
-                  "inline-flex min-h-10 items-center gap-1.5 rounded-full border px-4 text-sm font-medium transition-colors",
+                  "inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3.5 text-sm font-medium whitespace-nowrap transition-colors",
                   chip.active
                     ? "border-forest bg-forest text-cream dark:border-brand dark:bg-brand dark:text-brand-foreground"
                     : "border-border bg-surface hover:border-border-strong",
@@ -261,5 +262,31 @@ async function Catalog({ searchParams }: Pick<PageProps<"/recipes">, "searchPara
         </ul>
       )}
     </div>
+  );
+}
+
+/** Liste déroulante des filtres (chevron commun : voir globals.css). */
+function FilterSelect({
+  name,
+  label,
+  defaultValue,
+  children,
+}: {
+  name: string;
+  label: string;
+  defaultValue: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="relative block min-w-0">
+      <span className="sr-only">{label}</span>
+      <select
+        name={name}
+        defaultValue={defaultValue}
+        className="bg-surface border-border hover:border-border-strong min-h-12 w-full truncate rounded-full border pl-4 text-base"
+      >
+        {children}
+      </select>
+    </label>
   );
 }

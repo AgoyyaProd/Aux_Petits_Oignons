@@ -6,7 +6,7 @@ import { PantryItemCard } from "@/components/pantry/pantry-item-card";
 import { buttonClasses } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FridgeIcon, JarIcon, PlusIcon, SearchIcon, SnowIcon } from "@/components/ui/icons";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageHeader, Responsive } from "@/components/ui/page-header";
 import { PageSkeleton } from "@/components/ui/skeleton";
 import { categoryLabel } from "@/lib/categories";
 import { matchesSearch } from "@/domain/recipes/compatibility";
@@ -16,6 +16,12 @@ import { LOCATION_LABEL, LOCATIONS, type Location } from "@/server/modules/pantr
 export const metadata: Metadata = { title: "Garde-manger" };
 
 const LOCATION_ICON = { fridge: FridgeIcon, freezer: SnowIcon, pantry: JarIcon } as const;
+/** Libellés courts des onglets sur téléphone (quatre onglets sur une ligne). */
+const SHORT_LOCATION: Record<Location, string> = {
+  fridge: "Frigo",
+  freezer: "Congélo",
+  pantry: "Placard",
+};
 const SORTS = [
   { value: "date", label: "Date limite" },
   { value: "nom", label: "Nom" },
@@ -32,9 +38,9 @@ export default function PantryPage({ searchParams }: PageProps<"/pantry">) {
         actions={
           <>
             <Link href="/pantry/placard" className={buttonClasses("secondary")}>
-              Épices et placard
+              <Responsive short="Épices" long="Épices et placard" />
             </Link>
-            <Link href="/pantry/history" className={buttonClasses("ghost")}>
+            <Link href="/pantry/history" className={buttonClasses("secondary")}>
               Historique
             </Link>
             <Link href="/pantry/new" className={buttonClasses("primary")}>
@@ -116,11 +122,8 @@ async function PantryContent({ searchParams }: Pick<PageProps<"/pantry">, "searc
 
   return (
     <div className="flex flex-col gap-6">
-      <nav
-        aria-label="Emplacements"
-        className="border-border -mx-4 overflow-x-auto border-b px-4 sm:mx-0 sm:px-0"
-      >
-        <ul className="flex gap-1">
+      <nav aria-label="Emplacements" className="border-border border-b">
+        <ul className="grid grid-cols-4 sm:flex sm:gap-1">
           <li>
             <Tab href={link({ lieu: null })} active={!where}>
               Tous <span className="opacity-70">{items.length}</span>
@@ -131,8 +134,9 @@ async function PantryContent({ searchParams }: Pick<PageProps<"/pantry">, "searc
             return (
               <li key={l}>
                 <Tab href={link({ lieu: l })} active={where === l}>
-                  <Icon size={18} />
-                  {LOCATION_LABEL[l]} <span className="opacity-70">{counts[l]}</span>
+                  <Icon size={18} className="max-sm:hidden" />
+                  <Responsive short={SHORT_LOCATION[l]} long={LOCATION_LABEL[l]} />{" "}
+                  <span className="opacity-70">{counts[l]}</span>
                 </Tab>
               </li>
             );
@@ -170,10 +174,10 @@ async function PantryContent({ searchParams }: Pick<PageProps<"/pantry">, "searc
       <form
         action="/pantry"
         role="search"
-        className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_12rem_auto]"
+        className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 sm:grid-cols-[minmax(0,1fr)_12rem_auto]"
       >
         {where ? <input type="hidden" name="lieu" value={where} /> : null}
-        <label className="relative block">
+        <label className="relative col-span-2 block sm:col-span-1">
           <span className="sr-only">Rechercher un produit</span>
           <SearchIcon
             size={20}
@@ -191,7 +195,7 @@ async function PantryContent({ searchParams }: Pick<PageProps<"/pantry">, "searc
           name="tri"
           aria-label="Trier par"
           defaultValue={sort}
-          className="bg-surface border-border min-h-12 rounded-full border px-4 text-base"
+          className="bg-surface border-border min-h-12 w-full min-w-0 rounded-full border px-4 text-base"
         >
           {SORTS.map((s) => (
             <option key={s.value} value={s.value}>
@@ -230,7 +234,7 @@ function Tab({
       aria-current={active ? "page" : undefined}
       scroll={false}
       className={[
-        "-mb-px inline-flex min-h-11 shrink-0 items-center gap-2 border-b-2 px-3 text-sm font-semibold whitespace-nowrap transition-colors",
+        "-mb-px inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-1.5 border-b-2 px-1 text-sm font-semibold whitespace-nowrap transition-colors sm:w-auto sm:gap-2 sm:px-3",
         active
           ? "border-accent text-foreground"
           : "text-muted hover:text-foreground border-transparent",

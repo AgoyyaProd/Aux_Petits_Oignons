@@ -1,6 +1,21 @@
 import { z } from "zod";
 import { parseEurosToCents } from "@/domain/money";
 
+/** Matériel de cuisine connu (référentiel public.equipment, migration 0023). */
+export const EQUIPMENT_CODES = [
+  "plaques",
+  "four",
+  "poele",
+  "casserole",
+  "faitout",
+  "plat_four",
+  "plat_gratin",
+  "moule",
+  "mixeur",
+  "micro_ondes",
+  "airfryer",
+] as const;
+
 const optionalInt = (min: number, max: number, label: string) =>
   z
     .string()
@@ -177,5 +192,5 @@ export const foodProfileSchema = z.object({
       ]),
     )
     .max(6),
-  equipment: z.array(z.enum(["plaques", "four", "mixeur", "micro_ondes"])).max(4),
+  equipment: z.array(z.enum(EQUIPMENT_CODES)).max(EQUIPMENT_CODES.length),
 });

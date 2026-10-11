@@ -18,17 +18,24 @@ export function ImageSlot({
   className?: string;
   iconSize?: number;
 }) {
+  // Le parent fixe la taille, OU la classe elle-même (aspect-*, size-*, h-*) : dans ce cas on
+  // ne force pas la hauteur à 100 %, sinon le ratio est écrasé dans une grille étirée.
+  const fill = /(^|\s)size-/.test(className)
+    ? ""
+    : /(^|\s)(aspect-|h-)/.test(className)
+      ? "w-full"
+      : "h-full w-full";
   if (src) {
     return (
       // eslint-disable-next-line @next/next/no-img-element -- chemins locaux, dimensions fixées par le parent
-      <img src={src} alt={alt} className={`block h-full w-full object-cover ${className}`} />
+      <img src={src} alt={alt} className={`block object-cover ${fill} ${className}`} />
     );
   }
   return (
     <span
       aria-hidden="true"
       className={[
-        "flex h-full w-full items-center justify-center",
+        `flex shrink-0 items-center justify-center ${fill}`,
         tone === "sage" ? "bg-leaf-soft text-sage" : "bg-surface-muted text-border-strong",
         className,
       ].join(" ")}

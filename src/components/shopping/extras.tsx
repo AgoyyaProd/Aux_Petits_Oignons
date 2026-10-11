@@ -146,7 +146,14 @@ export function ExportListButton({ text }: { text: string }) {
         })
       }
     >
-      {copied ? "Liste copiée" : "Exporter la liste"}
+      {copied ? (
+        "Liste copiée"
+      ) : (
+        <>
+          <span className="sm:hidden">Exporter</span>
+          <span className="max-sm:hidden">Exporter la liste</span>
+        </>
+      )}
     </Button>
   );
 }
