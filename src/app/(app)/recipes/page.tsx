@@ -88,6 +88,11 @@ async function Catalog({ searchParams }: Pick<PageProps<"/recipes">, "searchPara
 
   const chips: { label: string; active: boolean; next: Filters }[] = [
     {
+      label: "Rapide (30 min)",
+      active: filters.maxMinutes === 30,
+      next: { ...filters, maxMinutes: filters.maxMinutes === 30 ? undefined : 30 },
+    },
+    {
       label: catalog.favoriteCount ? `Favoris (${catalog.favoriteCount})` : "Favoris",
       active: filters.favoritesOnly,
       next: { ...filters, favoritesOnly: !filters.favoritesOnly },
@@ -187,7 +192,7 @@ async function Catalog({ searchParams }: Pick<PageProps<"/recipes">, "searchPara
                 className={[
                   "inline-flex min-h-10 items-center gap-1.5 rounded-full border px-4 text-sm font-medium transition-colors",
                   chip.active
-                    ? "border-brand bg-brand text-brand-foreground"
+                    ? "border-forest bg-forest text-cream dark:border-brand dark:bg-brand dark:text-brand-foreground"
                     : "border-border bg-surface hover:border-border-strong",
                 ].join(" ")}
               >
@@ -243,7 +248,7 @@ async function Catalog({ searchParams }: Pick<PageProps<"/recipes">, "searchPara
               : "Essaie un autre mot ou retire un filtre."}
         </EmptyState>
       ) : (
-        <ul className="grid grid-cols-1 gap-x-5 gap-y-9 sm:grid-cols-2 xl:grid-cols-3">
+        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
           {catalog.cards.map((recipe) => (
             <RecipeCard key={recipe.id} recipe={recipe} />
           ))}

@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "@fontsource-variable/fraunces/opsz.css";
-import "@fontsource-variable/plus-jakarta-sans/index.css";
+import "@fontsource-variable/inter/index.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -20,7 +20,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fff8ed" },
+    { media: "(prefers-color-scheme: light)", color: "#fbf7ef" },
     { media: "(prefers-color-scheme: dark)", color: "#0b1c16" },
   ],
 };

@@ -14,41 +14,40 @@
   --forest: #0e3b2e;
   --forest-soft: #dce7df;
   --terracotta: #e76f51;
-  --terracotta-strong: #b0472c;
-  --ocre: #f4c145;
-  --sage: #8fa486;
-  --peach: #f7d7cb;
-  --cream: #fff8ed;
+  --terracotta-strong: #c2502f;
+  --ocre: #f4b942;
+  --sage: #8fa88a;
+  --peach: #fadcc8;
+  --cream: #fbf7ef;
 
   /* Rôles */
   --background: var(--cream);
   --surface: #ffffff;
-  --surface-muted: #fbf1e3;
+  --surface-muted: #f5eee2;
   --foreground: #13261f;
   --muted: #645c51;
-  --border: #ecdfcb;
-  --border-strong: #d9c7ab;
+  --border: #ebe2d3;
+  --border-strong: #d8cab3;
   --brand: var(--forest);
   --brand-foreground: #fff8ed;
   --brand-soft: var(--forest-soft);
   --accent: var(--terracotta);
   --accent-strong: var(--terracotta-strong);
-  --accent-soft: #fbe3da;
+  --accent-soft: #fde6dd;
   --highlight: var(--ocre);
-  --highlight-soft: #fcefc7;
+  --highlight-soft: #fcefcd;
   --leaf: var(--sage);
-  --leaf-soft: #e5ebe1;
+  --leaf-soft: #e6ece3;
   --danger: #b42318;
   --danger-soft: #fdecea;
   --success: #24683f;
   --success-soft: #e3f1e7;
   --warning: #8a5a00;
   --warning-soft: #fcefc7;
-  --nav: var(--forest);
-  --nav-foreground: #f4ead8;
-  --nav-muted: #a9bcb0;
+  --nav: var(--surface);
+  --nav-foreground: var(--foreground);
+  --nav-muted: var(--muted);
   --focus: #e76f51;
-  --logo-bowl: #0e3b2e;
 
   /* Ombres : rares et courtes */
   --shadow-sm: 0 1px 2px rgb(14 59 46 / 0.06);
@@ -81,10 +80,9 @@
     --warning: #f4c145;
     --warning-soft: #3a3016;
     --nav: #081510;
-    --nav-foreground: #f4ead8;
+    --nav-foreground: var(--foreground);
     --nav-muted: #8fa597;
     --focus: #f08a6f;
-    --logo-bowl: #f4ecdd;
     --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
     --shadow-md: 0 6px 20px -8px rgb(0 0 0 / 0.5);
   }
@@ -124,7 +122,7 @@
   --color-sage: var(--sage);
   --color-terracotta: var(--terracotta);
 
-  --font-sans: "Plus Jakarta Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Fraunces Variable", ui-serif, Georgia, serif;
 
   --radius-sm: 0.5rem;

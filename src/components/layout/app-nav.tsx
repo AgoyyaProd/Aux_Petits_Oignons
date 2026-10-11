@@ -3,99 +3,98 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ComponentType, SVGProps } from "react";
-import {
-  BasketIcon,
-  BookIcon,
-  CalendarIcon,
-  HomeIcon,
-  PantryIcon,
-  SettingsIcon,
-  TagIcon,
-  WalletIcon,
-} from "@/components/ui/icons";
+import { BasketIcon, BookIcon, CalendarIcon, HomeIcon, UserIcon } from "@/components/ui/icons";
 
 type Icon = ComponentType<SVGProps<SVGSVGElement> & { size?: number }>;
 interface NavItem {
   href: string;
   label: string;
-  short: string;
-  icon: Icon;
+  /** Autres chemins qui activent l'onglet (ex. le garde-manger sous « Profil » sur téléphone). */
+  also?: readonly string[];
 }
 
-/** Navigation principale : mêmes rubriques, même ordre sur ordinateur et téléphone. */
-export const PRIMARY: readonly NavItem[] = [
-  { href: "/dashboard", label: "Accueil", short: "Accueil", icon: HomeIcon },
-  { href: "/planner", label: "Menu de la semaine", short: "Menu", icon: CalendarIcon },
-  { href: "/shopping", label: "Liste de courses", short: "Courses", icon: BasketIcon },
-  { href: "/pantry", label: "Garde-manger", short: "Stock", icon: PantryIcon },
-  { href: "/recipes", label: "Recettes", short: "Recettes", icon: BookIcon },
+/** Barre du haut (ordinateur) : les rubriques de l'application, dans l'ordre d'usage. */
+export const TOP: readonly NavItem[] = [
+  { href: "/dashboard", label: "Accueil" },
+  { href: "/recipes", label: "Recettes" },
+  { href: "/planner", label: "Menu" },
+  { href: "/shopping", label: "Courses" },
+  { href: "/pantry", label: "Garde-manger" },
+  { href: "/budget", label: "Budget" },
 ];
 
-/** Rubriques secondaires : barre latérale sur ordinateur, accueil et paramètres sur téléphone. */
-export const SECONDARY: readonly NavItem[] = [
-  { href: "/budget", label: "Budget", short: "Budget", icon: WalletIcon },
-  { href: "/prices", label: "Prix", short: "Prix", icon: TagIcon },
-  { href: "/settings", label: "Paramètres", short: "Réglages", icon: SettingsIcon },
+/** Onglets (téléphone) : cinq entrées à portée de pouce. */
+const TABS: readonly (NavItem & { icon: Icon })[] = [
+  { href: "/dashboard", label: "Accueil", icon: HomeIcon },
+  { href: "/recipes", label: "Recettes", icon: BookIcon },
+  { href: "/planner", label: "Menu", icon: CalendarIcon },
+  { href: "/shopping", label: "Liste", icon: BasketIcon },
+  {
+    href: "/settings",
+    label: "Profil",
+    icon: UserIcon,
+    also: ["/pantry", "/budget", "/prices"],
+  },
 ];
 
-function isActive(pathname: string | null, href: string) {
-  return pathname !== null && (pathname === href || pathname.startsWith(`${href}/`));
+function isActive(pathname: string | null, item: NavItem) {
+  if (pathname === null) return false;
+  return [item.href, ...(item.also ?? [])].some(
+    (href) => pathname === href || pathname.startsWith(`${href}/`),
+  );
 }
 
 /**
  * usePathname() lit l'URL de la requête : avec les Cache Components, ces composants sont
  * rendus dans un <Suspense> dont le repli est la version « Shell » (sans onglet actif).
  */
-export function SideNav() {
-  return <SideNavShell pathname={usePathname()} />;
+export function TopNav() {
+  return <TopNavShell pathname={usePathname()} />;
 }
 export function TabBar() {
   return <TabBarShell pathname={usePathname()} />;
 }
 
-/** Barre latérale (ordinateur) : fond vert forêt, l'onglet actif en crème. */
-export function SideNavShell({ pathname }: { pathname: string | null }) {
-  const item = (it: NavItem) => {
-    const active = isActive(pathname, it.href);
-    const Icon = it.icon;
-    return (
-      <li key={it.href}>
-        <Link
-          href={it.href}
-          aria-current={active ? "page" : undefined}
-          className={[
-            "flex min-h-11 items-center gap-3 rounded-full px-4 text-[0.9375rem] font-medium transition-colors",
-            active
-              ? "bg-cream text-forest dark:bg-brand dark:text-brand-foreground"
-              : "text-nav-foreground hover:bg-white/8",
-          ].join(" ")}
-        >
-          <Icon size={20} />
-          {it.label}
-        </Link>
-      </li>
-    );
-  };
+/** Rubriques de la barre du haut : l'onglet actif est souligné en terracotta. */
+export function TopNavShell({ pathname }: { pathname: string | null }) {
   return (
-    <nav aria-label="Navigation principale" className="flex flex-1 flex-col gap-8">
-      <ul className="flex flex-col gap-1">{PRIMARY.map(item)}</ul>
-      <ul className="border-nav-muted/25 flex flex-col gap-1 border-t pt-6">
-        {SECONDARY.map(item)}
+    <nav aria-label="Navigation principale">
+      <ul className="flex items-center gap-1">
+        {TOP.map((it) => {
+          const active = isActive(pathname, it);
+          return (
+            <li key={it.href}>
+              <Link
+                href={it.href}
+                aria-current={active ? "page" : undefined}
+                className={[
+                  "relative flex min-h-11 items-center px-3 text-[0.9375rem] font-medium transition-colors",
+                  "after:bg-accent after:absolute after:inset-x-3 after:bottom-1 after:h-0.5 after:rounded-full after:transition-opacity",
+                  active
+                    ? "text-foreground after:opacity-100"
+                    : "text-muted hover:text-foreground after:opacity-0",
+                ].join(" ")}
+              >
+                {it.label}
+              </Link>
+            </li>
+          );
+        })}
       </ul>
     </nav>
   );
 }
 
-/** Barre d'onglets (téléphone) : en bas, à portée de pouce, icône + libellé court. */
+/** Barre d'onglets (téléphone) : en bas, icône + libellé, l'onglet actif en terracotta. */
 export function TabBarShell({ pathname }: { pathname: string | null }) {
   return (
     <nav
       aria-label="Navigation principale"
-      className="border-border bg-surface/95 fixed inset-x-0 bottom-0 z-20 border-t pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+      className="border-border bg-surface fixed inset-x-0 bottom-0 z-20 border-t pb-[env(safe-area-inset-bottom)] lg:hidden"
     >
       <ul className="mx-auto grid max-w-xl grid-cols-5">
-        {PRIMARY.map((it) => {
-          const active = isActive(pathname, it.href);
+        {TABS.map((it) => {
+          const active = isActive(pathname, it);
           const Icon = it.icon;
           return (
             <li key={it.href}>
@@ -104,18 +103,11 @@ export function TabBarShell({ pathname }: { pathname: string | null }) {
                 aria-current={active ? "page" : undefined}
                 className={[
                   "flex min-h-16 flex-col items-center justify-center gap-1 text-[0.6875rem] font-semibold",
-                  active ? "text-brand" : "text-muted",
+                  active ? "text-accent-strong" : "text-muted",
                 ].join(" ")}
               >
-                <span
-                  className={[
-                    "flex h-8 w-14 items-center justify-center rounded-full transition-colors",
-                    active ? "bg-brand-soft" : "",
-                  ].join(" ")}
-                >
-                  <Icon size={22} />
-                </span>
-                {it.short}
+                <Icon size={23} />
+                {it.label}
               </Link>
             </li>
           );

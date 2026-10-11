@@ -30,3 +30,19 @@ l'usage quotidien, installable.
   dépenses réelles ne sont pas suivies.
 - **Galerie** `/apercu` : composants avec données de démonstration, construite seulement si
   `DESIGN_PREVIEW=1` (404 en production).
+
+## Révision — charte fournie par le foyer (11 octobre)
+
+- Palette exacte de la charte (ocre `#F4B942`, sauge `#8FA88A`, pêche `#FADCC8`, crème
+  `#FBF7EF`) ; textes en **Inter**, titres en Fraunces.
+- Logo : feuille sauge à nervure, rond ocre, demi-bol **terracotta** ; nom sur trois lignes.
+- Boutons : action principale terracotta avec flèche (terracotta foncé `#C2502F` pour garder
+  un contraste AA avec le texte blanc), actions de structure en vert forêt plein.
+- Navigation : barre horizontale en haut sur ordinateur ; cinq onglets en bas sur téléphone
+  (Accueil, Recettes, Menu, Liste, Profil), garde-manger, budget et prix accessibles depuis
+  le profil et l'accueil.
+- Difficulté calculée par une règle fixe et affichée comme telle (`domain/recipes/difficulty`).
+- Fiche ingrédient sans vente (`/ingredients/[id]`) : prix indicatif, stock, recettes.
+- Ajouts manuels à la liste de courses (migration 0021) : « + » par ingrédient, « Tout
+  ajouter », ajout libre, « Tout cocher », export ; jamais fusionnés avec la liste calculée.
+- Pas de photos : visuels de remplacement aux formes du logo (choix du foyer).

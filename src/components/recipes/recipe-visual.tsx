@@ -35,11 +35,11 @@ export function dishFamily(title: string, tags: readonly string[]): DishFamily {
 
 /** Fonds : couleurs de la marque, toujours avec un contraste correct pour les formes. */
 const GROUNDS = [
-  { bg: "#F7D7CB", bowl: "#0E3B2E", a: "#E76F51", b: "#8FA486", c: "#F4C145" },
-  { bg: "#E5EBE1", bowl: "#0E3B2E", a: "#E76F51", b: "#F4C145", c: "#8FA486" },
-  { bg: "#FCEFC7", bowl: "#0E3B2E", a: "#E76F51", b: "#8FA486", c: "#B0472C" },
-  { bg: "#0E3B2E", bowl: "#FFF8ED", a: "#E76F51", b: "#F4C145", c: "#8FA486" },
-  { bg: "#FBE3DA", bowl: "#0E3B2E", a: "#F4C145", b: "#8FA486", c: "#E76F51" },
+  { bg: "#FADCC8", bowl: "#0E3B2E", a: "#E76F51", b: "#8FA88A", c: "#F4B942" },
+  { bg: "#F5EEE2", bowl: "#E76F51", a: "#0E3B2E", b: "#8FA88A", c: "#F4B942" },
+  { bg: "#E6ECE3", bowl: "#E76F51", a: "#F4B942", b: "#0E3B2E", c: "#8FA88A" },
+  { bg: "#FCEFCD", bowl: "#0E3B2E", a: "#E76F51", b: "#8FA88A", c: "#E76F51" },
+  { bg: "#FBF1E4", bowl: "#E76F51", a: "#F4B942", b: "#8FA88A", c: "#0E3B2E" },
 ] as const;
 
 function hash(text: string): number {
@@ -131,7 +131,7 @@ function Garnish({ family, g }: { family: DishFamily; g: (typeof GROUNDS)[number
     case "oeuf":
       return (
         <g>
-          <path d="M66 80c0-18 14-30 34-30s34 12 34 30Z" fill="#FFF8ED" />
+          <path d="M66 80c0-18 14-30 34-30s34 12 34 30Z" fill="#FBF7EF" />
           <circle cx="100" cy="68" r="12" fill={g.c} />
           <circle cx="140" cy="48" r="7" fill={g.a} />
         </g>

@@ -6,11 +6,14 @@ import { CookButton } from "@/components/cooking/cook-button";
 import { AddToMenuButton } from "@/components/recipes/add-to-menu-button";
 import { CookMode } from "@/components/recipes/cook-mode";
 import { RatingButtons } from "@/components/recipes/rating-buttons";
-import { RecipeIngredients } from "@/components/recipes/recipe-ingredients";
+import { RecipeBody } from "@/components/recipes/recipe-body";
+import { FavoriteButton } from "@/components/recipes/favorite-button";
 import { RecipeVisual } from "@/components/recipes/recipe-visual";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeftIcon } from "@/components/ui/icons";
+import { ChevronLeftIcon, ClockIcon, GaugeIcon, UsersIcon } from "@/components/ui/icons";
+import { DIFFICULTY_LABEL, DIFFICULTY_RULE } from "@/domain/recipes/difficulty";
+import { isInCurrentPlan } from "@/server/modules/planning/queries";
 import { PageSkeleton } from "@/components/ui/skeleton";
 import { formatCents } from "@/domain/money";
 import { formatDateTime, formatShortDate } from "@/lib/dates";
@@ -23,13 +26,15 @@ export const metadata: Metadata = { title: "Recette" };
 export default function RecipePage({ params }: PageProps<"/recipes/[slug]">) {
   return (
     <div className="flex flex-col gap-6">
-      <Link
-        href="/recipes"
-        className="text-brand inline-flex items-center gap-1 self-start text-sm font-semibold hover:underline"
-      >
-        <ChevronLeftIcon size={18} />
-        Recettes
-      </Link>
+      <nav aria-label="Fil d'Ariane" className="text-muted flex items-center gap-1.5 text-sm">
+        <Link href="/dashboard" className="hover:text-foreground">
+          Accueil
+        </Link>
+        <ChevronLeftIcon size={14} className="rotate-180" />
+        <Link href="/recipes" className="hover:text-foreground">
+          Recettes
+        </Link>
+      </nav>
       <Suspense fallback={<PageSkeleton rows={4} />}>
         <RecipeContent params={params} />
       </Suspense>
@@ -44,68 +49,74 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
   if (!recipe) notFound();
 
   const total = recipe.prepMinutes + recipe.cookMinutes;
-  const cook = await getCookStatus(recipe.id);
+  const [cook, inMenu] = await Promise.all([getCookStatus(recipe.id), isInCurrentPlan(recipe.id)]);
 
   return (
     <article className="flex flex-col gap-10">
-      <header className="grid gap-6 lg:grid-cols-[1.1fr_1fr] lg:gap-10">
-        <div className="aspect-[4/3] overflow-hidden rounded-2xl lg:aspect-auto lg:min-h-80">
+      <header className="grid gap-6 lg:grid-cols-[1fr_1fr] lg:gap-12">
+        <div className="aspect-[4/3] overflow-hidden rounded-3xl">
           <RecipeVisual slug={recipe.slug} title={recipe.title} tags={recipe.tags} />
         </div>
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-5 lg:py-2">
+          <h1 className="type-page">{recipe.title}</h1>
           <div className="flex flex-wrap gap-1.5">
-            {recipe.tags.map((t) => (
-              <Badge key={t} tone="neutral">
-                {RECIPE_TAG_LABEL[t] ?? t}
-              </Badge>
-            ))}
             {recipe.vegan ? (
               <Badge tone="leaf">Végétalien</Badge>
             ) : recipe.vegetarian ? (
               <Badge tone="leaf">Végétarien</Badge>
             ) : null}
+            {recipe.tags.map((t) => (
+              <Badge key={t} tone="neutral">
+                {RECIPE_TAG_LABEL[t] ?? t}
+              </Badge>
+            ))}
           </div>
-          <h1 className="type-page">{recipe.title}</h1>
           {recipe.description ? (
             <p className="text-muted text-lg leading-relaxed">{recipe.description}</p>
           ) : null}
-          <dl className="border-border grid grid-cols-3 gap-3 border-y py-4">
-            <Fact label="Préparation">{recipe.prepMinutes} min</Fact>
-            <Fact label="Cuisson">
-              {recipe.cookMinutes > 0 ? `${recipe.cookMinutes} min` : "aucune"}
-            </Fact>
-            <Fact label="Total">{total} min</Fact>
-          </dl>
-          {recipe.cost ? (
-            <p className="text-sm">
-              <span className="font-semibold">
-                Coût estimé {recipe.cost.missingNames.length ? "minimum " : ""}:{" "}
-                {formatCents(recipe.cost.cents)}
-              </span>{" "}
-              <span className="text-muted">
-                pour {recipe.servings} parts, soit{" "}
-                {formatCents(Math.round(recipe.cost.cents / recipe.servings))} la part.
-                {recipe.cost.missingNames.length
-                  ? ` Sans prix connu : ${recipe.cost.missingNames.join(", ")}.`
-                  : ""}{" "}
-                <Link href="/prices" className="underline">
-                  Prix indicatifs
-                </Link>
+          <ul className="text-muted flex flex-wrap gap-x-6 gap-y-2 text-sm">
+            <li className="inline-flex items-center gap-1.5">
+              <ClockIcon size={18} />
+              {total} min
+              <span className="sr-only">
+                (préparation {recipe.prepMinutes} min, cuisson {recipe.cookMinutes} min)
               </span>
-            </p>
-          ) : (
-            <p className="text-muted text-sm">
-              Aucun prix connu pour ces ingrédients : le coût n&apos;est pas estimé.
-            </p>
-          )}
+            </li>
+            <li className="inline-flex items-center gap-1.5" title={DIFFICULTY_RULE}>
+              <GaugeIcon size={18} />
+              {DIFFICULTY_LABEL[recipe.difficulty]}
+            </li>
+            <li className="inline-flex items-center gap-1.5">
+              <UsersIcon size={18} />
+              {recipe.servings} personnes
+            </li>
+          </ul>
+          <p className="text-muted text-sm">
+            Préparation {recipe.prepMinutes} min
+            {recipe.cookMinutes > 0 ? `, cuisson ${recipe.cookMinutes} min` : ", sans cuisson"}.
+            {recipe.cost
+              ? ` Coût estimé ${recipe.cost.missingNames.length ? "minimum " : ""}${formatCents(recipe.cost.cents)}, soit ${formatCents(Math.round(recipe.cost.cents / recipe.servings))} la part${recipe.cost.missingNames.length ? ` (sans prix : ${recipe.cost.missingNames.join(", ")})` : ""}.`
+              : " Coût non estimé : aucun prix connu."}
+          </p>
           {!recipe.exclusionLabel ? (
             <div className="flex flex-wrap items-start gap-3">
               <AddToMenuButton recipeId={recipe.id} variant="primary" />
+              <FavoriteButton
+                recipeId={recipe.id}
+                title={recipe.title}
+                favorite={recipe.rating === 1}
+                bordered
+              />
               <CookMode title={recipe.title} steps={recipe.steps} />
             </div>
           ) : null}
-          <RatingButtons recipeId={recipe.id} rating={recipe.rating} />
-          <History history={recipe.history} />
+          <details className="text-sm">
+            <summary className="text-muted cursor-pointer">Avis et historique</summary>
+            <div className="mt-3 flex flex-col gap-2">
+              <RatingButtons recipeId={recipe.id} rating={recipe.rating} />
+              <History history={recipe.history} />
+            </div>
+          </details>
         </div>
       </header>
 
@@ -143,54 +154,24 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
         </Alert>
       ) : null}
 
-      <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
-        <div className="lg:sticky lg:top-8">
-          <RecipeIngredients ingredients={recipe.ingredients} baseServings={recipe.servings} />
-          <p className="text-muted mt-3 text-sm">
-            Les ingrédients à acheter s&apos;ajoutent à ta liste de courses quand la recette est au
-            menu.
-          </p>
-        </div>
+      <RecipeBody
+        recipeId={recipe.id}
+        ingredients={recipe.ingredients}
+        steps={recipe.steps}
+        baseServings={recipe.servings}
+        inMenu={inMenu}
+      />
 
-        <section aria-labelledby="steps-title" className="flex flex-col gap-5">
-          <h2 id="steps-title" className="type-section">
-            Préparation
-          </h2>
-          <ol className="flex flex-col gap-6">
-            {recipe.steps.map((step, i) => (
-              <li key={i} className="flex gap-4">
-                <span
-                  aria-hidden="true"
-                  className="font-display text-accent-strong w-8 shrink-0 text-3xl leading-none font-semibold"
-                >
-                  {i + 1}
-                </span>
-                <p className="pt-1 leading-relaxed">{step}</p>
-              </li>
-            ))}
-          </ol>
-        </section>
-      </div>
-
-      <footer className="text-muted border-border border-t pt-5 text-sm">
+      <footer className="text-muted border-border border-t pt-5 text-sm leading-relaxed">
         Allergènes :{" "}
         {recipe.allergenLabels.length
           ? recipe.allergenLabels.join(", ")
           : "aucun des 14 allergènes réglementaires"}
-        . Déduits des ingrédients : vérifie toujours l&apos;étiquette des produits. Pas
-        d&apos;informations nutritionnelles : nous n&apos;avons pas de données fiables pour les
-        calculer.
+        . Déduits des ingrédients : vérifie toujours l&apos;étiquette des produits. Difficulté :{" "}
+        {DIFFICULTY_RULE.charAt(0).toLowerCase() + DIFFICULTY_RULE.slice(1)} Pas de valeurs
+        nutritionnelles : nous n&apos;avons pas de données fiables pour les calculer.
       </footer>
     </article>
-  );
-}
-
-function Fact({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      <dt className="text-muted text-xs">{label}</dt>
-      <dd className="font-semibold">{children}</dd>
-    </div>
   );
 }
 

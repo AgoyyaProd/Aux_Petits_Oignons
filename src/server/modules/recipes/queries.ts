@@ -8,6 +8,7 @@ import {
 } from "@/domain/recipes/compatibility";
 import { isPriority } from "@/domain/pantry/priority";
 import { estimateRecipeCost, millicentsToCents } from "@/domain/pricing";
+import { recipeDifficulty, type Difficulty } from "@/domain/recipes/difficulty";
 import { withParents } from "@/domain/shopping";
 import { fromBase } from "@/domain/units";
 import { todayIn } from "@/lib/dates";
@@ -141,6 +142,8 @@ export interface RecipeCard {
   costPerServingCents: number | null;
   /** Des ingrédients obligatoires n'ont pas de prix : le coût est un minimum. */
   costIsMinimum: boolean;
+  /** Difficulté calculée (règle fixe, voir domain/recipes/difficulty). */
+  difficulty: Difficulty;
 }
 
 /** Seuil « petit budget » : coût estimé par portion. */
@@ -173,7 +176,7 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
     supabase
       .from("recipes")
       .select(
-        "id, slug, title, description, servings, prep_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, is_optional, quantity_base, dimension, ingredients (name, density_g_per_ml, piece_weight_g))",
+        "id, slug, title, description, servings, prep_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, is_optional, quantity_base, dimension, ingredients (name, density_g_per_ml, piece_weight_g)), recipe_steps (count)",
       )
       .eq("status", "published")
       .order("title"),
@@ -297,6 +300,11 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
       usesPriority,
       costPerServingCents,
       costIsMinimum: estimate.missing.length > 0,
+      difficulty: recipeDifficulty({
+        prepMinutes: r.prep_minutes,
+        cookMinutes: r.cook_minutes,
+        steps: r.recipe_steps?.[0]?.count ?? 0,
+      }),
     });
   }
 
@@ -377,6 +385,7 @@ export interface RecipeDetail {
   cost: { cents: number; missingNames: string[] } | null;
   rating: Rating | null;
   history: Awaited<ReturnType<typeof recipeHistory>>;
+  difficulty: Difficulty;
 }
 
 export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
@@ -455,6 +464,11 @@ export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
     toRemoveNames: compatibility.toRemove.map((id) => ingredientNames.get(id) ?? "?"),
     rating: rating.data ? (rating.data.rating === 1 ? 1 : -1) : null,
     history,
+    difficulty: recipeDifficulty({
+      prepMinutes: r.prep_minutes,
+      cookMinutes: r.cook_minutes,
+      steps: (r.recipe_steps ?? []).length,
+    }),
     cost: (() => {
       const estimate = estimateRecipeCost(
         lines.map((l) => ({

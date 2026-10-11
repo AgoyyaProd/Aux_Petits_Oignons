@@ -68,7 +68,7 @@ export async function getShoppingPage(week?: string) {
     .single();
   if (settings.error) throw new Error(settings.error.message);
 
-  const [plan, catalog, ingredients, pantry, checks] = await Promise.all([
+  const [plan, catalog, ingredients, pantry, checks, extrasRes] = await Promise.all([
     readPlan(supabase, household.id, weekStart),
     getPlanningCatalog(household.id, household.timezone, settings.data.max_prep_minutes),
     supabase
@@ -86,11 +86,26 @@ export async function getShoppingPage(week?: string) {
       .select("ingredient_id, dimension")
       .eq("household_id", household.id)
       .eq("week_start", weekStart),
+    supabase
+      .from("shopping_extras")
+      .select("id, label, quantity_text, checked, ingredients (category), recipes (title)")
+      .eq("household_id", household.id)
+      .eq("week_start", weekStart)
+      .order("created_at"),
   ]);
-  for (const r of [ingredients, pantry, checks]) {
+  for (const r of [ingredients, pantry, checks, extrasRes]) {
     if (r.error) throw new Error(`Lecture de la liste impossible : ${r.error.message}`);
   }
-  if (!plan || plan.entries.length === 0) return { ...base, plan: null };
+  /** Ajouts manuels : affichés à part, jamais fusionnés avec les besoins calculés. */
+  const extras = extrasRes.data!.map((e) => ({
+    id: e.id,
+    label: e.label,
+    quantity: e.quantity_text,
+    checked: e.checked,
+    category: e.ingredients?.category ?? null,
+    recipe: e.recipes?.title ?? null,
+  }));
+  if (!plan || plan.entries.length === 0) return { ...base, plan: null, extras };
 
   const info = new Map<string, IngredientInfo>();
   const category = new Map<string, string>();
@@ -204,6 +219,7 @@ export async function getShoppingPage(week?: string) {
 
   return {
     ...base,
+    extras,
     plan: {
       mealCount: plan.entries.length - plan.cooked.size,
       people: plan.people,

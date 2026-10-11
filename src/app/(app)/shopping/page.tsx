@@ -2,16 +2,22 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { CheckLine } from "@/components/shopping/check-line";
+import { AddExtraForm, ExportListButton, ExtraLine } from "@/components/shopping/extras";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { buttonClasses, iconButtonClasses } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import { ChevronLeftIcon, ChevronRightIcon } from "@/components/ui/icons";
-import { PageHeader } from "@/components/ui/page-header";
+import {
+  ArrowRightIcon,
+  CheckIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from "@/components/ui/icons";
 import { PageSkeleton } from "@/components/ui/skeleton";
 import { formatCents } from "@/domain/money";
 import { formatShoppingQuantity } from "@/lib/format-quantity";
 import { formatWeek } from "@/lib/week";
+import { checkAllAction } from "@/server/modules/shopping/actions";
 import {
   getShoppingPage,
   type ShoppingLineView,
@@ -33,35 +39,88 @@ function one(v: string | string[] | undefined) {
   return Array.isArray(v) ? v[0] : v;
 }
 
+type Extra = ShoppingPage["extras"][number];
+
 async function ShoppingContent({ searchParams }: Pick<PageProps<"/shopping">, "searchParams">) {
   const sp = await searchParams;
   const page = await getShoppingPage(one(sp.semaine));
   if (!page) return <p className="text-muted">Aucun foyer actif.</p>;
   const byRecipe = one(sp.vue) === "recettes";
+  const list = page.plan && "aisles" in page ? page : null;
+  const lines = list ? list.aisles.flatMap((a) => a.lines) : [];
+  const exportText = buildExport(page.weekStart, list?.aisles ?? [], page.extras);
+  const allChecked = lines.every((l) => l.checked) && page.extras.every((e) => e.checked);
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title="Liste de courses"
-        description="Calculée à partir du menu, moins ce que tu as déjà. Coche au fur et à mesure dans le magasin."
-      />
-      <WeekNav page={page} />
-      {!page.plan ? (
-        <EmptyState
-          title="Pas de menu cette semaine"
-          action={
-            <Link href={`/planner?semaine=${page.weekStart}`} className={buttonClasses("primary")}>
-              Générer mon menu
-            </Link>
-          }
-        >
-          La liste de courses se calcule à partir des repas prévus.
-        </EmptyState>
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex flex-col gap-3">
+          <h1 className="type-page">Ma liste de courses</h1>
+          <WeekNav page={page} />
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {lines.length + page.extras.length > 0 && !allChecked ? (
+            <form action={checkAllAction}>
+              <input type="hidden" name="week" value={page.weekStart} />
+              <input
+                type="hidden"
+                name="lines"
+                value={JSON.stringify(lines.map((l) => ({ i: l.ingredientId, d: l.dimension })))}
+              />
+              <button type="submit" className={buttonClasses("ghost")}>
+                <CheckIcon size={18} />
+                Tout cocher
+              </button>
+            </form>
+          ) : null}
+          {lines.length + page.extras.length > 0 ? <ExportListButton text={exportText} /> : null}
+        </div>
+      </header>
+
+      {!list ? (
+        <>
+          <EmptyState
+            title="Pas de menu cette semaine"
+            action={
+              <Link
+                href={`/planner?semaine=${page.weekStart}`}
+                className={buttonClasses("primary")}
+              >
+                Générer mon menu
+                <ArrowRightIcon size={18} />
+              </Link>
+            }
+          >
+            La liste se calcule à partir des repas prévus. Tu peux quand même y ajouter des articles
+            à la main.
+          </EmptyState>
+          {page.isCurrentWeek ? <Extras extras={page.extras} /> : null}
+        </>
       ) : (
-        <ListView page={page} byRecipe={byRecipe} />
+        <ListView page={list} byRecipe={byRecipe} />
       )}
     </div>
   );
+}
+
+function buildExport(
+  week: string,
+  aisles: { label: string; lines: ShoppingLineView[] }[],
+  extras: Extra[],
+) {
+  const out = [`Courses — ${formatWeek(week)}`];
+  for (const a of aisles) {
+    const todo = a.lines.filter((l) => !l.checked);
+    if (!todo.length) continue;
+    out.push("", a.label);
+    for (const l of todo) out.push(`- ${l.name} : ${formatShoppingQuantity(l.toBuy)}`);
+  }
+  const todoExtras = extras.filter((e) => !e.checked);
+  if (todoExtras.length) {
+    out.push("", "Ajouts");
+    for (const e of todoExtras) out.push(`- ${e.label}${e.quantity ? ` : ${e.quantity}` : ""}`);
+  }
+  return out.join("\n");
 }
 
 function WeekNav({ page }: { page: ShoppingPage }) {
@@ -91,6 +150,33 @@ function WeekNav({ page }: { page: ShoppingPage }) {
   );
 }
 
+function Extras({ extras }: { extras: Extra[] }) {
+  return (
+    <section aria-labelledby="ajouts" className="flex flex-col gap-2">
+      <h2 id="ajouts" className="flex items-baseline justify-between gap-3">
+        <span className="text-lg font-semibold">Ajouts</span>
+        <span className="text-muted text-sm">hors menu, quantités telles que saisies</span>
+      </h2>
+      {extras.length ? (
+        <ul className="border-border bg-surface divide-border divide-y rounded-2xl border px-4">
+          {extras.map((e) => (
+            <li key={e.id}>
+              <ExtraLine
+                id={e.id}
+                label={e.label}
+                quantity={e.quantity}
+                note={e.recipe ? `Pour ${e.recipe}` : null}
+                checked={e.checked}
+              />
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      <AddExtraForm />
+    </section>
+  );
+}
+
 type ListPage = Extract<ShoppingPage, { aisles: unknown }>;
 
 function ListView({ page, byRecipe }: { page: ListPage; byRecipe: boolean }) {
@@ -115,53 +201,105 @@ function ListView({ page, byRecipe }: { page: ListPage; byRecipe: boolean }) {
     : page.aisles.map((a) => ({ key: a.category, label: a.label, lines: a.lines }));
 
   return (
-    <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-10">
-      <div className="flex flex-col gap-6">
-        {page.warnings.length ? (
-          <Alert tone="warning">
-            <ul className="flex flex-col gap-1">
-              {page.warnings.map((w) => (
-                <li key={w}>{w}</li>
-              ))}
-            </ul>
-          </Alert>
-        ) : null}
-
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div
-            role="group"
-            aria-label="Affichage"
-            className="bg-surface-muted inline-flex rounded-full p-1"
-          >
-            <Link
-              href={base}
-              aria-current={!byRecipe ? "true" : undefined}
-              scroll={false}
-              className={`min-h-10 rounded-full px-4 py-2 text-sm font-semibold ${!byRecipe ? "bg-surface shadow-sm" : "text-muted"}`}
+    <div className="flex flex-col gap-6">
+      {/* Récapitulatif : en haut sur ordinateur, collé en bas (au-dessus des onglets) sur téléphone. */}
+      <section
+        aria-label="Récapitulatif"
+        className="bg-surface border-border fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-10 border-t px-4 py-3 shadow-[var(--shadow-md)] lg:static lg:rounded-2xl lg:border lg:px-6 lg:py-4 lg:shadow-none"
+      >
+        <div className="mx-auto flex max-w-xl items-center gap-4 lg:max-w-none">
+          <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+            <div className="flex items-baseline justify-between gap-3 lg:justify-start lg:gap-6">
+              <span className="text-sm font-semibold">
+                {totals.checked}/{totals.lines} dans le panier
+              </span>
+              <span className="font-display text-lg font-semibold lg:text-2xl">
+                {totals.unpriced ? "≥ " : "≈ "}
+                {formatCents(totals.knownCents)}
+              </span>
+              <span className="text-muted hidden text-sm lg:inline">
+                Estimation pour {plan.mealCount} plat{plan.mealCount > 1 ? "s" : ""} ({plan.people}{" "}
+                pers.)
+                {totals.unpriced
+                  ? `, ${totals.unpriced} article${totals.unpriced > 1 ? "s" : ""} sans prix`
+                  : ""}
+                . Le prix payé en magasin peut différer.
+              </span>
+            </div>
+            <span
+              role="img"
+              aria-label={`${totals.checked} articles sur ${totals.lines}`}
+              className="bg-surface-muted h-2 overflow-hidden rounded-full lg:max-w-md"
             >
-              Par rayon
-            </Link>
-            <Link
-              href={`${base}&vue=recettes`}
-              aria-current={byRecipe ? "true" : undefined}
-              scroll={false}
-              className={`min-h-10 rounded-full px-4 py-2 text-sm font-semibold ${byRecipe ? "bg-surface shadow-sm" : "text-muted"}`}
-            >
-              Par recette
-            </Link>
+              <span
+                className="bg-forest dark:bg-brand block h-full rounded-full transition-[width]"
+                style={{ width: `${Math.round(ratio * 100)}%` }}
+              />
+            </span>
           </div>
-          <span className="text-muted text-sm">
-            Quantités nécessaires, pas des tailles de paquet.
-          </span>
+          {done ? (
+            <Badge tone="leaf">Courses faites</Badge>
+          ) : (
+            <Link
+              href={`/shopping/ranger?semaine=${page.weekStart}`}
+              className={buttonClasses("forest", "shrink-0")}
+            >
+              Finir les courses
+            </Link>
+          )}
         </div>
+      </section>
 
-        {totals.lines === 0 ? (
-          <EmptyState title="Rien à acheter">
-            Ton garde-manger et ton placard couvrent tout le menu.
-          </EmptyState>
-        ) : (
-          groups.map((group) => (
-            <section key={group.key} aria-label={group.label} className="flex flex-col gap-2">
+      {page.warnings.length ? (
+        <Alert tone="warning">
+          <ul className="flex flex-col gap-1">
+            {page.warnings.map((w) => (
+              <li key={w}>{w}</li>
+            ))}
+          </ul>
+        </Alert>
+      ) : null}
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div
+          role="group"
+          aria-label="Affichage"
+          className="bg-surface-muted inline-flex rounded-full p-1"
+        >
+          <Link
+            href={base}
+            aria-current={!byRecipe ? "true" : undefined}
+            scroll={false}
+            className={`min-h-10 rounded-full px-4 py-2 text-sm font-semibold ${!byRecipe ? "bg-forest text-cream" : "text-muted"}`}
+          >
+            Par rayon
+          </Link>
+          <Link
+            href={`${base}&vue=recettes`}
+            aria-current={byRecipe ? "true" : undefined}
+            scroll={false}
+            className={`min-h-10 rounded-full px-4 py-2 text-sm font-semibold ${byRecipe ? "bg-forest text-cream" : "text-muted"}`}
+          >
+            Par recette
+          </Link>
+        </div>
+        <span className="text-muted text-sm">
+          Quantités nécessaires, pas des tailles de paquet.
+        </span>
+      </div>
+
+      {totals.lines === 0 ? (
+        <EmptyState title="Rien à acheter pour le menu">
+          Ton garde-manger et ton placard couvrent tout le menu.
+        </EmptyState>
+      ) : (
+        <div className="gap-6 lg:columns-2 xl:columns-3">
+          {groups.map((group) => (
+            <section
+              key={group.key}
+              aria-label={group.label}
+              className="mb-6 flex break-inside-avoid flex-col gap-2"
+            >
               <h2 className="flex items-baseline justify-between gap-3">
                 <span className="text-lg font-semibold">{group.label}</span>
                 <span className="text-muted text-sm">
@@ -203,81 +341,29 @@ function ListView({ page, byRecipe }: { page: ListPage; byRecipe: boolean }) {
                 ))}
               </ul>
             </section>
-          ))
-        )}
-
-        {page.covered.length || page.cupboard.length ? (
-          <details className="border-border bg-surface rounded-2xl border p-4">
-            <summary className="cursor-pointer font-semibold">
-              Déjà chez toi ({page.covered.length + page.cupboard.length})
-            </summary>
-            <ul className="text-muted mt-3 flex flex-col gap-1.5 text-sm">
-              {page.covered.map((l) => (
-                <li key={`${l.ingredientId}|${l.dimension}`}>
-                  {l.name} : {formatShoppingQuantity(l.needed)} (garde-manger)
-                </li>
-              ))}
-              {page.cupboard.map((c) => (
-                <li key={c.name}>{c.name} (placard)</li>
-              ))}
-            </ul>
-          </details>
-        ) : null}
-      </div>
-
-      {/* Récapitulatif : barre collée en bas sur téléphone (au-dessus des onglets), colonne
-          à droite sur ordinateur. */}
-      <aside
-        aria-label="Récapitulatif"
-        className="bg-surface border-border fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-10 border-t px-4 py-3 shadow-[var(--shadow-md)] lg:sticky lg:top-8 lg:bottom-auto lg:flex lg:flex-col lg:gap-4 lg:rounded-2xl lg:border lg:p-5 lg:shadow-none"
-      >
-        <div className="mx-auto flex max-w-xl items-center gap-4 lg:flex-col lg:items-stretch">
-          <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-            <div className="flex items-baseline justify-between gap-3">
-              <span className="text-sm font-semibold">
-                {totals.checked}/{totals.lines} dans le panier
-              </span>
-              <span className="font-display text-lg font-semibold lg:text-2xl">
-                {totals.unpriced ? "≥ " : "≈ "}
-                {formatCents(totals.knownCents)}
-              </span>
-            </div>
-            <span
-              role="img"
-              aria-label={`${totals.checked} articles sur ${totals.lines}`}
-              className="bg-surface-muted h-2 overflow-hidden rounded-full"
-            >
-              <span
-                className="bg-brand block h-full rounded-full transition-[width]"
-                style={{ width: `${Math.round(ratio * 100)}%` }}
-              />
-            </span>
-            <span className="text-muted hidden text-sm lg:block">
-              Estimation pour {plan.mealCount} plat{plan.mealCount > 1 ? "s" : ""} ({plan.people}{" "}
-              pers.).
-              {totals.unpriced
-                ? ` ${totals.unpriced} article${totals.unpriced > 1 ? "s" : ""} sans prix, non compté${totals.unpriced > 1 ? "s" : ""}.`
-                : ""}{" "}
-              Le prix payé en magasin peut différer.
-            </span>
-          </div>
-          {done ? (
-            <Badge tone="leaf">Courses faites</Badge>
-          ) : (
-            <Link
-              href={`/shopping/ranger?semaine=${page.weekStart}`}
-              className={buttonClasses("accent", "shrink-0")}
-            >
-              Finir les courses
-            </Link>
-          )}
+          ))}
         </div>
-        {done ? (
-          <p className="text-muted mt-2 hidden text-sm lg:block">
-            Marque tes plats « Cuisiné » depuis leur recette pour mettre le stock à jour.
-          </p>
-        ) : null}
-      </aside>
+      )}
+
+      {page.isCurrentWeek ? <Extras extras={page.extras} /> : null}
+
+      {page.covered.length || page.cupboard.length ? (
+        <details className="border-border bg-surface rounded-2xl border p-4">
+          <summary className="cursor-pointer font-semibold">
+            Déjà chez toi ({page.covered.length + page.cupboard.length})
+          </summary>
+          <ul className="text-muted mt-3 flex flex-col gap-1.5 text-sm">
+            {page.covered.map((l) => (
+              <li key={`${l.ingredientId}|${l.dimension}`}>
+                {l.name} : {formatShoppingQuantity(l.needed)} (garde-manger)
+              </li>
+            ))}
+            {page.cupboard.map((c) => (
+              <li key={c.name}>{c.name} (placard)</li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
       {/* Espace réservé à la barre collée sur téléphone. */}
       <div aria-hidden="true" className="h-20 lg:hidden" />
     </div>

@@ -3,14 +3,15 @@ import { AddToMenuButton } from "@/components/recipes/add-to-menu-button";
 import { FavoriteButton } from "@/components/recipes/favorite-button";
 import { RecipeVisual } from "@/components/recipes/recipe-visual";
 import { Badge } from "@/components/ui/badge";
-import { ClockIcon, UsersIcon } from "@/components/ui/icons";
+import { ClockIcon, GaugeIcon } from "@/components/ui/icons";
 import { formatCents } from "@/domain/money";
+import { DIFFICULTY_LABEL, DIFFICULTY_RULE } from "@/domain/recipes/difficulty";
 import type { RecipeCard as RecipeCardData } from "@/server/modules/recipes/queries";
 
 /**
- * Carte de recette : visuel, nom, durée, portions, coût par portion, et ce qui compte pour
- * le foyer (ingrédients en stock, produit à finir). Le titre est le lien principal ; le cœur
- * et « Ajouter au menu » restent des boutons séparés (pas d'interactif imbriqué).
+ * Carte de recette : grande carte (visuel en haut) sur tablette et ordinateur, ligne
+ * compacte (vignette à gauche) sur téléphone. Le titre est le lien principal ; le cœur et
+ * l'ajout au menu restent des boutons séparés (pas d'interactif imbriqué).
  */
 export function RecipeCard({ recipe }: { recipe: RecipeCardData }) {
   const { coverage, compatibility } = recipe;
@@ -18,70 +19,74 @@ export function RecipeCard({ recipe }: { recipe: RecipeCardData }) {
   const dimmed = !compatibility.compatible || recipe.rating === -1;
 
   return (
-    <li className={`relative flex flex-col gap-3 ${dimmed ? "opacity-70" : ""}`}>
-      <div className="relative aspect-[4/3] overflow-hidden rounded-xl">
+    <li
+      className={`bg-surface border-border relative flex gap-3 overflow-hidden rounded-2xl border p-2.5 sm:flex-col sm:gap-0 sm:p-0 ${dimmed ? "opacity-70" : ""}`}
+    >
+      <div className="relative size-24 shrink-0 overflow-hidden rounded-xl sm:aspect-[4/3] sm:size-auto sm:rounded-none">
         <RecipeVisual slug={recipe.slug} title={recipe.title} tags={recipe.tags} />
-        <div className="absolute top-2.5 right-2.5 z-10">
+        <div className="absolute top-2.5 right-2.5 z-10 hidden sm:block">
           <FavoriteButton
             recipeId={recipe.id}
             title={recipe.title}
             favorite={recipe.rating === 1}
           />
         </div>
-        {recipe.usesPriority ? (
-          <span className="absolute bottom-2.5 left-2.5">
-            <Badge tone="urgent">Finit un produit à consommer</Badge>
-          </span>
-        ) : null}
       </div>
 
-      <div className="flex flex-1 flex-col gap-2">
-        <h3 className="type-card">
-          <Link
-            href={`/recipes/${recipe.slug}`}
-            className="after:absolute after:inset-0 after:content-[''] hover:underline"
-          >
-            {recipe.title}
-          </Link>
-        </h3>
-        <p className="text-muted flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-          <span className="inline-flex items-center gap-1">
-            <ClockIcon size={15} /> {recipe.totalMinutes} min
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5 sm:p-4">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="leading-snug font-semibold">
+            <Link
+              href={`/recipes/${recipe.slug}`}
+              className="after:absolute after:inset-0 after:content-[''] hover:underline"
+            >
+              {recipe.title}
+            </Link>
+          </h3>
+          <div className="relative z-10 -mt-1 -mr-1 sm:hidden">
+            <FavoriteButton
+              recipeId={recipe.id}
+              title={recipe.title}
+              favorite={recipe.rating === 1}
+            />
+          </div>
+        </div>
+        <p className="text-muted flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+          <span className="inline-flex items-center gap-1.5">
+            <ClockIcon size={16} /> {recipe.totalMinutes} min
           </span>
-          <span className="inline-flex items-center gap-1">
-            <UsersIcon size={15} /> {recipe.servings} parts
+          <span className="inline-flex items-center gap-1.5" title={DIFFICULTY_RULE}>
+            <GaugeIcon size={16} /> {DIFFICULTY_LABEL[recipe.difficulty]}
           </span>
           {recipe.costPerServingCents !== null ? (
-            <span>
+            <span className="max-sm:hidden">
               {recipe.costIsMinimum ? "≥ " : "≈ "}
               {formatCents(recipe.costPerServingCents)} la part
             </span>
           ) : null}
         </p>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5 sm:mt-auto sm:pt-2">
           {recipe.exclusionLabel ? (
             <Badge tone="danger">{recipe.exclusionLabel}</Badge>
-          ) : coverage.total > 0 ? (
+          ) : coverage.total > 0 && ratio > 0 ? (
             <Badge tone={ratio >= 0.5 ? "leaf" : "neutral"}>
               {coverage.inStock}/{coverage.total} chez toi
             </Badge>
           ) : null}
+          {recipe.usesPriority ? <Badge tone="urgent">Finit un produit</Badge> : null}
           {recipe.vegan ? (
             <Badge tone="neutral">Végétalien</Badge>
           ) : recipe.vegetarian ? (
             <Badge tone="neutral">Végétarien</Badge>
           ) : null}
           {recipe.rating === -1 ? <Badge tone="neutral">Pas pour nous</Badge> : null}
-          {compatibility.toRemove.length > 0 ? (
-            <Badge tone="soon">Un ingrédient à retirer</Badge>
+          {compatibility.compatible ? (
+            <span className="ml-auto max-sm:hidden">
+              <AddToMenuButton recipeId={recipe.id} iconOnly />
+            </span>
           ) : null}
         </div>
       </div>
-      {compatibility.compatible ? (
-        <div className="relative z-10">
-          <AddToMenuButton recipeId={recipe.id} compact />
-        </div>
-      ) : null}
     </li>
   );
 }

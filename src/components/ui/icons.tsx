@@ -194,3 +194,10 @@ export const AlertIcon = (p: IconProps) => (
     <path d="M12 7.5v5M12 16v.5" />
   </svg>
 );
+export const GaugeIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M4 16a8 8 0 1 1 16 0" />
+    <path d="m12 16 3.5-5" />
+    <path d="M4 16h2M18 16h2" />
+  </svg>
+);

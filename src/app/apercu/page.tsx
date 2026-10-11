@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Logo, LogoMark } from "@/components/brand/logo";
-import { SideNavShell, TabBarShell } from "@/components/layout/app-nav";
+import { TabBarShell, TopNavShell } from "@/components/layout/app-nav";
 import { RecipeCard } from "@/components/recipes/recipe-card";
 import { RecipeVisual } from "@/components/recipes/recipe-visual";
 import { CheckLine } from "@/components/shopping/check-line";
@@ -39,6 +39,7 @@ export default function DesignPreview() {
     usesPriority: false,
     costPerServingCents: 245,
     costIsMinimum: false,
+    difficulty: "moyenne",
     ...over,
   });
   const families = [
@@ -59,8 +60,9 @@ export default function DesignPreview() {
         <Logo size={36} />
         <LogoMark size={48} />
         <span className="bg-forest rounded-xl p-3">
-          <Logo tone="inverse" size={28} />
+          <Logo tone="inverse" size={40} />
         </span>
+        <Logo size={30} stacked={false} />
         <span className="text-forest">
           <LogoMark tone="mono" size={40} />
         </span>
@@ -176,10 +178,10 @@ export default function DesignPreview() {
 
       <section className="flex flex-col gap-4">
         <h2 className="type-section">Navigation</h2>
-        <div className="bg-nav text-nav-foreground w-68 rounded-2xl p-4">
-          <SideNavShell pathname="/planner" />
+        <div className="bg-surface border-border rounded-2xl border p-3">
+          <TopNavShell pathname="/planner" />
         </div>
-        <div className="relative h-24 max-w-md overflow-hidden rounded-2xl border [&_nav]:absolute">
+        <div className="relative h-24 max-w-md overflow-hidden rounded-2xl border [&_nav]:absolute [&_nav]:!block">
           <TabBarShell pathname="/shopping" />
         </div>
       </section>

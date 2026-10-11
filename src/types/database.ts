@@ -637,6 +637,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"shopping_extras": {
+                  Row: {
+                    "checked": boolean,"created_at": string,"created_by": string | null,"household_id": string,"id": string,"ingredient_id": string | null,"label": string,"quantity_text": string | null,"source_recipe_id": string | null,"week_start": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "checked"?: boolean,"created_at"?: string,"created_by"?: string | null,"household_id": string,"id"?: string,"ingredient_id"?: string | null,"label": string,"quantity_text"?: string | null,"source_recipe_id"?: string | null,"week_start": string
+                  }
+                  Update: {
+                    "checked"?: boolean,"created_at"?: string,"created_by"?: string | null,"household_id"?: string,"id"?: string,"ingredient_id"?: string | null,"label"?: string,"quantity_text"?: string | null,"source_recipe_id"?: string | null,"week_start"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "shopping_extras_household_id_fkey"
+      columns: ["household_id"]
+isOneToOne: false
+      referencedRelation: "households"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "shopping_extras_ingredient_id_fkey"
+      columns: ["ingredient_id"]
+isOneToOne: false
+      referencedRelation: "ingredients"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "shopping_extras_source_recipe_id_fkey"
+      columns: ["source_recipe_id"]
+isOneToOne: false
+      referencedRelation: "recipes"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"stock_movements": {
                   Row: {
                     "created_at": string,"created_by": string | null,"delta_base": number | null,"household_id": string,"id": number,"ingredient_id": string,"kind": Database["public"]['Enums']["movement_kind"],"note": string | null,"operation_id": string,"pantry_item_id": string,"quantity_after_base": number | null

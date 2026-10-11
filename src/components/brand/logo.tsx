@@ -1,20 +1,27 @@
 /**
- * Logo « Aux Petits Oignons » : une feuille, un cercle (l'ingrédient) et un demi-bol.
- * Composant vectoriel unique, à remplacer par le logo définitif quand il existera :
+ * Logo « Aux Petits Oignons » : une feuille sauge (avec sa nervure), un rond ocre et un
+ * demi-bol terracotta ; le nom sur trois lignes en vert forêt.
+ * Composant vectoriel unique, à remplacer par le fichier définitif quand il existera :
  *  - <LogoMark /> : le symbole seul (icône d'appli, navigation mobile, favicon) ;
  *  - <Logo /> : symbole + nom (version principale) ;
- *  - tone="mono" : une seule couleur (currentColor), pour les fonds foncés ou l'impression.
+ *  - tone="mono" : une seule couleur (currentColor) ; tone="inverse" : sur fond vert forêt.
  */
 
 type Tone = "color" | "mono" | "inverse";
 
-const COLORS: Record<Tone, { bowl: string; dot: string; leaf: string }> = {
-  // Le bol suit le thème : vert forêt en clair, crème en sombre (variable CSS).
-  color: { bowl: "var(--logo-bowl)", dot: "#E76F51", leaf: "#8FA486" },
-  // Sur fond vert forêt : bol crème, cercle terracotta, feuille sauge claire.
-  inverse: { bowl: "#FFF8ED", dot: "#E76F51", leaf: "#B9CBB1" },
-  mono: { bowl: "currentColor", dot: "currentColor", leaf: "currentColor" },
+const COLORS: Record<Tone, { bowl: string; dot: string; leaf: string; vein: string }> = {
+  color: { bowl: "#E76F51", dot: "#F4B942", leaf: "#8FA88A", vein: "#FBF7EF" },
+  inverse: { bowl: "#E76F51", dot: "#F4B942", leaf: "#A9C0A4", vein: "#0E3B2E" },
+  mono: { bowl: "currentColor", dot: "currentColor", leaf: "currentColor", vein: "transparent" },
 };
+
+/** Tracés partagés avec l'icône d'appli (public/icon.svg, icônes PNG). */
+export const LOGO_PATHS = {
+  leaf: "M22 25.5C10.5 25 4.5 16 6.5 4.5 18 6.5 24 14.5 22 25.5Z",
+  vein: "M20.5 23C16 18 12 12.5 9 7.5",
+  dot: { cx: 33.5, cy: 14, r: 8 },
+  bowl: "M5 27h38c0 9.4-8.5 17-19 17S5 36.4 5 27Z",
+} as const;
 
 export function LogoMark({
   size = 32,
@@ -35,33 +42,53 @@ export function LogoMark({
       focusable="false"
       className={className}
     >
-      {/* Feuille */}
-      <path d="M25 25c0-10.5 6.6-17.6 17-18.5C41.6 17 35 24 25 25Z" fill={c.leaf} />
-      {/* Ingrédient */}
-      <circle cx="15.5" cy="18.5" r="6.5" fill={c.dot} />
-      {/* Demi-bol */}
-      <path d="M4 27h40c0 11-9 19-20 19S4 38 4 27Z" fill={c.bowl} />
+      <path d={LOGO_PATHS.leaf} fill={c.leaf} />
+      <path
+        d={LOGO_PATHS.vein}
+        fill="none"
+        stroke={c.vein}
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
+      <circle {...LOGO_PATHS.dot} fill={c.dot} />
+      <path d={LOGO_PATHS.bowl} fill={c.bowl} />
     </svg>
   );
 }
 
 export function Logo({
   tone = "color",
-  size = 32,
+  size = 40,
   className = "",
+  stacked = true,
 }: {
   tone?: Tone;
   size?: number;
   className?: string;
+  /** Nom sur trois lignes (version principale) ou sur une ligne (en-têtes étroits). */
+  stacked?: boolean;
 }) {
+  const text =
+    tone === "inverse" ? "text-cream" : tone === "color" ? "text-forest dark:text-foreground" : "";
   return (
-    <span className={`inline-flex items-center gap-2.5 ${className}`}>
+    <span className={`inline-flex items-center gap-2 ${className}`}>
       <LogoMark size={size} tone={tone} />
       <span
-        className={`font-display leading-none font-semibold tracking-tight whitespace-nowrap ${tone === "inverse" ? "text-cream" : tone === "color" ? "text-forest dark:text-foreground" : ""}`}
-        style={{ fontSize: size * 0.62, fontVariationSettings: '"opsz" 48' }}
+        className={`font-display font-semibold tracking-tight ${text} ${stacked ? "flex flex-col leading-[0.92]" : "leading-none whitespace-nowrap"}`}
+        style={{
+          fontSize: stacked ? size * 0.36 : size * 0.5,
+          fontVariationSettings: '"opsz" 36',
+        }}
       >
-        Aux Petits Oignons
+        {stacked ? (
+          <>
+            <span>Aux</span>
+            <span>Petits</span>
+            <span>Oignons</span>
+          </>
+        ) : (
+          "Aux Petits Oignons"
+        )}
       </span>
     </span>
   );

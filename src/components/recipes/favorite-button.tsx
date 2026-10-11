@@ -9,10 +9,13 @@ export function FavoriteButton({
   recipeId,
   title,
   favorite,
+  bordered = false,
 }: {
   recipeId: string;
   title: string;
   favorite: boolean;
+  /** Avec contour (sur fond clair, hors visuel). */
+  bordered?: boolean;
 }) {
   const [optimistic, setOptimistic] = useOptimistic(favorite);
   const [pending, start] = useTransition();
@@ -35,7 +38,9 @@ export function FavoriteButton({
         "flex size-11 items-center justify-center rounded-full transition-colors",
         optimistic
           ? "bg-accent-strong text-white"
-          : "bg-surface/90 text-foreground hover:bg-surface backdrop-blur",
+          : bordered
+            ? "border-border-strong bg-surface text-foreground hover:border-forest border"
+            : "bg-surface/90 text-foreground hover:bg-surface backdrop-blur",
       ].join(" ")}
     >
       <HeartIcon size={20} filled={optimistic} />

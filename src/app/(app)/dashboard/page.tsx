@@ -4,7 +4,15 @@ import { Suspense, type ReactNode } from "react";
 import { RecipeVisual } from "@/components/recipes/recipe-visual";
 import { Badge, type BadgeTone } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";
-import { BasketIcon, ClockIcon, PlusIcon, WalletIcon } from "@/components/ui/icons";
+import { BrandBadge, DotShape, LeafShape } from "@/components/brand/shapes";
+import {
+  ArrowRightIcon,
+  BasketIcon,
+  ClockIcon,
+  PlusIcon,
+  SearchIcon,
+  WalletIcon,
+} from "@/components/ui/icons";
 import { formatCents } from "@/domain/money";
 import { expiryState } from "@/domain/pantry/priority";
 import { formatLongDate, hourIn } from "@/lib/dates";
@@ -94,26 +102,69 @@ async function Greeting() {
   const hello = hour >= 18 || hour < 5 ? "Bonsoir" : "Bonjour";
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(new Date());
   return (
-    <header className="flex flex-wrap items-end justify-between gap-4">
-      <div className="flex flex-col gap-1.5">
-        <p className="text-accent-strong text-sm font-semibold">{formatLongDate(today)}</p>
-        <h1 className="type-page">
+    <header className="bg-surface-muted relative grid gap-6 overflow-hidden rounded-3xl p-6 sm:p-8 lg:grid-cols-[1fr_auto] lg:items-end">
+      <LeafShape className="absolute -top-2 right-24 w-16 -rotate-12 opacity-90 max-sm:right-16 max-sm:w-12" />
+      <DotShape className="absolute -top-6 -right-6 w-28 max-sm:w-20" />
+      <div className="relative flex flex-col gap-2">
+        <p className="text-muted text-sm font-medium">{formatLongDate(today)}</p>
+        <h1 className="type-page text-forest dark:text-foreground">
           {hello}
-          {profile.displayName ? ` ${profile.displayName}` : ""}
+          {profile.displayName ? ` ${profile.displayName}` : ""} !
         </h1>
+        <p className="text-muted">Que cuisine-t-on aujourd&apos;hui ?</p>
+        <form action="/recipes" role="search" className="relative mt-2 max-w-xl">
+          <label htmlFor="dash-search" className="sr-only">
+            Rechercher une recette
+          </label>
+          <SearchIcon
+            size={20}
+            className="text-muted pointer-events-none absolute top-1/2 left-4 -translate-y-1/2"
+          />
+          <input
+            id="dash-search"
+            name="q"
+            type="search"
+            placeholder="Rechercher une recette, un ingrédient…"
+            className="bg-surface border-border focus-visible:border-forest min-h-12 w-full rounded-full border pr-4 pl-11 text-base outline-none"
+          />
+        </form>
+        <ul className="mt-3 flex gap-4 overflow-x-auto pb-1" aria-label="Idées rapides">
+          {QUICK.map((q) => (
+            <li key={q.href} className="shrink-0">
+              <Link
+                href={q.href}
+                className="flex w-20 flex-col items-center gap-1.5 text-center text-xs font-medium"
+              >
+                <span className={`flex size-14 items-center justify-center rounded-full ${q.bg}`}>
+                  <BrandBadge variant={q.badge} />
+                </span>
+                {q.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className="relative flex flex-wrap gap-2">
         <Link href="/pantry/new" className={buttonClasses("secondary")}>
           <PlusIcon size={18} />
           Ajouter au garde-manger
         </Link>
         <Link href="/planner" className={buttonClasses("primary")}>
-          Menu de la semaine
+          Mon menu
+          <ArrowRightIcon size={18} />
         </Link>
       </div>
     </header>
   );
 }
+
+const QUICK = [
+  { href: "/recipes?temps=30", label: "Rapide", badge: "bowl", bg: "bg-highlight-soft" },
+  { href: "/recipes?regime=vegetarian", label: "Végétarien", badge: "leaf", bg: "bg-leaf-soft" },
+  { href: "/recipes?budget=1", label: "Petit budget", badge: "dot", bg: "bg-accent-soft" },
+  { href: "/recipes?stock=1", label: "Avec mon stock", badge: "mix", bg: "bg-surface" },
+  { href: "/recipes?vite=1", label: "À finir", badge: "leaf", bg: "bg-accent-soft" },
+] as const;
 
 /** Repas d'aujourd'hui : le moment fort de l'écran, sur fond vert forêt. */
 async function Today() {

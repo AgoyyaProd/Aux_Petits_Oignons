@@ -1,21 +1,26 @@
 import type { ButtonHTMLAttributes } from "react";
 
 /**
- * Boutons :
- *  - primary : vert forêt, l'action principale de l'écran (une seule si possible) ;
- *  - accent : terracotta, ce qui demande l'attention (courses, cuisiner, inscription) ;
- *  - secondary : contour, action secondaire ;
+ * Boutons (charte) :
+ *  - primary : terracotta, l'appel à l'action principal de l'écran (souvent avec une flèche) ;
+ *  - forest : vert forêt plein, actions de structure (se connecter, tout ajouter, valider) ;
+ *  - accent : synonyme de primary, conservé pour les écrans existants ;
+ *  - secondary : blanc avec contour ;
  *  - ghost / text : actions discrètes.
+ * Le terracotta des boutons est la version foncée de la marque (#C2502F) : texte blanc lisible
+ * (contraste AA). Le terracotta vif (#E76F51) reste celui du logo et des formes.
  */
-export type ButtonVariant = "primary" | "accent" | "secondary" | "ghost" | "text";
+export type ButtonVariant = "primary" | "forest" | "accent" | "secondary" | "ghost" | "text";
 
+const terracotta = "bg-accent-strong text-white hover:bg-accent-strong/90 dark:text-forest";
 const variants: Record<ButtonVariant, string> = {
-  primary: "bg-brand text-brand-foreground hover:bg-brand/90",
-  accent: "bg-accent-strong text-white hover:bg-accent-strong/90 dark:text-forest",
+  primary: terracotta,
+  accent: terracotta,
+  forest: "bg-forest text-cream hover:bg-forest/90 dark:bg-brand dark:text-brand-foreground",
   secondary:
-    "border border-border-strong bg-surface text-foreground hover:border-brand hover:bg-brand-soft/60",
-  ghost: "text-foreground hover:bg-brand-soft/70",
-  text: "min-h-0 px-0 text-brand underline-offset-4 hover:underline",
+    "border border-border-strong bg-surface text-foreground hover:border-forest hover:bg-surface",
+  ghost: "text-foreground hover:bg-surface-muted",
+  text: "min-h-0 px-0 text-accent-strong underline-offset-4 hover:underline",
 };
 
 export function buttonClasses(variant: ButtonVariant = "primary", extra = "") {

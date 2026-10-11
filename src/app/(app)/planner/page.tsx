@@ -303,7 +303,7 @@ function WeekGrid({ page, base }: { page: PlannerPage; base: Base }) {
               <h2
                 className={[
                   "flex items-baseline gap-2 lg:flex-col lg:gap-0 lg:rounded-xl lg:px-3 lg:py-2",
-                  isToday ? "text-accent-strong lg:bg-brand lg:text-brand-foreground" : "",
+                  isToday ? "text-accent-strong lg:bg-accent-soft" : "",
                   past && !isToday ? "text-muted" : "",
                 ].join(" ")}
               >
@@ -391,7 +391,7 @@ function EntryTile({
       ].join(" ")}
     >
       <div className="flex gap-3 lg:flex-col lg:gap-2">
-        <div className="size-14 shrink-0 overflow-hidden rounded-lg lg:hidden">
+        <div className="size-14 shrink-0 overflow-hidden rounded-lg lg:aspect-[4/3] lg:size-auto lg:w-full">
           <RecipeVisual slug={entry.slug ?? entry.title} title={entry.title} tags={entry.tags} />
         </div>
         <div className="flex min-w-0 flex-col gap-1">

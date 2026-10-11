@@ -191,3 +191,20 @@ export async function getPlannerPage({ week, replace }: { week?: string; replace
 }
 
 export type PlannerPage = NonNullable<Awaited<ReturnType<typeof getPlannerPage>>>;
+
+/** La recette est-elle au menu de la semaine en cours du foyer ? */
+export async function isInCurrentPlan(recipeId: string): Promise<boolean> {
+  const { household } = await getCurrentContext();
+  if (!household) return false;
+  const supabase = await createSupabaseServerClient();
+  const week = mondayOf(todayIn(household.timezone));
+  const { data, error } = await supabase
+    .from("meal_plan_entries")
+    .select("recipe_id, meal_plans!inner (week_start, household_id)")
+    .eq("recipe_id", recipeId)
+    .eq("meal_plans.household_id", household.id)
+    .eq("meal_plans.week_start", week)
+    .limit(1);
+  if (error) throw new Error(`Lecture du menu impossible : ${error.message}`);
+  return (data ?? []).length > 0;
+}
