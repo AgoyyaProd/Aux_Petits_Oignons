@@ -1,14 +1,19 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { normalizeObservation, robustMedian, type RejectReason } from "@/domain/pricing";
+import {
+  MIN_PUBLISH_SAMPLE,
+  normalizeObservation,
+  robustMedian,
+  type RejectReason,
+} from "@/domain/pricing";
 import type { Dimension } from "@/domain/units";
 import type { Database, Json } from "@/types/database";
 import { fetchFrenchObservations, type SourceKind } from "./open-prices";
 
 type Client = SupabaseClient<Database>;
 
-/** Fenêtre de relevés pris en compte. */
-const WINDOW_DAYS = 180;
+/** Fenêtre de relevés pris en compte (les 100 plus récents par catégorie). */
+const WINDOW_DAYS = 365;
 const CONCURRENCY = 6;
 
 export interface IngredientSyncResult {
@@ -148,8 +153,17 @@ export async function syncReferencePrices(
         }
         result.accepted = values.length;
         const median = robustMedian(values);
-        if (!median) return;
-        result.kept = median.kept;
+        result.kept = median?.kept ?? 0;
+        if (!median || median.kept < MIN_PUBLISH_SAMPLE) {
+          // Trop peu de relevés : pas de prix plutôt qu'un prix douteux, ancien compris.
+          const drop = await supabase
+            .from("reference_prices")
+            .delete()
+            .eq("ingredient_id", source.ingredient_id)
+            .eq("source", "open_prices");
+          if (drop.error) throw new Error(drop.error.message);
+          return;
+        }
         result.centsPerRef = median.value;
         dates.sort();
         const write = await supabase.from("reference_prices").upsert({

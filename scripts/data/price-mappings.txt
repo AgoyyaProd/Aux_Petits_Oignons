@@ -1,4 +1,6 @@
 # Correspondance ingrédient -> catégories Open Prices (Open Food Facts).
+# Source de vérité actuelle ; les changements sont appliqués par de nouvelles migrations
+# (0011 : chargement initial, 0013 : sel, butternut, bouillon de volaille).
 # Format : <slug> <raw|product|free|none> [tag ...] [~]
 #   raw     : prix au kilo ou à la pièce des produits bruts (fruits, légumes), filtre category_tag
 #   product : produits emballés de la catégorie, prix ramené au poids ou volume indiqué
@@ -30,7 +32,7 @@ petit-pois product en:green-peas
 champignon raw en:mushrooms
 patate-douce product en:sweet-potatoes
 potiron raw en:pumpkins
-butternut product en:butternut-squashes
+butternut raw en:pumpkins ~
 navet raw en:turnip
 radis raw en:radishes
 celeri-branche raw en:celery-stalk
@@ -127,9 +129,9 @@ cheddar product en:cheddar-cheese
 huile-olive product en:olive-oils
 huile-tournesol product en:sunflower-oils
 huile-sesame product en:sesame-oils
-sel product en:salts
+sel product en:fine-grained-salts en:table-salts en:coarse-grained-salts
 bouillon-legumes product en:vegetable-bouillon-cubes
-bouillon-volaille product en:dehydrated-poultry-broth-stock
+bouillon-volaille product en:dehydrated-poultry-broth-stock en:bouillon-cubes ~
 tomate-concassee product en:peeled-tomatoes en:canned-tomatoes ~
 coulis-tomate product en:strained-tomatoes
 concentre-tomate product en:tomato-pastes

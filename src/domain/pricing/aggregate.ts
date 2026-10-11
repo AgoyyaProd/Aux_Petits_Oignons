@@ -1,4 +1,10 @@
-/** Seuil sous lequel un prix indicatif est signalé « peu de relevés ». */
+/**
+ * Minimum de relevés retenus pour publier un prix indicatif : avec 1 ou 2 relevés, un seul
+ * produit atypique (bio, premium, mauvaise catégorie) ferait le prix. Mieux vaut « sans prix ».
+ */
+export const MIN_PUBLISH_SAMPLE = 3;
+
+/** Seuil sous lequel un prix indicatif publié est signalé « peu de relevés ». */
 export const MIN_RELIABLE_SAMPLE = 5;
 
 /** Écart maximal toléré autour de la médiane (facteur) avant d'écarter un relevé. */
