@@ -8,7 +8,7 @@ const ITEMS = [
   { href: "/dashboard", label: "Accueil", ready: true },
   { href: "/pantry", label: "Garde-manger", ready: true },
   { href: "/recipes", label: "Recettes", ready: true },
-  { href: "/planner", label: "Planning", ready: false },
+  { href: "/planner", label: "Menu", ready: true },
   { href: "/shopping", label: "Courses", ready: false },
 ] as const;
 

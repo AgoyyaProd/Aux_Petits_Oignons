@@ -23,6 +23,11 @@ const eslintConfig = defineConfig([
     },
   },
   {
+    // Exception unique et documentée : la tâche planifiée écrit des prix de référence publics.
+    files: ["src/app/api/cron/prices/route.ts"],
+    rules: { "no-restricted-imports": "off" },
+  },
+  {
     // Le domaine reste pur : ni Supabase, ni Next.js, ni accès réseau.
     files: ["src/domain/**/*.ts"],
     rules: {

@@ -1,6 +1,7 @@
 /** Chemins accessibles sans session. Tout le reste exige une connexion. */
 const PUBLIC_PATHS = ["/", "/login", "/signup"] as const;
-const PUBLIC_PREFIXES = ["/auth/"] as const;
+// /api/cron/ : appelé par Vercel Cron sans session ; la route vérifie son propre secret.
+const PUBLIC_PREFIXES = ["/auth/", "/api/cron/"] as const;
 
 export function isPublicPath(pathname: string): boolean {
   return (

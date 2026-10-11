@@ -6,6 +6,7 @@ import { Tag } from "@/components/recipes/recipe-card";
 import { RecipeIngredients } from "@/components/recipes/recipe-ingredients";
 import { Alert } from "@/components/ui/alert";
 import { PageSkeleton } from "@/components/ui/skeleton";
+import { formatCents } from "@/domain/money";
 import { getRecipe, RECIPE_TAG_LABEL } from "@/server/modules/recipes/queries";
 
 export const metadata: Metadata = { title: "Recette" };
@@ -52,6 +53,25 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
             <dd className="text-foreground font-medium">{total} min</dd>
           </div>
         </dl>
+        {recipe.cost ? (
+          <p className="text-sm">
+            <span className="font-medium">
+              Coût estimé : {recipe.cost.missingNames.length ? "≥ " : "≈ "}
+              {formatCents(recipe.cost.cents)}
+            </span>{" "}
+            <span className="text-muted">
+              pour {recipe.servings} portion{recipe.servings > 1 ? "s" : ""} (
+              {formatCents(Math.round(recipe.cost.cents / recipe.servings))} par portion)
+              {recipe.cost.missingNames.length
+                ? ` · sans prix : ${recipe.cost.missingNames.join(", ")}`
+                : ""}
+              {" · "}
+              <Link href="/prices" className="underline">
+                prix indicatifs
+              </Link>
+            </span>
+          </p>
+        ) : null}
         <div className="flex flex-wrap gap-2">
           {recipe.vegan ? (
             <Tag tone="neutral">Végétalien</Tag>

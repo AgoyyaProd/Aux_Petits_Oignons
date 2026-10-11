@@ -6,10 +6,15 @@ import {
   type Compatibility,
   type HouseholdConstraints,
 } from "@/domain/recipes/compatibility";
+import { isPriority } from "@/domain/pantry/priority";
+import { estimateRecipeCost, millicentsToCents } from "@/domain/pricing";
+import { fromBase } from "@/domain/units";
+import { todayIn } from "@/lib/dates";
 import { getCurrentContext } from "@/server/modules/auth/session";
+import { loadPriceBook } from "@/server/modules/prices/price-book";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 
-type Supabase = Awaited<ReturnType<typeof createSupabaseServerClient>>;
+export type Supabase = Awaited<ReturnType<typeof createSupabaseServerClient>>;
 
 export const RECIPE_TAG_LABEL: Record<string, string> = {
   plat: "Plat",
@@ -29,8 +34,15 @@ function fail(what: string, error: { message: string }): never {
   throw new Error(`Lecture ${what} impossible : ${error.message}`);
 }
 
-/** Contraintes alimentaires et ingrédients disponibles du foyer actif. */
-async function householdContext(supabase: Supabase, householdId: string) {
+/**
+ * Contraintes alimentaires du foyer, ingrédients disponibles (quantité connue et non nulle)
+ * et ingrédients à consommer en priorité (règle D8 : DLC proche ou produit entamé).
+ */
+export async function householdContext(
+  supabase: Supabase,
+  householdId: string,
+  timeZone = "Europe/Paris",
+) {
   const [diets, exclusions, pantry] = await Promise.all([
     supabase.from("household_diets").select("diet_code").eq("household_id", householdId),
     supabase
@@ -39,7 +51,7 @@ async function householdContext(supabase: Supabase, householdId: string) {
       .eq("household_id", householdId),
     supabase
       .from("pantry_items")
-      .select("ingredient_id")
+      .select("ingredient_id, expires_on, expiry_kind, opened_at")
       .eq("household_id", householdId)
       .eq("status", "active")
       .gt("quantity_base", 0),
@@ -55,11 +67,22 @@ async function householdContext(supabase: Supabase, householdId: string) {
       exclusions.data.flatMap((e) => (e.ingredient_id ? [e.ingredient_id] : [])),
     ),
   };
-  return { constraints, available: new Set(pantry.data.map((p) => p.ingredient_id)) };
+  const today = todayIn(timeZone);
+  const priority = new Set(
+    pantry.data
+      .filter((p) =>
+        isPriority(
+          { expiresOn: p.expires_on, expiryKind: p.expiry_kind, openedAt: p.opened_at },
+          today,
+        ),
+      )
+      .map((p) => p.ingredient_id),
+  );
+  return { constraints, available: new Set(pantry.data.map((p) => p.ingredient_id)), priority };
 }
 
 /** Libellés des allergènes et régimes, pour expliquer une exclusion. */
-async function labels(supabase: Supabase) {
+export async function labels(supabase: Supabase) {
   const [allergens, diets] = await Promise.all([
     supabase.from("allergens").select("code, label"),
     supabase.from("diets").select("code, label"),
@@ -221,7 +244,7 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
   };
 }
 
-function describeExclusion(
+export function describeExclusion(
   compatibility: Compatibility,
   names: Awaited<ReturnType<typeof labels>>,
   ingredientNames: ReadonlyMap<string, string>,
@@ -267,6 +290,8 @@ export interface RecipeDetail {
   exclusionLabel: string | null;
   /** Ingrédients facultatifs non souhaités, à laisser de côté. */
   toRemoveNames: string[];
+  /** Coût estimé de la recette entière (ingrédients obligatoires au prix connu), en centimes. */
+  cost: { cents: number; missingNames: string[] } | null;
 }
 
 export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
@@ -277,18 +302,19 @@ export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
   const { data: r, error } = await supabase
     .from("recipes")
     .select(
-      "id, slug, title, description, servings, prep_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, quantity, unit_code, is_optional, preparation_note, position, ingredients (name)), recipe_steps (position, instruction)",
+      "id, slug, title, description, servings, prep_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, quantity, unit_code, quantity_base, dimension, is_optional, preparation_note, position, ingredients (name, density_g_per_ml, piece_weight_g)), recipe_steps (position, instruction)",
     )
     .eq("slug", slug)
     .maybeSingle();
   if (error) fail("de la recette", error);
   if (!r) return null;
 
-  const [allergens, conflicts, ctx, names] = await Promise.all([
+  const [allergens, conflicts, ctx, names, priceBook] = await Promise.all([
     supabase.from("recipe_allergens").select("allergen_code").eq("recipe_id", r.id),
     supabase.from("recipe_diet_conflicts").select("diet_code").eq("recipe_id", r.id),
-    householdContext(supabase, household.id),
+    householdContext(supabase, household.id, household.timezone),
     labels(supabase),
+    loadPriceBook(supabase, household.id),
   ]);
   if (allergens.error) fail("des allergènes", allergens.error);
   if (conflicts.error) fail("des régimes", conflicts.error);
@@ -333,5 +359,29 @@ export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
     compatibility,
     exclusionLabel: describeExclusion(compatibility, names, ingredientNames),
     toRemoveNames: compatibility.toRemove.map((id) => ingredientNames.get(id) ?? "?"),
+    cost: (() => {
+      const estimate = estimateRecipeCost(
+        lines.map((l) => ({
+          ingredientId: l.ingredient_id,
+          quantity:
+            l.quantity_base !== null && l.dimension
+              ? fromBase(String(l.quantity_base), l.dimension)
+              : null,
+          optional: l.is_optional,
+          conversions: {
+            densityGPerMl: l.ingredients?.density_g_per_ml ?? null,
+            pieceWeightG: l.ingredients?.piece_weight_g ?? null,
+          },
+        })),
+        r.servings,
+        r.servings,
+        (id) => priceBook.get(id)?.unit ?? null,
+      );
+      if (estimate.pricedLines === 0) return null;
+      return {
+        cents: millicentsToCents(estimate.millicents),
+        missingNames: estimate.missing.map((m) => ingredientNames.get(m.ingredientId) ?? "?"),
+      };
+    })(),
   };
 }

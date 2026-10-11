@@ -1,0 +1,184 @@
+# Correspondance ingrédient -> catégories Open Prices (Open Food Facts).
+# Format : <slug> <raw|product|free|none> [tag ...] [~]
+#   raw     : prix au kilo ou à la pièce des produits bruts (fruits, légumes), filtre category_tag
+#   product : produits emballés de la catégorie, prix ramené au poids ou volume indiqué
+#   free    : sans coût (eau du robinet)
+#   none    : aucune catégorie fiable, prix seulement par saisie manuelle
+#   ~       : catégorie approchante, à afficher comme telle
+pomme-de-terre raw en:potatoes
+carotte raw en:carrots
+oignon raw en:onions en:yellow-onions
+oignon-rouge raw en:red-onions
+echalote raw en:shallots
+ail raw en:garlics
+poireau raw en:leeks
+courgette raw en:zucchini
+aubergine raw en:aubergines
+poivron raw en:peppers en:red-bell-peppers en:green-sweet-peppers
+tomate raw en:tomatoes
+tomate-cerise raw en:cherry-tomatoes
+concombre raw en:cucumbers
+brocoli raw en:broccoli
+chou-fleur raw en:cauliflowers
+chou-vert raw en:cabbages
+chou-rouge raw en:cabbages ~
+epinard raw en:spinachs
+salade raw en:lettuces
+mache product en:corn-salad
+haricot-vert raw en:green-beans
+petit-pois product en:green-peas
+champignon raw en:mushrooms
+patate-douce product en:sweet-potatoes
+potiron raw en:pumpkins
+butternut product en:butternut-squashes
+navet raw en:turnip
+radis raw en:radishes
+celeri-branche raw en:celery-stalk
+celeri-rave raw en:celeriac
+fenouil raw en:fennel-bulbs
+betterave product en:cooked-beetroots
+mais product en:sweet-corn
+endive raw en:endives
+asperge raw en:asparagus
+artichaut raw en:artichokes
+pomme raw en:apples
+poire raw en:pears
+banane raw en:bananas
+citron raw en:lemons
+citron-vert raw en:limes
+orange raw en:oranges
+fraise raw en:strawberries
+framboise raw en:raspberries
+myrtille raw en:blueberries
+raisin raw en:grapes
+kiwi raw en:kiwifruits
+mangue raw en:mangoes
+ananas raw en:pineapples
+avocat raw en:avocados
+peche raw en:peaches
+abricot raw en:apricots
+raisin-sec product en:raisins
+riz product en:long-grain-rices en:white-rices
+riz-complet product en:brown-rices
+riz-rond product en:short-grain-rices
+pates product en:dry-pastas
+pates-completes product en:dried-wholemeal-pasta en:whole-durum-wheat-pasta
+semoule product en:wheat-semolinas
+boulgour product en:bulgur
+quinoa product en:quinoa
+pain product en:baguettes
+pain-de-mie product en:sliced-breads
+farine product en:wheat-flours
+fecule-mais product en:corn-starch
+flocon-avoine product en:rolled-oats
+chapelure product en:bread-crumbs
+tortilla product en:wheat-flatbreads
+pate-feuilletee product en:puff-pastry-sheets
+pate-brisee product en:shortcrust-pastry
+nouilles-riz product en:dried-rice-noodles
+gnocchi product en:gnocchi
+lentille-verte product en:green-lentils
+lentille-corail product en:decorticated-red-lentils
+pois-chiche product en:canned-chickpeas ~
+haricot-rouge product en:cooked-red-kidney-beans ~
+haricot-blanc product en:cooked-haricot-beans ~
+tofu product en:tofu
+poulet-filet product en:chicken-breasts
+poulet-cuisse product en:chicken-thighs
+poulet-entier product en:whole-chickens
+dinde-escalope product en:turkey-cutlets
+boeuf-hache product en:ground-beef-meats en:ground-steaks
+boeuf-steak product en:beef-steaks
+boeuf-bourguignon none
+veau product en:veal-meat
+agneau product en:lamb-meat
+porc-filet product en:pork-filet-mignon
+porc-cote product en:pork-ribs
+lardon product en:lardons
+jambon product en:white-hams
+jambon-cru product en:cured-hams
+saucisse product en:toulouse-sausages
+chorizo product en:chorizos
+merguez product fr:merguez
+saumon product en:salmon-steaks
+saumon-fume product en:smoked-salmons
+cabillaud product en:cods
+thon-boite product en:canned-tunas
+sardine-boite product en:canned-sardines
+crevette product en:shrimps
+moule product en:mussels
+oeuf product en:eggs
+lait product en:semi-skimmed-milks
+lait-vegetal product en:plant-based-milk-alternatives
+lait-coco product en:coconut-milks
+creme-fraiche product en:fermented-creams
+creme-liquide product en:unfermented-creams
+yaourt product en:plain-yogurts
+fromage-blanc product fr:fromages-blancs
+beurre product en:butters
+emmental product en:grated-emmentaler
+comte product en:comte
+parmesan product en:parmigiano-reggiano
+mozzarella product en:mozzarella
+feta product en:feta
+chevre product en:goat-cheeses
+ricotta product en:ricotta
+cheddar product en:cheddar-cheese
+huile-olive product en:olive-oils
+huile-tournesol product en:sunflower-oils
+huile-sesame product en:sesame-oils
+sel product en:salts
+bouillon-legumes product en:vegetable-bouillon-cubes
+bouillon-volaille product en:dehydrated-poultry-broth-stock
+tomate-concassee product en:peeled-tomatoes en:canned-tomatoes ~
+coulis-tomate product en:strained-tomatoes
+concentre-tomate product en:tomato-pastes
+olive product en:olives
+capre product en:capers
+cornichon product en:pickled-gherkins
+pesto product en:pestos
+noix product en:walnuts
+amande product en:almonds
+cacahuete product en:peanuts
+graine-sesame product en:sesame
+moutarde product en:mustards
+mayonnaise product en:mayonnaises
+ketchup product en:ketchup
+sauce-soja product en:soy-sauces
+vinaigre-balsamique product en:balsamic-vinegars
+vinaigre product en:wine-vinegars
+vin-blanc product en:white-wines
+vin-rouge product en:red-wines
+pate-curry product en:curry-pastes
+harissa product en:harissa-sauces
+poivre product en:black-peppers
+paprika product en:paprika
+cumin product en:cumin
+curry product en:curry-powders
+curcuma product en:turmeric
+cannelle product en:cinnamon
+muscade product en:nutmeg
+herbes-provence product en:herbes-de-provence
+thym product en:thyme
+laurier product en:bay-laurel
+basilic product en:fresh-basils
+persil product en:fresh-parsley
+coriandre product en:fresh-coriander-leaves
+ciboulette raw en:chives
+menthe product en:fresh-mint
+gingembre raw en:ginger
+piment product en:chili-peppers
+sucre product en:sugars
+sucre-roux product en:brown-sugars
+sucre-glace product en:powdered-sugars
+miel product en:honeys
+sirop-erable product en:maple-syrups
+chocolat-noir product en:dark-chocolates
+cacao product en:cocoa-powders
+levure-chimique product en:baking-powder-or-raising-agent
+sucre-vanille product en:vanilla-sugars
+extrait-vanille product en:vanilla-extract
+confiture product en:jams
+compote product en:apple-compotes
+eau free
+jus-orange product en:orange-juices

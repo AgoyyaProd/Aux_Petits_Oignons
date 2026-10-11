@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 import { AvoidedFoodsForm } from "@/components/settings/avoided-foods-form";
 import { HouseholdForm } from "@/components/settings/household-form";
 import { PreferencesForm } from "@/components/settings/preferences-form";
+import { buttonClasses } from "@/components/ui/button";
 import { PageSkeleton } from "@/components/ui/skeleton";
 import { getHouseholdSettings } from "@/server/modules/households/queries";
 
@@ -36,6 +38,15 @@ async function SettingsContent() {
           selectedDiets={settings.selectedDiets}
           selectedAllergens={settings.selectedAllergens}
         />
+      </Section>
+      <Section title="Prix et magasin">
+        <p className="text-muted text-sm">
+          Choisis ton magasin de référence et renseigne tes propres prix pour affiner le coût des
+          menus.
+        </p>
+        <Link href="/prices" className={buttonClasses("secondary")}>
+          Gérer mes prix
+        </Link>
       </Section>
       <Section title="Aliments que tu ne veux pas manger">
         <AvoidedFoodsForm

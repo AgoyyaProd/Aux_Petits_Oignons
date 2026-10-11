@@ -31,10 +31,13 @@ describe("safeRedirectPath (protection contre les redirections ouvertes)", () =>
 });
 
 describe("isPublicPath", () => {
-  it.each(["/", "/login", "/signup", "/auth/callback"])("%s est public", (p) => {
-    expect(isPublicPath(p)).toBe(true);
-  });
-  it.each(["/dashboard", "/pantry", "/loginx", "/authx", "/api/ai/suggest"])(
+  it.each(["/", "/login", "/signup", "/auth/callback", "/api/cron/prices"])(
+    "%s est public",
+    (p) => {
+      expect(isPublicPath(p)).toBe(true);
+    },
+  );
+  it.each(["/dashboard", "/pantry", "/loginx", "/authx", "/api/ai/suggest", "/api/cronx"])(
     "%s est protégé",
     (p) => {
       expect(isPublicPath(p)).toBe(false);

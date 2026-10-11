@@ -165,16 +165,42 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"households": {
+                },"household_prices": {
                   Row: {
-                    "created_at": string,"created_by": string | null,"currency": string,"id": string,"max_prep_minutes": number | null,"name": string,"people_count": number,"timezone": string,"updated_at": string,"weekly_budget_cents": number | null
+                    "cents_per_ref": number,"created_at": string,"created_by": string | null,"dimension": Database["public"]['Enums']["dimension"],"household_id": string,"ingredient_id": string,"observed_on": string,"source_url": string | null,"store_label": string | null,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"created_by"?: string | null,"currency"?: string,"id"?: string,"max_prep_minutes"?: number | null,"name": string,"people_count"?: number,"timezone"?: string,"updated_at"?: string,"weekly_budget_cents"?: number | null
+                    "cents_per_ref": number,"created_at"?: string,"created_by"?: string | null,"dimension": Database["public"]['Enums']["dimension"],"household_id": string,"ingredient_id": string,"observed_on"?: string,"source_url"?: string | null,"store_label"?: string | null,"updated_at"?: string
                   }
                   Update: {
-                    "created_at"?: string,"created_by"?: string | null,"currency"?: string,"id"?: string,"max_prep_minutes"?: number | null,"name"?: string,"people_count"?: number,"timezone"?: string,"updated_at"?: string,"weekly_budget_cents"?: number | null
+                    "cents_per_ref"?: number,"created_at"?: string,"created_by"?: string | null,"dimension"?: Database["public"]['Enums']["dimension"],"household_id"?: string,"ingredient_id"?: string,"observed_on"?: string,"source_url"?: string | null,"store_label"?: string | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "household_prices_household_id_fkey"
+      columns: ["household_id"]
+isOneToOne: false
+      referencedRelation: "households"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "household_prices_ingredient_id_fkey"
+      columns: ["ingredient_id"]
+isOneToOne: false
+      referencedRelation: "ingredients"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"households": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"currency": string,"id": string,"max_prep_minutes": number | null,"name": string,"people_count": number,"reference_store": string | null,"timezone": string,"updated_at": string,"weekly_budget_cents": number | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"currency"?: string,"id"?: string,"max_prep_minutes"?: number | null,"name": string,"people_count"?: number,"reference_store"?: string | null,"timezone"?: string,"updated_at"?: string,"weekly_budget_cents"?: number | null
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"currency"?: string,"id"?: string,"max_prep_minutes"?: number | null,"name"?: string,"people_count"?: number,"reference_store"?: string | null,"timezone"?: string,"updated_at"?: string,"weekly_budget_cents"?: number | null
                   }
                   Relationships: [
                     
@@ -251,6 +277,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"ingredient_price_sources": {
+                  Row: {
+                    "approximate": boolean,"ingredient_id": string,"kind": string,"tags": (string)[],"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "approximate"?: boolean,"ingredient_id": string,"kind": string,"tags"?: (string)[],"updated_at"?: string
+                  }
+                  Update: {
+                    "approximate"?: boolean,"ingredient_id"?: string,"kind"?: string,"tags"?: (string)[],"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "ingredient_price_sources_ingredient_id_fkey"
+      columns: ["ingredient_id"]
+isOneToOne: true
+      referencedRelation: "ingredients"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"ingredients": {
                   Row: {
                     "category": string,"created_at": string,"default_dimension": Database["public"]['Enums']["dimension"],"default_shelf_life_days": number | null,"density_g_per_ml": number | null,"id": string,"is_validated": boolean,"name": string,"piece_weight_g": number | null,"slug": string,"updated_at": string
@@ -264,6 +310,52 @@ isOneToOne: false
                   }
                   Relationships: [
                     
+                  ]
+                },"meal_plan_entries": {
+                  Row: {
+                    "created_at": string,"household_id": string,"id": string,"locked": boolean,"plan_id": string,"position": number,"recipe_id": string,"servings": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"household_id": string,"id"?: string,"locked"?: boolean,"plan_id": string,"position": number,"recipe_id": string,"servings": number
+                  }
+                  Update: {
+                    "created_at"?: string,"household_id"?: string,"id"?: string,"locked"?: boolean,"plan_id"?: string,"position"?: number,"recipe_id"?: string,"servings"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "meal_plan_entries_plan_id_household_id_fkey"
+      columns: ["plan_id","household_id"]
+isOneToOne: false
+      referencedRelation: "meal_plans"
+      referencedColumns: ["id","household_id"]
+    },{
+      foreignKeyName: "meal_plan_entries_recipe_id_fkey"
+      columns: ["recipe_id"]
+isOneToOne: false
+      referencedRelation: "recipes"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"meal_plans": {
+                  Row: {
+                    "budget_cents": number | null,"created_at": string,"created_by": string | null,"household_id": string,"id": string,"last_idempotency_key": string | null,"meal_count": number,"people": number,"seed": number,"updated_at": string,"version": number,"week_start": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "budget_cents"?: number | null,"created_at"?: string,"created_by"?: string | null,"household_id": string,"id"?: string,"last_idempotency_key"?: string | null,"meal_count": number,"people": number,"seed"?: number,"updated_at"?: string,"version"?: number,"week_start": string
+                  }
+                  Update: {
+                    "budget_cents"?: number | null,"created_at"?: string,"created_by"?: string | null,"household_id"?: string,"id"?: string,"last_idempotency_key"?: string | null,"meal_count"?: number,"people"?: number,"seed"?: number,"updated_at"?: string,"version"?: number,"week_start"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "meal_plans_household_id_fkey"
+      columns: ["household_id"]
+isOneToOne: false
+      referencedRelation: "households"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"pantry_items": {
                   Row: {
@@ -296,6 +388,20 @@ isOneToOne: false
       referencedRelation: "ingredients"
       referencedColumns: ["id"]
     }
+                  ]
+                },"price_sync_runs": {
+                  Row: {
+                    "details": NonNullable<Json>,"finished_at": string | null,"id": number,"ingredients_priced": number | null,"ingredients_total": number | null,"started_at": string,"started_by": string | null,"status": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "details"?: NonNullable<Json>,"finished_at"?: string | null,"id"?: never,"ingredients_priced"?: number | null,"ingredients_total"?: number | null,"started_at"?: string,"started_by"?: string | null,"status"?: string
+                  }
+                  Update: {
+                    "details"?: NonNullable<Json>,"finished_at"?: string | null,"id"?: never,"ingredients_priced"?: number | null,"ingredients_total"?: number | null,"started_at"?: string,"started_by"?: string | null,"status"?: string
+                  }
+                  Relationships: [
+                    
                   ]
                 },"profiles": {
                   Row: {
@@ -392,6 +498,26 @@ isOneToOne: false
       columns: ["household_id"]
 isOneToOne: false
       referencedRelation: "households"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"reference_prices": {
+                  Row: {
+                    "cents_per_ref": number,"computed_at": string,"dimension": Database["public"]['Enums']["dimension"],"ingredient_id": string,"observed_from": string | null,"observed_to": string | null,"sample_size": number,"source": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cents_per_ref": number,"computed_at"?: string,"dimension": Database["public"]['Enums']["dimension"],"ingredient_id": string,"observed_from"?: string | null,"observed_to"?: string | null,"sample_size": number,"source": string
+                  }
+                  Update: {
+                    "cents_per_ref"?: number,"computed_at"?: string,"dimension"?: Database["public"]['Enums']["dimension"],"ingredient_id"?: string,"observed_from"?: string | null,"observed_to"?: string | null,"sample_size"?: number,"source"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "reference_prices_ingredient_id_fkey"
+      columns: ["ingredient_id"]
+isOneToOne: true
+      referencedRelation: "ingredients"
       referencedColumns: ["id"]
     }
                   ]
@@ -533,6 +659,11 @@ isOneToOne: false
                            },
 "is_household_owner":
 { Args: { "hid": string }; Returns: boolean
+                           },
+"meal_plan_save":
+{ Args: { "p_budget_cents": number,"p_entries": Json,"p_expected_version": number,"p_household_id": string,"p_idempotency_key": string,"p_meal_count": number,"p_people": number,"p_seed": number,"p_week_start": string }; Returns: {
+              "plan_id": string,"plan_version": number
+            }[]
                            },
 "my_household_ids":
 { Args: Record<PropertyKey, never>; Returns: string[]
