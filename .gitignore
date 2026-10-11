@@ -48,3 +48,4 @@ supabase/.temp
 supabase/.branches
 
 coverage
+scripts/__pycache__/
