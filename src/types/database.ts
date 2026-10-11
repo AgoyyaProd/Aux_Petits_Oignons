@@ -5,7 +5,21 @@ export type Database = {
   
   "public": {
           Tables: {
-            "app_admins": {
+            "allergens": {
+                  Row: {
+                    "code": string,"label": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "code": string,"label": string
+                  }
+                  Update: {
+                    "code"?: string,"label"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"app_admins": {
                   Row: {
                     "created_at": string,"user_id": string
                   }
@@ -15,6 +29,20 @@ export type Database = {
                   }
                   Update: {
                     "created_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"diets": {
+                  Row: {
+                    "code": string,"label": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "code": string,"label": string
+                  }
+                  Update: {
+                    "code"?: string,"label"?: string
                   }
                   Relationships: [
                     
@@ -73,6 +101,92 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"ingredient_aliases": {
+                  Row: {
+                    "alias_normalized": string,"ingredient_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "alias_normalized": string,"ingredient_id": string
+                  }
+                  Update: {
+                    "alias_normalized"?: string,"ingredient_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "ingredient_aliases_ingredient_id_fkey"
+      columns: ["ingredient_id"]
+isOneToOne: false
+      referencedRelation: "ingredients"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"ingredient_allergens": {
+                  Row: {
+                    "allergen_code": string,"ingredient_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "allergen_code": string,"ingredient_id": string
+                  }
+                  Update: {
+                    "allergen_code"?: string,"ingredient_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "ingredient_allergens_allergen_code_fkey"
+      columns: ["allergen_code"]
+isOneToOne: false
+      referencedRelation: "allergens"
+      referencedColumns: ["code"]
+    },{
+      foreignKeyName: "ingredient_allergens_ingredient_id_fkey"
+      columns: ["ingredient_id"]
+isOneToOne: false
+      referencedRelation: "ingredients"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"ingredient_diet_conflicts": {
+                  Row: {
+                    "diet_code": string,"ingredient_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "diet_code": string,"ingredient_id": string
+                  }
+                  Update: {
+                    "diet_code"?: string,"ingredient_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "ingredient_diet_conflicts_diet_code_fkey"
+      columns: ["diet_code"]
+isOneToOne: false
+      referencedRelation: "diets"
+      referencedColumns: ["code"]
+    },{
+      foreignKeyName: "ingredient_diet_conflicts_ingredient_id_fkey"
+      columns: ["ingredient_id"]
+isOneToOne: false
+      referencedRelation: "ingredients"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"ingredients": {
+                  Row: {
+                    "category": string,"created_at": string,"default_dimension": Database["public"]['Enums']["dimension"],"default_shelf_life_days": number | null,"density_g_per_ml": number | null,"id": string,"is_validated": boolean,"name": string,"piece_weight_g": number | null,"slug": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "category": string,"created_at"?: string,"default_dimension": Database["public"]['Enums']["dimension"],"default_shelf_life_days"?: number | null,"density_g_per_ml"?: number | null,"id"?: string,"is_validated"?: boolean,"name": string,"piece_weight_g"?: number | null,"slug": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "category"?: string,"created_at"?: string,"default_dimension"?: Database["public"]['Enums']["dimension"],"default_shelf_life_days"?: number | null,"density_g_per_ml"?: number | null,"id"?: string,"is_validated"?: boolean,"name"?: string,"piece_weight_g"?: number | null,"slug"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"profiles": {
                   Row: {
                     "active_household_id": string | null,"created_at": string,"display_name": string | null,"id": string,"updated_at": string
@@ -92,6 +206,20 @@ isOneToOne: false
       referencedRelation: "households"
       referencedColumns: ["id"]
     }
+                  ]
+                },"units": {
+                  Row: {
+                    "code": string,"dimension": Database["public"]['Enums']["dimension"],"label": string,"sort_order": number,"to_base": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "code": string,"dimension": Database["public"]['Enums']["dimension"],"label": string,"sort_order"?: number,"to_base": number
+                  }
+                  Update: {
+                    "code"?: string,"dimension"?: Database["public"]['Enums']["dimension"],"label"?: string,"sort_order"?: number,"to_base"?: number
+                  }
+                  Relationships: [
+                    
                   ]
                 }
           }
@@ -119,6 +247,9 @@ isOneToOne: false
                            },
 "normalize_alias":
 { Args: { "input": string }; Returns: string
+                           },
+"resolve_ingredient":
+{ Args: { "p_label": string }; Returns: string
                            }
           }
           Enums: {
