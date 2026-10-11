@@ -16,7 +16,7 @@ export default function NewPantryItemPage() {
         <Link href="/pantry" className="text-brand text-sm font-medium">
           ← Garde-manger
         </Link>
-        <h1 className="text-2xl font-bold tracking-tight">Ajouter un produit</h1>
+        <h1 className="type-page">Ajouter un produit</h1>
       </div>
       <Suspense fallback={<PageSkeleton rows={2} />}>
         <FormLoader />

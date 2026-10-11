@@ -14,7 +14,7 @@ export default function StaplesPage() {
         <Link href="/pantry" className="text-brand text-sm font-medium">
           ← Garde-manger
         </Link>
-        <h1 className="text-2xl font-bold tracking-tight">Mon placard</h1>
+        <h1 className="type-page">Mon placard</h1>
         <p className="text-muted text-sm">
           Coche les épices, herbes, sauces et produits de base que tu as. Pas besoin de quantité :
           ils sont considérés comme présents dans les recettes et le menu, et ne seront pas ajoutés

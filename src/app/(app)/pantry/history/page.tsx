@@ -25,7 +25,7 @@ export default function HistoryPage() {
         <Link href="/pantry" className="text-brand text-sm font-medium">
           ← Garde-manger
         </Link>
-        <h1 className="text-2xl font-bold tracking-tight">Historique du stock</h1>
+        <h1 className="type-page">Historique du stock</h1>
         <p className="text-muted text-sm">
           Les 100 derniers mouvements. L&apos;historique n&apos;est jamais modifié.
         </p>

@@ -11,7 +11,7 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold tracking-tight">Connexion</h1>
+        <h1 className="type-page">Connexion</h1>
         <p className="text-muted text-sm">Retrouve ton garde-manger et ton planning.</p>
       </div>
       {/* searchParams est une donnée de requête : lue derrière une frontière Suspense. */}

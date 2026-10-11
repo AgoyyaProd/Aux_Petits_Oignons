@@ -10,7 +10,7 @@ export default function SignUpPage({ searchParams }: PageProps<"/signup">) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold tracking-tight">Créer un compte</h1>
+        <h1 className="type-page">Créer un compte</h1>
         <p className="text-muted text-sm">
           Un foyer est créé automatiquement ; tu pourras inviter d&apos;autres membres ou en
           rejoindre un.

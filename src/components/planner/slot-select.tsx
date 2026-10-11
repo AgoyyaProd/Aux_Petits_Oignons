@@ -28,9 +28,9 @@ export function SlotSelect({ week, version, formKey, position, value, title, opt
         name="slot"
         defaultValue={value}
         disabled={pending}
-        aria-label={`Jour du repas : ${title}`}
+        aria-label={`Déplacer ${title}`}
         onChange={() => form.current?.requestSubmit()}
-        className="border-border bg-surface min-h-10 rounded-xl border px-2 text-sm disabled:opacity-60"
+        className="border-border bg-surface min-h-11 w-full rounded-lg border px-3 text-sm disabled:opacity-60"
       >
         <option value="">Pas encore placé</option>
         {options.map((o) => (

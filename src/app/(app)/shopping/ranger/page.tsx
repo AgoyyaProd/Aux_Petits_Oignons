@@ -13,7 +13,7 @@ export default function PutAwayRoute({ searchParams }: PageProps<"/shopping/rang
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold tracking-tight">Finir les courses</h1>
+        <h1 className="type-page">Finir les courses</h1>
         <p className="text-muted text-sm">
           Les produits cochés sont rangés au garde-manger : ajuste les quantités réellement achetées
           (un paquet de 500 g plutôt que les 375 g nécessaires, par exemple), l&apos;emplacement et,

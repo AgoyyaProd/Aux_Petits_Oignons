@@ -12,6 +12,7 @@ import {
 } from "@/domain/shopping";
 import { mealDateFor } from "@/domain/planning";
 import { fromBase, type Dimension, type Quantity } from "@/domain/units";
+import { AISLES } from "@/lib/categories";
 import { todayIn } from "@/lib/dates";
 import { addDays, isMonday, mondayOf } from "@/lib/week";
 import { getCurrentContext } from "@/server/modules/auth/session";
@@ -20,22 +21,7 @@ import { readPlan } from "@/server/modules/planning/repository";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 
 /** Rayons, dans l'ordre d'un parcours de magasin. */
-export const AISLES: { category: string; label: string }[] = [
-  { category: "fruits", label: "Fruits" },
-  { category: "legumes", label: "Légumes" },
-  { category: "viandes", label: "Boucherie" },
-  { category: "poissons", label: "Poissonnerie" },
-  { category: "oeufs_laitiers", label: "Crèmerie" },
-  { category: "fromages", label: "Fromages" },
-  { category: "feculents", label: "Pâtes, riz, pain" },
-  { category: "legumineuses", label: "Légumineuses" },
-  { category: "epicerie_salee", label: "Épicerie salée" },
-  { category: "epicerie_sucree", label: "Épicerie sucrée" },
-  { category: "condiments", label: "Sauces et condiments" },
-  { category: "epices_herbes", label: "Épices et herbes" },
-  { category: "matieres_grasses", label: "Huiles et beurre" },
-  { category: "boissons", label: "Boissons" },
-];
+export { AISLES };
 
 /** Emplacement proposé au rangement, modifiable. */
 export function defaultLocation(category: string): "pantry" | "fridge" | "freezer" {

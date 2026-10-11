@@ -20,7 +20,7 @@ export function RatingButtons({ recipeId, rating }: { recipeId: string; rating: 
     });
 
   const base =
-    "inline-flex min-h-10 items-center gap-1.5 rounded-xl border px-3 text-sm font-medium transition disabled:opacity-60";
+    "inline-flex min-h-11 items-center gap-1.5 rounded-full border px-4 text-sm font-semibold transition-colors disabled:opacity-60";
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex flex-wrap gap-2" role="group" aria-label="Avis du foyer">
@@ -31,8 +31,8 @@ export function RatingButtons({ recipeId, rating }: { recipeId: string; rating: 
           onClick={() => send(optimistic === 1 ? null : 1)}
           className={`${base} ${
             optimistic === 1
-              ? "border-brand bg-brand text-brand-foreground"
-              : "border-border bg-surface hover:bg-brand-soft"
+              ? "border-accent-strong bg-accent-strong dark:text-forest text-white"
+              : "border-border-strong bg-surface hover:border-brand"
           }`}
         >
           <span aria-hidden="true">{optimistic === 1 ? "♥" : "♡"}</span> On aime
@@ -45,7 +45,7 @@ export function RatingButtons({ recipeId, rating }: { recipeId: string; rating: 
           className={`${base} ${
             optimistic === -1
               ? "border-danger bg-danger-soft text-danger"
-              : "border-border bg-surface hover:bg-brand-soft"
+              : "border-border-strong bg-surface hover:border-brand"
           }`}
         >
           Pas pour nous

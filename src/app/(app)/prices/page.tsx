@@ -19,7 +19,7 @@ export default function PricesPage({ searchParams }: PageProps<"/prices">) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold tracking-tight">Prix</h1>
+        <h1 className="type-page">Prix</h1>
         <p className="text-muted text-sm">
           Les prix servent à estimer le coût de tes menus. Par défaut, ce sont des prix indicatifs :
           la médiane des relevés publics Open Prices faits en France ces 6 derniers mois. Ton prix,

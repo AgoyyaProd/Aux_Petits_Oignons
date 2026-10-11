@@ -1,11 +1,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { GenerateForm } from "@/components/planner/generate-form";
 import { PlanActionButton } from "@/components/planner/entry-action";
+import { GenerateForm } from "@/components/planner/generate-form";
 import { SlotSelect } from "@/components/planner/slot-select";
+import { RecipeVisual } from "@/components/recipes/recipe-visual";
 import { Alert } from "@/components/ui/alert";
-import { buttonClasses } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { buttonClasses, iconButtonClasses } from "@/components/ui/button";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ClockIcon,
+  HeartIcon,
+  LockIcon,
+  MinusIcon,
+  PlusIcon,
+  RefreshIcon,
+} from "@/components/ui/icons";
 import { PageSkeleton } from "@/components/ui/skeleton";
 import { centsToInput, formatCents } from "@/domain/money";
 import { formatShortDate } from "@/lib/dates";
@@ -13,6 +25,7 @@ import { formatDay, formatWeek } from "@/lib/week";
 import {
   addEntryAction,
   removeEntryAction,
+  reorganizeAction,
   replaceEntryAction,
   setServingsAction,
   toggleLockAction,
@@ -30,18 +43,17 @@ export const maxDuration = 30;
 
 export default function PlannerPageRoute({ searchParams }: PageProps<"/planner">) {
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-bold tracking-tight">Menu de la semaine</h1>
-      <Suspense fallback={<PageSkeleton rows={4} />}>
-        <PlannerContent searchParams={searchParams} />
-      </Suspense>
-    </div>
+    <Suspense fallback={<PageSkeleton rows={4} />}>
+      <PlannerContent searchParams={searchParams} />
+    </Suspense>
   );
 }
 
 function one(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
+
+type Base = { week: string; version: number };
 
 async function PlannerContent({ searchParams }: Pick<PageProps<"/planner">, "searchParams">) {
   const sp = await searchParams;
@@ -51,12 +63,44 @@ async function PlannerContent({ searchParams }: Pick<PageProps<"/planner">, "sea
     replace: Number.isInteger(replace) ? replace : undefined,
   });
   if (!page) return <p className="text-muted">Aucun foyer actif.</p>;
+  const base = page.plan ? { week: page.weekStart, version: page.plan.version } : null;
 
   return (
-    <div className="flex flex-col gap-5">
-      <WeekNav page={page} />
-      {page.plan ? (
-        <PlanView page={page} error={one(sp.erreur) === "1"} />
+    <div className="flex flex-col gap-7">
+      <header className="flex flex-wrap items-end justify-between gap-5">
+        <div className="flex flex-col gap-3">
+          <h1 className="type-page">Menu de la semaine</h1>
+          <WeekNav page={page} />
+        </div>
+        {base ? (
+          <div className="flex flex-wrap gap-2">
+            <PlanActionButton
+              action={reorganizeAction}
+              fields={{ ...base, key: page.newKey() }}
+              label="Réorganiser ma semaine : replacer les plats non cuisinés sur les prochains repas"
+              pendingLabel="Réorganisation…"
+              className={buttonClasses("secondary")}
+            >
+              Réorganiser ma semaine
+            </PlanActionButton>
+            <a href="#generer" className={buttonClasses("primary")}>
+              <RefreshIcon size={18} />
+              Générer mon menu
+            </a>
+          </div>
+        ) : null}
+      </header>
+
+      {page.plan && base ? (
+        <>
+          <Summary page={page} />
+          {one(sp.erreur) === "1" ? (
+            <Alert tone="error">Ce remplacement n&apos;a pas pu être enregistré. Réessaie.</Alert>
+          ) : null}
+          <Replacements page={page} base={base} />
+          <WeekGrid page={page} base={base} />
+          <Regenerate page={page} />
+        </>
       ) : (
         <EmptyPlan page={page} />
       )}
@@ -66,26 +110,27 @@ async function PlannerContent({ searchParams }: Pick<PageProps<"/planner">, "sea
 }
 
 function WeekNav({ page }: { page: PlannerPage }) {
-  const link = "text-brand flex min-h-11 min-w-11 items-center justify-center rounded-xl text-lg";
   return (
-    <nav aria-label="Semaine" className="flex items-center justify-between gap-2">
+    <nav aria-label="Semaine" className="flex items-center gap-2">
       <Link
         href={`/planner?semaine=${page.previousWeek}`}
-        className={link}
+        className={iconButtonClasses()}
         aria-label="Semaine précédente"
       >
-        ←
+        <ChevronLeftIcon size={20} />
       </Link>
-      <div className="flex flex-col items-center text-center">
-        <span className="font-semibold">{formatWeek(page.weekStart)}</span>
-        {page.isCurrentWeek ? <span className="text-muted text-xs">Cette semaine</span> : null}
-      </div>
+      <span className="min-w-52 text-center font-semibold">
+        {formatWeek(page.weekStart).replace("Semaine du", "Du")}
+        {page.isCurrentWeek ? (
+          <span className="text-muted block text-xs font-medium">Cette semaine</span>
+        ) : null}
+      </span>
       <Link
         href={`/planner?semaine=${page.nextWeek}`}
-        className={link}
+        className={iconButtonClasses()}
         aria-label="Semaine suivante"
       >
-        →
+        <ChevronRightIcon size={20} />
       </Link>
     </nav>
   );
@@ -93,135 +138,71 @@ function WeekNav({ page }: { page: PlannerPage }) {
 
 function EmptyPlan({ page }: { page: PlannerPage }) {
   return (
-    <section className="border-border bg-surface flex flex-col gap-4 rounded-2xl border p-4">
-      <div className="flex flex-col gap-1">
-        <h2 className="text-lg font-semibold">Préparer le menu</h2>
-        <p className="text-muted text-sm">
-          Indique le nombre de repas, de personnes et ton budget : on te propose des plats
-          compatibles avec tes préférences, qui utilisent d&apos;abord ce qui doit être consommé
-          dans ton garde-manger. Tu pourras ensuite remplacer ou retirer chaque plat.
+    <section
+      id="generer"
+      className="bg-forest text-cream grid gap-8 rounded-2xl p-6 sm:p-8 lg:grid-cols-[1fr_1.1fr]"
+    >
+      <div className="flex flex-col gap-3">
+        <h2 className="type-page">Générer mon menu</h2>
+        <p className="leading-relaxed text-[#d8e2da]">
+          Indique le nombre de repas, de personnes et ton budget. Les plats proposés respectent tes
+          allergies et régimes, ton temps de préparation, utilisent d&apos;abord les produits à
+          consommer vite et ce que tu as en stock. Tu pourras ensuite les déplacer, les remplacer ou
+          en retirer.
+        </p>
+        <p className="text-sm text-[#b9cbb1]">
+          {page.candidateCount} recette{page.candidateCount > 1 ? "s" : ""} compatible
+          {page.candidateCount > 1 ? "s" : ""} avec tes préférences.
         </p>
       </div>
-      <GenerateForm
-        week={page.weekStart}
-        version={null}
-        formKey={page.newKey()}
-        defaults={{
-          mealCount: page.defaults.mealCount,
-          people: page.defaults.people,
-          budget: centsToInput(page.defaults.budgetCents),
-        }}
-        submitLabel="Proposer un menu"
-      />
-      <p className="text-muted text-xs">
-        {page.candidateCount} recette{page.candidateCount > 1 ? "s" : ""} correspond
-        {page.candidateCount > 1 ? "ent" : ""} à tes préférences.
-      </p>
+      <div className="bg-surface text-foreground rounded-xl p-5">
+        <GenerateForm
+          week={page.weekStart}
+          version={null}
+          formKey={page.newKey()}
+          defaults={{
+            mealCount: page.defaults.mealCount,
+            people: page.defaults.people,
+            budget: centsToInput(page.defaults.budgetCents),
+          }}
+          submitLabel="Générer mon menu"
+        />
+      </div>
     </section>
   );
 }
 
-function PlanView({ page, error }: { page: PlannerPage; error: boolean }) {
+function Regenerate({ page }: { page: PlannerPage }) {
   const plan = page.plan!;
-  const base = { week: page.weekStart, version: plan.version };
   const lockedCount = page.entries.filter((e) => e.locked).length;
-
   return (
-    <>
-      <Summary page={page} />
-      {error ? (
-        <Alert tone="error">Ce remplacement n&apos;a pas pu être enregistré. Réessaie.</Alert>
-      ) : null}
-      <WeekSchedule page={page} base={base} />
-      {page.entries.length < 21 ? (
-        <div className="flex">
-          <PlanActionButton
-            action={addEntryAction}
-            fields={{ ...base, key: page.newKey() }}
-            label="Ajouter un plat"
-            pendingLabel="Ajout…"
-            className={buttonClasses("secondary", "w-full")}
-          >
-            + Ajouter un plat
-          </PlanActionButton>
-        </div>
-      ) : null}
-      <details className="border-border bg-surface rounded-2xl border p-4">
-        <summary className="cursor-pointer font-semibold">
-          Modifier et relancer la proposition
-        </summary>
-        <div className="mt-4">
-          <GenerateForm
-            week={page.weekStart}
-            version={plan.version}
-            formKey={page.newKey()}
-            defaults={{
-              mealCount: plan.mealCount,
-              people: plan.people,
-              budget: centsToInput(plan.budgetCents),
-            }}
-            submitLabel="Relancer"
-            lockedCount={lockedCount}
-          />
-        </div>
-      </details>
-    </>
-  );
-}
-
-/** Les plats jour par jour (midi puis soir), puis ceux qui ne sont pas encore placés. */
-function WeekSchedule({
-  page,
-  base,
-}: {
-  page: PlannerPage;
-  base: { week: string; version: number };
-}) {
-  const days = [...new Set(page.slots.map((s) => s.day))];
-  const unplaced = page.entries.filter((e) => !e.day);
-  return (
-    <div className="flex flex-col gap-4">
-      {days.map((day) => {
-        const meals = page.entries.filter((e) => e.day === day);
-        const isToday = day === page.today;
-        const past = day < page.today;
-        return (
-          <section key={day} aria-label={formatDay(day)} className="flex flex-col gap-2">
-            <h2
-              className={`text-sm font-semibold ${isToday ? "text-brand" : past ? "text-muted" : ""}`}
-            >
-              {formatDay(day)}
-              {isToday ? " · aujourd'hui" : ""}
-            </h2>
-            {meals.length ? (
-              <ol className="flex flex-col gap-3">
-                {meals.map((entry) => (
-                  <li key={entry.position}>
-                    <EntryCard entry={entry} page={page} base={base} />
-                  </li>
-                ))}
-              </ol>
-            ) : (
-              <p className="text-muted border-border rounded-xl border border-dashed px-3 py-2 text-xs">
-                Rien de prévu.
-              </p>
-            )}
-          </section>
-        );
-      })}
-      {unplaced.length ? (
-        <section aria-label="Plats non placés" className="flex flex-col gap-2">
-          <h2 className="text-sm font-semibold">Pas encore placés</h2>
-          <ol className="flex flex-col gap-3">
-            {unplaced.map((entry) => (
-              <li key={entry.position}>
-                <EntryCard entry={entry} page={page} base={base} />
-              </li>
-            ))}
-          </ol>
-        </section>
-      ) : null}
-    </div>
+    <section
+      id="generer"
+      aria-labelledby="generer-titre"
+      className="bg-surface border-border grid scroll-mt-24 gap-6 rounded-2xl border p-5 sm:p-6 lg:grid-cols-[0.9fr_1.1fr]"
+    >
+      <div className="flex flex-col gap-2">
+        <h2 id="generer-titre" className="type-section">
+          Générer à nouveau
+        </h2>
+        <p className="text-muted text-sm leading-relaxed">
+          Les plats marqués « Gardé » et ceux déjà cuisinés restent ; les autres sont remplacés par
+          une nouvelle proposition, en évitant les plats des deux semaines précédentes.
+        </p>
+      </div>
+      <GenerateForm
+        week={page.weekStart}
+        version={plan.version}
+        formKey={page.newKey()}
+        defaults={{
+          mealCount: plan.mealCount,
+          people: plan.people,
+          budget: centsToInput(plan.budgetCents),
+        }}
+        submitLabel="Générer mon menu"
+        lockedCount={lockedCount}
+      />
+    </section>
   );
 }
 
@@ -230,46 +211,72 @@ function Summary({ page }: { page: PlannerPage }) {
   const { cents, entriesWithMissing, missingNames } = page.totals;
   const budget = plan.budgetCents;
   const over = budget !== null && cents > budget;
-  const prefix = entriesWithMissing > 0 ? "≥ " : "≈ ";
+  const cooked = page.entries.filter((e) => e.cooked).length;
+  const minutes = page.entries.reduce((s, e) => s + (e.totalMinutes ?? 0), 0);
 
   return (
     <section
-      aria-label="Coût estimé"
-      className="border-border bg-surface flex flex-col gap-2 rounded-2xl border p-4"
+      aria-label="Résumé de la semaine"
+      className="border-border grid gap-x-8 gap-y-5 border-y py-5 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_auto] lg:items-center"
     >
-      <div className="flex items-baseline justify-between gap-3">
-        <span className="text-muted text-sm">
-          {page.entries.length} plat{page.entries.length > 1 ? "s" : ""} · {plan.people} pers.
+      <div className="flex flex-col gap-2">
+        <span className="text-muted text-sm">Coût estimé du menu</span>
+        <span className="flex items-baseline gap-2">
+          <span className="font-display text-3xl font-semibold">
+            {entriesWithMissing > 0 ? "≥ " : "≈ "}
+            {formatCents(cents)}
+          </span>
+          {budget !== null ? (
+            <span className="text-muted text-sm">sur {formatCents(budget)}</span>
+          ) : null}
         </span>
-        <span className="text-2xl font-bold tabular-nums">
-          {prefix}
-          {formatCents(cents)}
+        {budget !== null ? (
+          <span className="bg-surface-muted h-2 overflow-hidden rounded-full">
+            <span
+              className={`block h-full rounded-full ${over ? "bg-danger" : "bg-brand"}`}
+              style={{
+                width: `${Math.min(100, Math.round((cents / Math.max(1, budget)) * 100))}%`,
+              }}
+            />
+          </span>
+        ) : null}
+        {budget !== null ? (
+          <span className={`text-sm font-medium ${over ? "text-danger" : "text-success"}`}>
+            {over
+              ? `${formatCents(cents - budget)} au-dessus du budget`
+              : `${formatCents(budget - cents)} de marge`}
+          </span>
+        ) : null}
+      </div>
+      <div className="flex flex-col gap-0.5">
+        <span className="text-muted text-sm">Repas</span>
+        <span className="font-display text-2xl font-semibold">{page.entries.length}</span>
+        <span className="text-muted text-sm">
+          {cooked} cuisiné{cooked > 1 ? "s" : ""}, {plan.people} pers.
         </span>
       </div>
-      {budget !== null ? (
-        <p className={`text-sm font-medium ${over ? "text-danger" : "text-success"}`}>
-          {over
-            ? `Dépasse ton budget de ${formatCents(cents - budget)} (budget ${formatCents(budget)}).`
-            : `Dans ton budget : il reste ${formatCents(budget - cents)} sur ${formatCents(budget)}.`}
-        </p>
-      ) : null}
-      {plan.shoppingDoneAt ? (
-        <p className="text-success text-sm font-medium">
-          Courses faites ✓ Quand tu as préparé un plat, ouvre sa recette et appuie sur « Cuisiné »
-          pour retirer ses ingrédients du garde-manger.
-        </p>
-      ) : (
-        <Link
-          href={`/shopping?semaine=${page.weekStart}`}
-          className="text-brand text-sm font-medium underline"
-        >
-          Voir la liste de courses
-        </Link>
-      )}
+      <div className="flex flex-col gap-0.5">
+        <span className="text-muted text-sm">Temps en cuisine</span>
+        <span className="font-display text-2xl font-semibold">
+          {minutes >= 60
+            ? `${Math.floor(minutes / 60)} h ${String(minutes % 60).padStart(2, "0")}`
+            : `${minutes} min`}
+        </span>
+        <span className="text-muted text-sm">sur la semaine</span>
+      </div>
+      <div className="flex flex-col gap-2 sm:col-span-2 lg:col-span-1">
+        {plan.shoppingDoneAt ? (
+          <Badge tone="leaf">Courses faites</Badge>
+        ) : (
+          <Link href={`/shopping?semaine=${page.weekStart}`} className={buttonClasses("accent")}>
+            Voir la liste de courses
+          </Link>
+        )}
+      </div>
       {entriesWithMissing > 0 ? (
-        <p className="text-muted text-xs">
+        <p className="text-muted text-sm sm:col-span-2 lg:col-span-4">
           Sans prix connu, non comptés : {missingNames.join(", ")}. Le total est donc un minimum.{" "}
-          <Link href="/prices" className="text-brand font-medium underline">
+          <Link href="/prices" className="text-brand font-semibold underline">
             Ajouter mes prix
           </Link>
         </p>
@@ -278,192 +285,314 @@ function Summary({ page }: { page: PlannerPage }) {
   );
 }
 
-function EntryCard({
+/**
+ * La semaine : une colonne par jour sur ordinateur (midi en haut, soir en bas), une liste
+ * chronologique sur téléphone. Un seul DOM, deux mises en page.
+ */
+function WeekGrid({ page, base }: { page: PlannerPage; base: Base }) {
+  const days = [...new Set(page.slots.map((s) => s.day))];
+  const unplaced = page.entries.filter((e) => !e.day);
+  return (
+    <section aria-label="Repas de la semaine" className="flex flex-col gap-6">
+      <ol className="grid gap-6 lg:grid-cols-7 lg:gap-3">
+        {days.map((day) => {
+          const isToday = day === page.today;
+          const past = day < page.today;
+          return (
+            <li key={day} className="flex flex-col gap-2.5">
+              <h2
+                className={[
+                  "flex items-baseline gap-2 lg:flex-col lg:gap-0 lg:rounded-xl lg:px-3 lg:py-2",
+                  isToday ? "text-accent-strong lg:bg-brand lg:text-brand-foreground" : "",
+                  past && !isToday ? "text-muted" : "",
+                ].join(" ")}
+              >
+                <span className="text-sm font-semibold">
+                  {formatDay(day).split(" ")[0]}
+                  {isToday ? <span className="lg:hidden"> · aujourd&apos;hui</span> : null}
+                </span>
+                <span className="font-display text-2xl leading-none font-semibold">
+                  {day.slice(8).replace(/^0/, "")}
+                </span>
+              </h2>
+              {(["lunch", "dinner"] as const).map((slot) => {
+                const meals = page.entries.filter((e) => e.day === day && e.slot === slot);
+                return (
+                  <div key={slot} className="flex flex-col gap-1.5">
+                    <span className="text-muted text-xs font-semibold">
+                      {slot === "lunch" ? "Midi" : "Soir"}
+                    </span>
+                    {meals.length ? (
+                      meals.map((m) => (
+                        <EntryTile key={m.position} entry={m} page={page} base={base} />
+                      ))
+                    ) : (
+                      <PlanActionButton
+                        action={addEntryAction}
+                        fields={{ ...base, key: page.newKey(), slot: `${day}:${slot}` }}
+                        label={`Proposer un plat pour ${formatDay(day)} ${slot === "lunch" ? "midi" : "soir"}`}
+                        pendingLabel="…"
+                        className="border-border-strong text-muted hover:border-brand hover:text-brand flex min-h-14 w-full items-center justify-center gap-1.5 rounded-xl border border-dashed text-sm font-medium transition-colors lg:min-h-24"
+                      >
+                        <PlusIcon size={16} />
+                        Ajouter
+                      </PlanActionButton>
+                    )}
+                  </div>
+                );
+              })}
+            </li>
+          );
+        })}
+      </ol>
+      {unplaced.length ? (
+        <section aria-labelledby="non-places" className="flex flex-col gap-3">
+          <h2 id="non-places" className="type-section">
+            Pas encore placés
+          </h2>
+          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {unplaced.map((m) => (
+              <li key={m.position}>
+                <EntryTile entry={m} page={page} base={base} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+    </section>
+  );
+}
+
+function EntryTile({
   entry,
   page,
   base,
 }: {
   entry: PlannerEntryView;
   page: PlannerPage;
-  base: { week: string; version: number };
+  base: Base;
 }) {
-  const small =
-    "border-border hover:bg-brand-soft flex min-h-10 min-w-10 items-center justify-center rounded-xl border px-3 text-sm";
   const fields = { ...base, position: entry.position };
   const replacing = page.replace === entry.position;
+  const small =
+    "border-border bg-surface hover:border-brand inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border px-3 text-sm font-medium";
 
   return (
     <article
       className={[
-        "bg-surface flex flex-col gap-3 rounded-2xl border p-4",
-        entry.locked ? "border-brand" : "border-border",
+        "flex flex-col gap-2 rounded-xl border p-3",
+        entry.cooked
+          ? "bg-leaf-soft border-transparent"
+          : replacing
+            ? "bg-surface border-accent"
+            : entry.locked
+              ? "bg-surface border-brand"
+              : "bg-surface border-border",
       ].join(" ")}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 flex-col gap-0.5">
+      <div className="flex gap-3 lg:flex-col lg:gap-2">
+        <div className="size-14 shrink-0 overflow-hidden rounded-lg lg:hidden">
+          <RecipeVisual slug={entry.slug ?? entry.title} title={entry.title} tags={entry.tags} />
+        </div>
+        <div className="flex min-w-0 flex-col gap-1">
           {entry.slug ? (
-            <Link href={`/recipes/${entry.slug}`} className="font-semibold hover:underline">
+            <Link
+              href={`/recipes/${entry.slug}`}
+              className="text-[0.9375rem] leading-snug font-semibold hover:underline lg:text-sm"
+            >
               {entry.favorite ? (
-                <span className="text-brand" aria-label="Favori">
-                  ♥{" "}
-                </span>
+                <HeartIcon
+                  size={14}
+                  filled
+                  className="text-accent-strong mr-1 inline align-[-1px]"
+                />
               ) : null}
               {entry.title}
             </Link>
           ) : (
-            <span className="text-muted font-semibold">{entry.title}</span>
+            <span className="text-muted text-sm font-semibold">{entry.title}</span>
           )}
-          <span className="text-muted text-xs">
-            {entry.slot ? (entry.slot === "lunch" ? "Midi · " : "Soir · ") : ""}
-            {entry.totalMinutes !== null ? `${entry.totalMinutes} min` : ""}
-            {entry.cooked ? " · Cuisiné ✓" : entry.locked ? " · Gardé" : ""}
+          <span className="text-muted flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs">
+            {entry.totalMinutes !== null ? (
+              <span className="inline-flex items-center gap-1">
+                <ClockIcon size={13} /> {entry.totalMinutes} min
+              </span>
+            ) : null}
+            <span>{entry.servings} p.</span>
+            <span>
+              {entry.missingNames.length ? "≥ " : "≈ "}
+              {formatCents(entry.cents)}
+            </span>
           </span>
-        </div>
-        <div className="flex shrink-0 flex-col items-end">
-          <span className="font-semibold tabular-nums">
-            {entry.missingNames.length ? "≥ " : "≈ "}
-            {formatCents(entry.cents)}
+          <span className="flex flex-wrap gap-1">
+            {entry.cooked ? <Badge tone="leaf">Cuisiné</Badge> : null}
+            {entry.locked && !entry.cooked ? (
+              <Badge tone="neutral">
+                <LockIcon size={12} /> Gardé
+              </Badge>
+            ) : null}
           </span>
-          {entry.missingNames.length ? (
-            <span className="text-muted text-xs">{entry.missingNames.length} sans prix</span>
-          ) : null}
         </div>
       </div>
 
-      {entry.cooked ? null : !entry.available ? (
-        <Alert tone="error">
-          Cette recette ne correspond plus à tes préférences : remplace-la.
-        </Alert>
+      {!entry.cooked && !entry.available ? (
+        <p className="text-danger text-xs font-medium">
+          Ne correspond plus à tes préférences : remplace-le.
+        </p>
       ) : null}
 
-      {entry.cooked ? (
-        <p className="text-muted text-sm">
-          {entry.servings} portion{entry.servings > 1 ? "s" : ""} · ingrédients retirés du
-          garde-manger.
-        </p>
-      ) : (
-        <div className="flex flex-wrap items-center gap-2">
-          <SlotSelect
-            week={base.week}
-            version={base.version}
-            formKey={page.newKey()}
-            position={entry.position}
-            value={entry.day && entry.slot ? `${entry.day}:${entry.slot}` : ""}
-            title={entry.title}
-            options={page.slots.map((s) => ({
-              value: s.value,
-              label: s.label,
-              taken:
-                page.entries.find((e) => e.day && e.slot && `${e.day}:${e.slot}` === s.value)
-                  ?.title ?? null,
-            }))}
-          />
-          <div className="flex items-center gap-1" role="group" aria-label="Portions">
-            <PlanActionButton
-              action={setServingsAction}
-              fields={{ ...fields, servings: Math.max(1, entry.servings - 1), key: page.newKey() }}
-              label="Une portion de moins"
-              className={small}
+      {!entry.cooked ? (
+        <details className="group">
+          <summary className="text-brand flex min-h-9 cursor-pointer list-none items-center text-sm font-semibold hover:underline [&::-webkit-details-marker]:hidden">
+            Modifier
+          </summary>
+          <div className="flex flex-col gap-3 pt-2">
+            <SlotSelect
+              week={base.week}
+              version={base.version}
+              formKey={page.newKey()}
+              position={entry.position}
+              value={entry.day && entry.slot ? `${entry.day}:${entry.slot}` : ""}
+              title={entry.title}
+              options={page.slots.map((s) => ({
+                value: s.value,
+                label: s.label,
+                taken:
+                  page.entries.find((e) => e.day && e.slot && `${e.day}:${e.slot}` === s.value)
+                    ?.title ?? null,
+              }))}
+            />
+            <div
+              className="flex items-center justify-between gap-2"
+              role="group"
+              aria-label="Portions"
             >
-              −
-            </PlanActionButton>
-            <span className="min-w-20 text-center text-sm tabular-nums">
-              {entry.servings} portion{entry.servings > 1 ? "s" : ""}
-            </span>
-            <PlanActionButton
-              action={setServingsAction}
-              fields={{ ...fields, servings: Math.min(40, entry.servings + 1), key: page.newKey() }}
-              label="Une portion de plus"
-              className={small}
-            >
-              +
-            </PlanActionButton>
+              <PlanActionButton
+                action={setServingsAction}
+                fields={{
+                  ...fields,
+                  servings: Math.max(1, entry.servings - 1),
+                  key: page.newKey(),
+                }}
+                label="Une portion de moins"
+                className={iconButtonClasses()}
+              >
+                <MinusIcon size={18} />
+              </PlanActionButton>
+              <span className="text-sm font-semibold tabular-nums">
+                {entry.servings} portion{entry.servings > 1 ? "s" : ""}
+              </span>
+              <PlanActionButton
+                action={setServingsAction}
+                fields={{
+                  ...fields,
+                  servings: Math.min(40, entry.servings + 1),
+                  key: page.newKey(),
+                }}
+                label="Une portion de plus"
+                className={iconButtonClasses()}
+              >
+                <PlusIcon size={18} />
+              </PlanActionButton>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <PlanActionButton
+                action={toggleLockAction}
+                fields={{ ...fields, key: page.newKey() }}
+                label={
+                  entry.locked ? "Ne plus garder ce plat" : "Garder ce plat si je génère à nouveau"
+                }
+                className={`${small} ${entry.locked ? "border-brand bg-brand-soft" : ""}`}
+              >
+                <LockIcon size={15} />
+                {entry.locked ? "Gardé" : "Garder"}
+              </PlanActionButton>
+              <Link
+                href={
+                  replacing
+                    ? `/planner?semaine=${page.weekStart}`
+                    : `/planner?semaine=${page.weekStart}&remplacer=${entry.position}#remplacer`
+                }
+                className={small}
+              >
+                {replacing ? "Annuler" : "Remplacer"}
+              </Link>
+              <PlanActionButton
+                action={removeEntryAction}
+                fields={{ ...fields, key: page.newKey() }}
+                label={`Retirer ${entry.title} du menu`}
+                className={`${small} text-danger`}
+              >
+                Retirer
+              </PlanActionButton>
+            </div>
           </div>
-          <div className="ml-auto flex flex-wrap gap-2">
-            <PlanActionButton
-              action={toggleLockAction}
-              fields={{ ...fields, key: page.newKey() }}
-              label={entry.locked ? "Ne plus garder ce plat" : "Garder ce plat si je relance"}
-              className={`${small} ${entry.locked ? "bg-brand-soft text-brand" : ""}`}
-            >
-              {entry.locked ? "Gardé ✓" : "Garder"}
-            </PlanActionButton>
-            <Link
-              href={
-                replacing
-                  ? `/planner?semaine=${page.weekStart}`
-                  : `/planner?semaine=${page.weekStart}&remplacer=${entry.position}`
-              }
-              className={small}
-              scroll={false}
-            >
-              {replacing ? "Annuler" : "Remplacer"}
-            </Link>
-            <PlanActionButton
-              action={removeEntryAction}
-              fields={{ ...fields, key: page.newKey() }}
-              label={`Retirer ${entry.title} du menu`}
-              className={`${small} text-danger`}
-            >
-              Retirer
-            </PlanActionButton>
-          </div>
-        </div>
-      )}
-
-      {replacing ? <Replacements page={page} entry={entry} base={base} /> : null}
+        </details>
+      ) : null}
     </article>
   );
 }
 
-function Replacements({
-  page,
-  entry,
-  base,
-}: {
-  page: PlannerPage;
-  entry: PlannerEntryView;
-  base: { week: string; version: number };
-}) {
-  if (page.replacements.length === 0) {
-    return <p className="text-muted text-sm">Aucune autre recette compatible à proposer.</p>;
-  }
+function Replacements({ page, base }: { page: PlannerPage; base: Base }) {
+  if (!page.replace) return null;
+  const entry = page.entries.find((e) => e.position === page.replace);
+  if (!entry) return null;
   return (
-    <div className="border-border flex flex-col gap-2 border-t pt-3">
-      <p className="text-sm font-medium">Remplacer par :</p>
-      <ul className="flex flex-col gap-2">
-        {page.replacements.map((r) => (
-          <li key={r.recipeId}>
-            <form
-              action={replaceEntryAction}
-              className="bg-background flex items-center justify-between gap-3 rounded-xl p-3"
-            >
-              <input type="hidden" name="week" value={base.week} />
-              <input type="hidden" name="version" value={base.version} />
-              <input type="hidden" name="key" value={page.newKey()} />
-              <input type="hidden" name="position" value={entry.position} />
-              <input type="hidden" name="recipeId" value={r.recipeId} />
-              <div className="flex min-w-0 flex-col">
-                <span className="truncate text-sm font-medium">{r.title}</span>
-                <span className="text-muted text-xs">
-                  {r.totalMinutes} min · {r.missing ? "≥ " : "≈ "}
-                  {formatCents(r.cents)}
-                </span>
-              </div>
-              <button type="submit" className={buttonClasses("primary", "min-h-10 shrink-0 px-3")}>
-                Choisir
-              </button>
-            </form>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <section
+      id="remplacer"
+      aria-labelledby="remplacer-titre"
+      className="bg-accent-soft scroll-mt-24 rounded-2xl p-5 sm:p-6"
+    >
+      <div className="flex flex-wrap items-baseline justify-between gap-3">
+        <h2 id="remplacer-titre" className="type-section">
+          Remplacer « {entry.title} »
+        </h2>
+        <Link href={`/planner?semaine=${page.weekStart}`} className={buttonClasses("text")}>
+          Annuler
+        </Link>
+      </div>
+      {page.replacements.length === 0 ? (
+        <p className="text-muted mt-3 text-sm">Aucune autre recette compatible à proposer.</p>
+      ) : (
+        <ul className="mt-4 grid gap-3 sm:grid-cols-3">
+          {page.replacements.map((r) => (
+            <li key={r.recipeId}>
+              <form
+                action={replaceEntryAction}
+                className="bg-surface flex h-full flex-col gap-3 rounded-xl p-3"
+              >
+                <input type="hidden" name="week" value={base.week} />
+                <input type="hidden" name="version" value={base.version} />
+                <input type="hidden" name="key" value={page.newKey()} />
+                <input type="hidden" name="position" value={entry.position} />
+                <input type="hidden" name="recipeId" value={r.recipeId} />
+                <div className="flex items-center gap-3">
+                  <div className="size-14 shrink-0 overflow-hidden rounded-lg">
+                    <RecipeVisual slug={r.slug} title={r.title} tags={[]} />
+                  </div>
+                  <div className="flex min-w-0 flex-col">
+                    <span className="text-sm font-semibold">{r.title}</span>
+                    <span className="text-muted text-xs">
+                      {r.totalMinutes} min, {r.missing ? "au moins " : "environ "}
+                      {formatCents(r.cents)}
+                    </span>
+                  </div>
+                </div>
+                <button type="submit" className={buttonClasses("primary", "mt-auto min-h-10")}>
+                  Choisir ce plat
+                </button>
+              </form>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 
 function PriceSourceNote({ page }: { page: PlannerPage }) {
   return (
-    <p className="text-muted text-xs">
+    <p className="text-muted text-xs leading-relaxed">
       Prix indicatifs : médiane des relevés publics{" "}
       <a
         href="https://prices.openfoodfacts.org"

@@ -135,7 +135,16 @@ export interface RecipeCard {
   exclusionLabel: string | null;
   /** Avis du foyer : 1 on aime, -1 pas pour nous, null sans avis. */
   rating: Rating | null;
+  /** Utilise au moins un produit à consommer vite (DLC proche, entamé). */
+  usesPriority: boolean;
+  /** Coût estimé par portion (ingrédients au prix connu), en centimes ; null si inconnu. */
+  costPerServingCents: number | null;
+  /** Des ingrédients obligatoires n'ont pas de prix : le coût est un minimum. */
+  costIsMinimum: boolean;
 }
+
+/** Seuil « petit budget » : coût estimé par portion. */
+export const SMALL_BUDGET_CENTS = 250;
 
 export interface CatalogFilters {
   q?: string;
@@ -143,6 +152,12 @@ export interface CatalogFilters {
   tag?: string;
   showExcluded?: boolean;
   favoritesOnly?: boolean;
+  /** Au moins la moitié des ingrédients obligatoires en stock. */
+  withStock?: boolean;
+  /** Utilise un produit à consommer vite. */
+  useSoon?: boolean;
+  diet?: "vegetarian" | "vegan";
+  smallBudget?: boolean;
 }
 
 /**
@@ -154,19 +169,20 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
   if (!household) return null;
   const supabase = await createSupabaseServerClient();
 
-  const [recipes, allergens, conflicts, ctx, names, ratings] = await Promise.all([
+  const [recipes, allergens, conflicts, ctx, names, ratings, priceBook] = await Promise.all([
     supabase
       .from("recipes")
       .select(
-        "id, slug, title, description, servings, prep_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, is_optional, ingredients (name))",
+        "id, slug, title, description, servings, prep_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, is_optional, quantity_base, dimension, ingredients (name, density_g_per_ml, piece_weight_g))",
       )
       .eq("status", "published")
       .order("title"),
     supabase.from("recipe_allergens").select("recipe_id, allergen_code"),
     supabase.from("recipe_diet_conflicts").select("recipe_id, diet_code"),
-    householdContext(supabase, household.id),
+    householdContext(supabase, household.id, household.timezone),
     labels(supabase),
     loadRatings(supabase, household.id),
+    loadPriceBook(supabase, household.id),
   ]);
   if (recipes.error) fail("des recettes", recipes.error);
   if (allergens.error) fail("des allergènes de recettes", allergens.error);
@@ -222,6 +238,48 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
     }
     if (!compatibility.compatible && !filters.showExcluded) continue;
 
+    const required = lines.filter((l) => !l.is_optional);
+    const coverage = stockCoverage(
+      required.map((l) => l.ingredient_id),
+      ctx.available,
+    );
+    const usesPriority = required.some((l) => ctx.priority.has(l.ingredient_id));
+    const estimate = estimateRecipeCost(
+      lines.map((l) => ({
+        ingredientId: l.ingredient_id,
+        quantity:
+          l.quantity_base !== null && l.dimension
+            ? fromBase(String(l.quantity_base), l.dimension)
+            : null,
+        optional: l.is_optional,
+        conversions: {
+          densityGPerMl: l.ingredients?.density_g_per_ml ?? null,
+          pieceWeightG: l.ingredients?.piece_weight_g ?? null,
+        },
+      })),
+      r.servings,
+      r.servings,
+      (id) => priceBook.get(id)?.unit ?? null,
+    );
+    const costPerServingCents =
+      estimate.pricedLines > 0
+        ? Math.round(millicentsToCents(estimate.millicents) / r.servings)
+        : null;
+    const vegetarian = !recipeConflicts.includes("vegetarian");
+    const vegan = !recipeConflicts.includes("vegan");
+    if (filters.withStock && (coverage.total === 0 || coverage.inStock / coverage.total < 0.5)) {
+      continue;
+    }
+    if (filters.useSoon && !usesPriority) continue;
+    if (filters.diet === "vegetarian" && !vegetarian) continue;
+    if (filters.diet === "vegan" && !vegan) continue;
+    if (
+      filters.smallBudget &&
+      (costPerServingCents === null || costPerServingCents > SMALL_BUDGET_CENTS)
+    ) {
+      continue;
+    }
+
     cards.push({
       id: r.id,
       slug: r.slug,
@@ -230,15 +288,15 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
       servings: r.servings,
       totalMinutes,
       tags: r.tags,
-      vegetarian: !recipeConflicts.includes("vegetarian"),
-      vegan: !recipeConflicts.includes("vegan"),
-      coverage: stockCoverage(
-        lines.filter((l) => !l.is_optional).map((l) => l.ingredient_id),
-        ctx.available,
-      ),
+      vegetarian,
+      vegan,
+      coverage,
       compatibility,
       exclusionLabel: describeExclusion(compatibility, names, ingredientNames),
       rating,
+      usesPriority,
+      costPerServingCents,
+      costIsMinimum: estimate.missing.length > 0,
     });
   }
 

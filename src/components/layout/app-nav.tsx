@@ -2,60 +2,120 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { ComponentType, SVGProps } from "react";
+import {
+  BasketIcon,
+  BookIcon,
+  CalendarIcon,
+  HomeIcon,
+  PantryIcon,
+  SettingsIcon,
+  TagIcon,
+  WalletIcon,
+} from "@/components/ui/icons";
 
-/** Écrans prévus au MVP ; ceux qui n'existent pas encore sont signalés « bientôt ». */
-const ITEMS = [
-  { href: "/dashboard", label: "Accueil", ready: true },
-  { href: "/pantry", label: "Garde-manger", ready: true },
-  { href: "/recipes", label: "Recettes", ready: true },
-  { href: "/planner", label: "Menu", ready: true },
-  { href: "/shopping", label: "Courses", ready: true },
-] as const;
-
-/**
- * Navigation avec l'onglet actif. usePathname() lit l'URL de la requête :
- * avec les Cache Components, ce composant doit être rendu dans un <Suspense>
- * dont le repli est <AppNavShell pathname={null} /> (même rendu, sans onglet actif).
- */
-export function AppNav() {
-  return <AppNavShell pathname={usePathname()} />;
+type Icon = ComponentType<SVGProps<SVGSVGElement> & { size?: number }>;
+interface NavItem {
+  href: string;
+  label: string;
+  short: string;
+  icon: Icon;
 }
 
-/** Rendu pur de la navigation, sans lecture d'URL. */
-export function AppNavShell({ pathname }: { pathname: string | null }) {
+/** Navigation principale : mêmes rubriques, même ordre sur ordinateur et téléphone. */
+export const PRIMARY: readonly NavItem[] = [
+  { href: "/dashboard", label: "Accueil", short: "Accueil", icon: HomeIcon },
+  { href: "/planner", label: "Menu de la semaine", short: "Menu", icon: CalendarIcon },
+  { href: "/shopping", label: "Liste de courses", short: "Courses", icon: BasketIcon },
+  { href: "/pantry", label: "Garde-manger", short: "Stock", icon: PantryIcon },
+  { href: "/recipes", label: "Recettes", short: "Recettes", icon: BookIcon },
+];
+
+/** Rubriques secondaires : barre latérale sur ordinateur, accueil et paramètres sur téléphone. */
+export const SECONDARY: readonly NavItem[] = [
+  { href: "/budget", label: "Budget", short: "Budget", icon: WalletIcon },
+  { href: "/prices", label: "Prix", short: "Prix", icon: TagIcon },
+  { href: "/settings", label: "Paramètres", short: "Réglages", icon: SettingsIcon },
+];
+
+function isActive(pathname: string | null, href: string) {
+  return pathname !== null && (pathname === href || pathname.startsWith(`${href}/`));
+}
+
+/**
+ * usePathname() lit l'URL de la requête : avec les Cache Components, ces composants sont
+ * rendus dans un <Suspense> dont le repli est la version « Shell » (sans onglet actif).
+ */
+export function SideNav() {
+  return <SideNavShell pathname={usePathname()} />;
+}
+export function TabBar() {
+  return <TabBarShell pathname={usePathname()} />;
+}
+
+/** Barre latérale (ordinateur) : fond vert forêt, l'onglet actif en crème. */
+export function SideNavShell({ pathname }: { pathname: string | null }) {
+  const item = (it: NavItem) => {
+    const active = isActive(pathname, it.href);
+    const Icon = it.icon;
+    return (
+      <li key={it.href}>
+        <Link
+          href={it.href}
+          aria-current={active ? "page" : undefined}
+          className={[
+            "flex min-h-11 items-center gap-3 rounded-full px-4 text-[0.9375rem] font-medium transition-colors",
+            active
+              ? "bg-cream text-forest dark:bg-brand dark:text-brand-foreground"
+              : "text-nav-foreground hover:bg-white/8",
+          ].join(" ")}
+        >
+          <Icon size={20} />
+          {it.label}
+        </Link>
+      </li>
+    );
+  };
+  return (
+    <nav aria-label="Navigation principale" className="flex flex-1 flex-col gap-8">
+      <ul className="flex flex-col gap-1">{PRIMARY.map(item)}</ul>
+      <ul className="border-nav-muted/25 flex flex-col gap-1 border-t pt-6">
+        {SECONDARY.map(item)}
+      </ul>
+    </nav>
+  );
+}
+
+/** Barre d'onglets (téléphone) : en bas, à portée de pouce, icône + libellé court. */
+export function TabBarShell({ pathname }: { pathname: string | null }) {
   return (
     <nav
       aria-label="Navigation principale"
-      className="border-border bg-surface fixed inset-x-0 bottom-0 z-10 border-t pb-[env(safe-area-inset-bottom)] md:static md:border-t-0 md:border-r md:bg-transparent md:pb-0"
+      className="border-border bg-surface/95 fixed inset-x-0 bottom-0 z-20 border-t pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
     >
-      <ul className="mx-auto flex max-w-lg justify-between md:max-w-none md:flex-col md:gap-1 md:p-3">
-        {ITEMS.map((item) => {
-          const active =
-            pathname !== null && (pathname === item.href || pathname.startsWith(`${item.href}/`));
-          if (!item.ready) {
-            return (
-              <li key={item.href} className="flex-1 md:flex-none">
-                <span
-                  aria-disabled="true"
-                  className="text-muted/60 flex min-h-14 flex-col items-center justify-center px-1 text-xs md:min-h-10 md:flex-row md:justify-start md:gap-2 md:rounded-lg md:px-3 md:text-sm"
-                >
-                  {item.label}
-                  <span className="text-[10px] md:text-xs">bientôt</span>
-                </span>
-              </li>
-            );
-          }
+      <ul className="mx-auto grid max-w-xl grid-cols-5">
+        {PRIMARY.map((it) => {
+          const active = isActive(pathname, it.href);
+          const Icon = it.icon;
           return (
-            <li key={item.href} className="flex-1 md:flex-none">
+            <li key={it.href}>
               <Link
-                href={item.href}
+                href={it.href}
                 aria-current={active ? "page" : undefined}
                 className={[
-                  "flex min-h-14 items-center justify-center px-1 text-xs font-medium md:min-h-10 md:justify-start md:rounded-lg md:px-3 md:text-sm",
-                  active ? "text-brand md:bg-brand-soft" : "text-foreground hover:text-brand",
+                  "flex min-h-16 flex-col items-center justify-center gap-1 text-[0.6875rem] font-semibold",
+                  active ? "text-brand" : "text-muted",
                 ].join(" ")}
               >
-                {item.label}
+                <span
+                  className={[
+                    "flex h-8 w-14 items-center justify-center rounded-full transition-colors",
+                    active ? "bg-brand-soft" : "",
+                  ].join(" ")}
+                >
+                  <Icon size={22} />
+                </span>
+                {it.short}
               </Link>
             </li>
           );

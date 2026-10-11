@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { cookAction, type CookState } from "@/server/modules/cooking/actions";
@@ -20,6 +20,7 @@ export function CookButton({
   formKey: string;
 }) {
   const [state, action, pending] = useActionState(cookAction, idle);
+  const [confirming, setConfirming] = useState(false);
 
   if (state.status === "success") {
     return (
@@ -34,23 +35,36 @@ export function CookButton({
     );
   }
 
+  // Deux temps : le stock n'est décompté qu'après confirmation explicite.
+  if (!confirming && state.status !== "error") {
+    return (
+      <Button variant="accent" onClick={() => setConfirming(true)}>
+        J&apos;ai cuisiné ce plat
+      </Button>
+    );
+  }
+
   return (
     <form
       action={action}
-      className="border-brand bg-brand-soft flex flex-col gap-3 rounded-2xl border p-4"
+      className="border-accent/40 bg-accent-soft flex flex-col gap-3 rounded-2xl border p-4"
     >
       <input type="hidden" name="week" value={week} />
       <input type="hidden" name="recipeId" value={recipeId} />
       <input type="hidden" name="key" value={formKey} />
-      <p className="text-sm">
-        Ce plat est au menu ({servings} portion{servings > 1 ? "s" : ""}). Une fois préparé, ses
-        ingrédients sont retirés de ton garde-manger (les produits du placard ne sont pas
-        décomptés).
+      <p className="text-sm leading-relaxed">
+        Retirer les ingrédients de ce plat ({servings} portion{servings > 1 ? "s" : ""}) de ton
+        garde-manger ? Les produits du placard (épices, huile…) ne sont pas décomptés.
       </p>
       {state.status === "error" ? <Alert tone="error">{state.message}</Alert> : null}
-      <Button type="submit" disabled={pending}>
-        {pending ? "Mise à jour du garde-manger…" : "Cuisiné"}
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Button type="submit" variant="accent" disabled={pending}>
+          {pending ? "Mise à jour du garde-manger…" : "Confirmer et retirer du stock"}
+        </Button>
+        <Button variant="ghost" disabled={pending} onClick={() => setConfirming(false)}>
+          Annuler
+        </Button>
+      </div>
     </form>
   );
 }

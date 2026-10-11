@@ -20,6 +20,8 @@ export interface PlannerEntryView {
   recipeId: string;
   slug: string | null;
   title: string;
+  /** Étiquettes de la recette (type de plat), pour le visuel. */
+  tags: string[];
   servings: number;
   locked: boolean;
   totalMinutes: number | null;
@@ -81,6 +83,7 @@ export async function getPlannerPage({ week, replace }: { week?: string; replace
         recipeId: e.recipeId,
         slug: null,
         title: "Recette indisponible",
+        tags: [],
         servings: e.servings,
         locked: e.locked,
         totalMinutes: null,
@@ -99,6 +102,7 @@ export async function getPlannerPage({ week, replace }: { week?: string; replace
       recipeId: e.recipeId,
       slug: meta.slug,
       title: meta.title,
+      tags: meta.tags,
       servings: e.servings,
       locked: e.locked,
       totalMinutes: meta.totalMinutes,

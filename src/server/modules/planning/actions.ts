@@ -4,6 +4,8 @@ import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { autoPlace, generatePlan, parseSlotKey, slotKey, type PlanEntry } from "@/domain/planning";
 import { todayIn } from "@/lib/dates";
+import { mondayOf } from "@/lib/week";
+import { randomUUID } from "node:crypto";
 import { ActionError } from "@/server/errors";
 import { getCurrentContext } from "@/server/modules/auth/session";
 import { firstErrors } from "@/server/modules/households/schema";
@@ -240,6 +242,7 @@ export async function addEntryAction(
   if (parsed.data.version === null) return { status: "error", message: "Requête invalide." };
   let added = true;
   const input = parsed.data;
+  const slotParam = String(formData.get("slot") ?? "");
   const state = await editEntries(parsed.data, async (entries, plan) => {
     if (entries.length >= 21) throw new ActionError("invalid", "Au plus 21 plats par semaine.");
     const { household, supabase } = await context();
@@ -260,12 +263,17 @@ export async function addEntryAction(
       added = false;
       return entries;
     }
-    // Seul le nouveau plat est placé : on ne déplace pas ceux que le foyer a laissés sans jour.
-    const placed = autoPlace(
-      [...entries, { ...extra, locked: false }],
-      input.week,
-      todayIn(household.timezone),
-    ).at(-1)!;
+    // Case demandée (bouton « + » d'une case vide) si elle est libre ; sinon première case
+    // libre. On ne déplace pas les plats que le foyer a laissés sans jour.
+    const wanted = slotParam ? parseSlotKey(slotParam, input.week) : null;
+    const free = wanted && !entries.some((e) => e.day === wanted.day && e.slot === wanted.slot);
+    const placed = free
+      ? { ...extra, locked: false, day: wanted.day, slot: wanted.slot }
+      : autoPlace(
+          [...entries, { ...extra, locked: false }],
+          input.week,
+          todayIn(household.timezone),
+        ).at(-1)!;
     return [...entries, placed];
   });
   if (state.status === "success" && !added) {
@@ -340,4 +348,82 @@ export async function setSlotAction(
     entry.slot = target?.slot ?? null;
     return entries;
   });
+}
+
+/**
+ * Ajoute une recette au menu de la semaine en cours, sur la première case libre.
+ * Crée le menu s'il n'existe pas encore (budget et nombre de personnes du foyer).
+ */
+export async function addRecipeToPlanAction(
+  _prev: PlannerState,
+  formData: FormData,
+): Promise<PlannerState> {
+  const recipeId = String(formData.get("recipeId") ?? "");
+  if (!/^[0-9a-f-]{36}$/.test(recipeId)) return { status: "error", message: "Recette invalide." };
+  try {
+    const { household, supabase } = await context();
+    const today = todayIn(household.timezone);
+    const week = mondayOf(today);
+    const [plan, catalog] = await Promise.all([
+      readPlan(supabase, household.id, week),
+      catalogFor(supabase, household),
+    ]);
+    const meta = catalog.recipes.get(recipeId);
+    if (!meta) throw new ActionError("not_found", "Recette introuvable.");
+    if (!meta.compatible) {
+      throw new ActionError("invalid", "Cette recette ne correspond pas aux préférences du foyer.");
+    }
+    const entries = plan?.entries.map((e) => ({ ...e })) ?? [];
+    if (entries.some((e) => e.recipeId === recipeId)) {
+      return { status: "success", message: "Déjà au menu de la semaine." };
+    }
+    if (entries.length >= 21) throw new ActionError("invalid", "Au plus 21 plats par semaine.");
+    const people = plan?.people ?? household.people_count;
+    const placed = autoPlace(
+      [...entries, { recipeId, servings: people, locked: false }],
+      week,
+      today,
+    ).at(-1)!;
+    await savePlan(supabase, {
+      householdId: household.id,
+      weekStart: week,
+      people,
+      mealCount: entries.length + 1,
+      budgetCents: plan ? plan.budgetCents : household.weekly_budget_cents,
+      seed: plan?.seed ?? 0,
+      entries: [...entries, placed],
+      expectedVersion: plan?.version ?? null,
+      idempotencyKey: randomUUID(),
+    });
+    refresh();
+    return {
+      status: "success",
+      message: placed.day ? "Ajouté au menu de la semaine." : "Ajouté au menu (pas encore placé).",
+    };
+  } catch (error) {
+    return failure(error);
+  }
+}
+
+/**
+ * « Réorganiser ma semaine » : replace tous les plats pas encore cuisinés sur les prochains
+ * repas libres (soirs d'abord, à partir d'aujourd'hui). Les plats cuisinés ne bougent pas.
+ */
+export async function reorganizeAction(
+  _prev: PlannerState,
+  formData: FormData,
+): Promise<PlannerState> {
+  const parsed = planActionSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success || parsed.data.version === null) {
+    return { status: "error", message: "Requête invalide." };
+  }
+  const { household } = await getCurrentContext();
+  const today = household ? todayIn(household.timezone) : parsed.data.week;
+  return editEntries(parsed.data, (entries, plan) =>
+    autoPlace(
+      entries.map((e, i) => (plan.cooked.has(i + 1) ? e : { ...e, day: null, slot: null })),
+      parsed.data.week,
+      today,
+    ),
+  );
 }

@@ -27,3 +27,23 @@ export function formatDateTime(iso: string, timeZone: string): string {
     timeZone,
   }).format(new Date(iso));
 }
+
+/** Heure (0–23) dans le fuseau du foyer. */
+export function hourIn(timeZone: string, now: Date = new Date()): number {
+  return Number(
+    new Intl.DateTimeFormat("en-GB", { timeZone, hour: "2-digit", hourCycle: "h23" }).format(now),
+  );
+}
+
+/** « Mardi 13 octobre » pour une date ISO sans heure. */
+export function formatLongDate(isoDate: string): string {
+  const label = new Intl.DateTimeFormat("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    timeZone: "UTC",
+  })
+    .format(new Date(`${isoDate}T00:00:00Z`))
+    .replace(/ 1 /, " 1er ");
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}

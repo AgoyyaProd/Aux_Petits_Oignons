@@ -1,9 +1,13 @@
 "use client";
 
 import { useOptimistic, useTransition } from "react";
+import { CheckIcon } from "@/components/ui/icons";
 import { toggleCheckAction } from "@/server/modules/shopping/actions";
 
-/** Case « dans le panier », mise à jour immédiatement à l'écran puis enregistrée. */
+/**
+ * Article de la liste : toute la ligne est la zone tactile (mode magasin, une main).
+ * La case est mise à jour immédiatement à l'écran puis enregistrée.
+ */
 export function CheckLine({
   week,
   ingredientId,
@@ -21,7 +25,7 @@ export function CheckLine({
   const [, startTransition] = useTransition();
 
   return (
-    <label className="flex min-h-12 cursor-pointer items-start gap-3 py-2">
+    <label className="flex min-h-16 cursor-pointer items-center gap-4 py-3">
       <input
         type="checkbox"
         checked={optimistic}
@@ -37,10 +41,22 @@ export function CheckLine({
             await toggleCheckAction(data);
           });
         }}
-        className="accent-brand mt-0.5 size-5 shrink-0"
+        className="peer sr-only"
       />
       <span
-        className={`flex min-w-0 flex-1 flex-col ${optimistic ? "text-muted line-through" : ""}`}
+        aria-hidden="true"
+        className={[
+          "flex size-7 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
+          "peer-focus-visible:outline-accent peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2",
+          optimistic
+            ? "border-brand bg-brand text-brand-foreground"
+            : "border-border-strong bg-surface",
+        ].join(" ")}
+      >
+        {optimistic ? <CheckIcon size={16} strokeWidth={2.5} /> : null}
+      </span>
+      <span
+        className={`flex min-w-0 flex-1 flex-col gap-0.5 transition-opacity ${optimistic ? "opacity-50 [&_.item-name]:line-through" : ""}`}
       >
         {children}
       </span>

@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "Invitation" };
 export default function InvitationPage({ params }: PageProps<"/invitation/[token]">) {
   return (
     <div className="mx-auto flex max-w-md flex-col gap-5">
-      <h1 className="text-2xl font-bold tracking-tight">Rejoindre un foyer</h1>
+      <h1 className="type-page">Rejoindre un foyer</h1>
       <Suspense fallback={<PageSkeleton />}>
         <Invitation params={params} />
       </Suspense>

@@ -2,11 +2,13 @@
 
 import { useActionState, useState } from "react";
 import { Alert } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { SelectField } from "@/components/ui/select-field";
 import { expiryState } from "@/domain/pantry/priority";
 import { UNITS } from "@/domain/units";
+import { categoryLabel } from "@/lib/categories";
 import { formatShortDate } from "@/lib/dates";
 import { formatStockQuantity, unitsForDimension } from "@/lib/format-quantity";
 import { applyMovementAction, updateDetailsAction } from "@/server/modules/pantry/actions";
@@ -49,12 +51,15 @@ export function PantryItemCard({
   const lastMessage = mode === "details" ? detailsState : moveState;
 
   return (
-    <li className="border-border bg-surface rounded-2xl border p-4">
+    <li className="border-border bg-surface rounded-xl border p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-col gap-0.5">
           <p className="truncate font-semibold">{item.ingredientName}</p>
-          <p className={unknown ? "text-muted text-sm italic" : "text-sm"}>
-            {formatStockQuantity(item.quantityBase, item.dimension, item.displayUnit)}
+          <p className="text-sm">
+            <span className={unknown ? "text-muted italic" : "font-medium"}>
+              {formatStockQuantity(item.quantityBase, item.dimension, item.displayUnit)}
+            </span>
+            <span className="text-muted"> · {categoryLabel(item.category)}</span>
           </p>
         </div>
         <ExpiryBadge item={item} today={today} />
@@ -76,10 +81,10 @@ export function PantryItemCard({
             aria-pressed={mode === m}
             onClick={() => setMode(mode === m ? null : m)}
             className={[
-              "min-h-9 rounded-lg border px-3 text-xs font-medium",
+              "min-h-10 rounded-full border px-3.5 text-sm font-medium transition-colors",
               mode === m
-                ? "border-brand bg-brand-soft text-brand"
-                : "border-border text-foreground hover:bg-brand-soft",
+                ? "border-brand bg-brand text-brand-foreground"
+                : "border-border text-foreground hover:border-brand",
             ].join(" ")}
           >
             {MODE_LABEL[m]}
@@ -204,12 +209,12 @@ function ExpiryBadge({ item, today }: { item: PantryItemView; today: string }) {
   const state = expiryState(item, today);
   const opened = item.openedAt !== null;
   if (state.kind === "none") {
-    return opened ? <Badge tone="warning">Entamé</Badge> : null;
+    return opened ? <Badge tone="soon">Entamé</Badge> : null;
   }
   const date = formatShortDate(item.expiresOn!);
   if (state.kind === "expired") {
     return (
-      <Badge tone={state.label === "DLC" ? "danger" : "warning"}>
+      <Badge tone={state.label === "DLC" ? "danger" : "soon"}>
         {state.label} dépassée ({date})
       </Badge>
     );
@@ -218,34 +223,15 @@ function ExpiryBadge({ item, today }: { item: PantryItemView; today: string }) {
     const when =
       state.days === 0 ? "aujourd'hui" : state.days === 1 ? "demain" : `dans ${state.days} j`;
     return (
-      <Badge tone={state.label === "DLC" ? "warning" : "neutral"}>
+      <Badge tone={state.label === "DLC" ? (state.days <= 1 ? "urgent" : "soon") : "neutral"}>
         {state.label} {when}
       </Badge>
     );
   }
   return (
-    <Badge tone={opened ? "warning" : "neutral"}>
-      {opened ? "Entamé · " : ""}
+    <Badge tone={opened ? "soon" : "neutral"}>
+      {opened ? "Entamé, " : ""}
       {state.label} {date}
     </Badge>
-  );
-}
-
-function Badge({
-  tone,
-  children,
-}: {
-  tone: "danger" | "warning" | "neutral";
-  children: React.ReactNode;
-}) {
-  const styles = {
-    danger: "bg-danger-soft text-danger",
-    warning: "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200",
-    neutral: "bg-brand-soft text-foreground",
-  } as const;
-  return (
-    <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${styles[tone]}`}>
-      {children}
-    </span>
   );
 }
