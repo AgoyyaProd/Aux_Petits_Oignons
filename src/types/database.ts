@@ -547,6 +547,32 @@ isOneToOne: true
       referencedColumns: ["id"]
     }
                   ]
+                },"shopping_checks": {
+                  Row: {
+                    "checked_at": string,"checked_by": string | null,"dimension": Database["public"]['Enums']["dimension"],"household_id": string,"ingredient_id": string,"week_start": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "checked_at"?: string,"checked_by"?: string | null,"dimension": Database["public"]['Enums']["dimension"],"household_id": string,"ingredient_id": string,"week_start": string
+                  }
+                  Update: {
+                    "checked_at"?: string,"checked_by"?: string | null,"dimension"?: Database["public"]['Enums']["dimension"],"household_id"?: string,"ingredient_id"?: string,"week_start"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "shopping_checks_household_id_fkey"
+      columns: ["household_id"]
+isOneToOne: false
+      referencedRelation: "households"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "shopping_checks_ingredient_id_fkey"
+      columns: ["ingredient_id"]
+isOneToOne: false
+      referencedRelation: "ingredients"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"stock_movements": {
                   Row: {
                     "created_at": string,"created_by": string | null,"delta_base": number | null,"household_id": string,"id": number,"ingredient_id": string,"kind": Database["public"]['Enums']["movement_kind"],"note": string | null,"operation_id": string,"pantry_item_id": string,"quantity_after_base": number | null
@@ -711,6 +737,9 @@ isOneToOne: false
                            },
 "set_household_preferences":
 { Args: { "p_allergens": (string)[],"p_diets": (string)[],"p_household_id": string }; Returns: undefined
+                           },
+"shopping_put_away":
+{ Args: { "p_household_id": string,"p_idempotency_key": string,"p_items": Json }; Returns: Json
                            }
           }
           Enums: {

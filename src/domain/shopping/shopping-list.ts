@@ -35,6 +35,8 @@ export interface ShoppingLine {
   /** Besoin théorique à acheter : max(0, besoin − stock utilisable). Jamais un conditionnement. */
   toBuy: Quantity;
   mealIds: string[];
+  /** Coché dans le placard du foyer : présent par déclaration, rien à acheter. */
+  inCupboard: boolean;
 }
 
 export type ShoppingWarning =
@@ -85,7 +87,10 @@ export function computeShoppingList(input: {
   meals: readonly PlannedMealInput[];
   ingredients: ReadonlyMap<string, IngredientInfo>;
   stock: readonly StockLot[];
+  /** Ingrédients cochés dans le placard (épices, condiments…) : jamais à acheter. */
+  cupboard?: ReadonlySet<string>;
 }): ShoppingComputation {
+  const cupboard = input.cupboard ?? new Set<string>();
   const { ingredients } = input;
   const requirements = computeMealRequirements(input.meals, ingredients);
   const neededIngredients = new Set(requirements.map((r) => r.ingredientId));
@@ -173,7 +178,10 @@ export function computeShoppingList(input: {
 
   const lines: ShoppingLine[] = aggregateRequirements(requirements).map((total) => {
     const { dimension } = total.quantity;
-    const toBuyMilli = shortfall.get(bucketKey(total.ingredientId, dimension)) ?? 0;
+    const inCupboard = cupboard.has(total.ingredientId);
+    const toBuyMilli = inCupboard
+      ? 0
+      : (shortfall.get(bucketKey(total.ingredientId, dimension)) ?? 0);
     return {
       ingredientId: total.ingredientId,
       ingredientName: requireIngredient(ingredients, total.ingredientId).name,
@@ -182,6 +190,7 @@ export function computeShoppingList(input: {
       fromStock: fromMilli(total.quantity.milli - toBuyMilli, dimension),
       toBuy: fromMilli(toBuyMilli, dimension),
       mealIds: total.mealIds,
+      inCupboard,
     };
   });
 
@@ -198,4 +207,13 @@ function pushTo<T>(map: Map<string, T[]>, key: string, value: T): void {
   const list = map.get(key);
   if (list) list.push(value);
   else map.set(key, [value]);
+}
+
+/**
+ * Quantité à acheter arrondie pour le magasin : les pièces à l'unité supérieure
+ * (1,5 oignon -> 2), masses et volumes inchangés. Jamais en dessous du besoin.
+ */
+export function purchaseQuantity(toBuy: Quantity): Quantity {
+  if (toBuy.dimension !== "count") return toBuy;
+  return fromMilli(Math.ceil(toBuy.milli / 1000) * 1000, "count");
 }

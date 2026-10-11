@@ -6,7 +6,9 @@ import {
   scale,
   toUnitValue,
   UNITS,
+  formatQuantity,
   type Dimension,
+  type Quantity,
   type UnitCode,
 } from "@/domain/units";
 
@@ -73,4 +75,29 @@ const ROUNDED_UNITS: ReadonlySet<UnitCode> = new Set(["piece", "tsp", "tbsp"]);
 /** Unités proposées pour un produit : celles de sa dimension uniquement. */
 export function unitsForDimension(dimension: Dimension): UnitCode[] {
   return (Object.keys(UNITS) as UnitCode[]).filter((u) => UNITS[u].dimension === dimension);
+}
+
+/** Quantité de courses : « 1,5 kg », « 250 ml », « 3 pièces ». */
+export function formatShoppingQuantity(q: Quantity): string {
+  if (q.dimension !== "count") return formatQuantity(q);
+  const value = q.milli / 1000;
+  return `${number.format(value)} ${unitLabel("piece", value)}`;
+}
+
+/** Valeur et unité proposées au rangement : 1500 g -> « 1,5 » kg, 3 pièces -> « 3 » pièce. */
+export function suggestPutAway(q: Quantity): { value: string; unit: UnitCode } {
+  const base = q.milli / 1000;
+  const big = q.dimension !== "count" && base >= 1000;
+  const unit: UnitCode =
+    q.dimension === "count"
+      ? "piece"
+      : q.dimension === "mass"
+        ? big
+          ? "kg"
+          : "g"
+        : big
+          ? "l"
+          : "ml";
+  const value = big ? base / 1000 : base;
+  return { value: number.format(value).replace(/\u202f|\s/g, ""), unit };
 }

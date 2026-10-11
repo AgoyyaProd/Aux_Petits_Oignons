@@ -9,7 +9,7 @@ const ITEMS = [
   { href: "/pantry", label: "Garde-manger", ready: true },
   { href: "/recipes", label: "Recettes", ready: true },
   { href: "/planner", label: "Menu", ready: true },
-  { href: "/shopping", label: "Courses", ready: false },
+  { href: "/shopping", label: "Courses", ready: true },
 ] as const;
 
 /**

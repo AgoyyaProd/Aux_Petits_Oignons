@@ -45,3 +45,17 @@ Le résultat est un **besoin théorique** : aucune taille de conditionnement n'e
 - Les préférences du foyer (prévues en 0004) passent en 0005.
 - Le régime « halal » est remplacé par « sans porc » : la conformité halal dépend de la
   filière d'abattage, qu'un ingrédient générique ne peut pas garantir.
+
+## Liste de courses à l'écran (phase 5, migration 0015)
+
+- La liste **n'est pas stockée** : elle est recalculée à chaque affichage à partir du menu de
+  la semaine, du garde-manger et du placard. Elle ne peut donc jamais être désynchronisée.
+- Les plats du menu ne sont pas encore placés jour par jour : ils sont datés du jour (ou du
+  lundi pour une semaine à venir) pour la règle des DLC.
+- Ingrédients du placard : listés « déjà chez toi », jamais à acheter.
+- Pièces arrondies à l'unité supérieure à l'achat (1,5 oignon -> 2) ; masses et volumes
+  inchangés. Toujours un besoin, jamais une taille de paquet.
+- Seules les coches « dans le panier » sont stockées (`shopping_checks`, partagées par le foyer).
+- « Ranger mes courses » : `shopping_put_away` ajoute tous les produits en **une opération**
+  atomique et idempotente, tracée par des mouvements `purchase`. Le foyer saisit la quantité
+  réellement achetée (paquet de 500 g plutôt que 375 g nécessaires).

@@ -4,6 +4,7 @@ import {
   aggregateRequirements,
   computeMealRequirements,
   computeShoppingList,
+  purchaseQuantity,
   type IngredientInfo,
   type PlannedMealInput,
   type RecipeInput,
@@ -312,5 +313,27 @@ describe("calcul des besoins", () => {
     const meals = [meal(RIZ_POULET, "2026-10-12"), meal(OMELETTE, "2026-10-13")];
     const stock = [lot("riz", quantity(300, "g")), lot("oeuf", quantity(2, "piece"))];
     expect(run(meals, stock)).toEqual(run(meals, stock));
+  });
+});
+
+describe("placard et arrondi d'achat", () => {
+  it("un ingrédient coché dans le placard n'est jamais à acheter, mais reste listé", () => {
+    const { lines } = computeShoppingList({
+      meals: [meal(RIZ_POULET, "2026-10-12", 4)],
+      ingredients: INGREDIENTS,
+      stock: [],
+      cupboard: new Set(["riz"]),
+    });
+    const riz = lines.find((l) => l.ingredientId === "riz")!;
+    expect(riz).toMatchObject({ inCupboard: true });
+    expect(riz.toBuy.milli).toBe(0);
+    expect(lines.find((l) => l.ingredientId === "poulet")!.toBuy.milli).toBe(600_000);
+  });
+
+  it("les pièces s'achètent à l'unité supérieure, jamais en dessous du besoin", () => {
+    expect(purchaseQuantity(quantity("1.5", "piece")).milli).toBe(2_000);
+    expect(purchaseQuantity(quantity("2", "piece")).milli).toBe(2_000);
+    expect(purchaseQuantity(quantity("0.001", "piece")).milli).toBe(1_000);
+    expect(purchaseQuantity(quantity("375", "g")).milli).toBe(375_000);
   });
 });

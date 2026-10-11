@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { parseAmount, quantity } from "@/domain/units";
 import {
   formatRecipeQuantity,
+  formatShoppingQuantity,
   formatStockQuantity,
+  suggestPutAway,
   unitsForDimension,
 } from "@/lib/format-quantity";
 import { householdSettingsSchema } from "@/server/modules/households/schema";
@@ -159,5 +162,23 @@ describe("quantités de recette ajustées aux portions", () => {
 
   it("jamais moins d'une demi-unité affichée", () => {
     expect(formatRecipeQuantity("1", "piece", 1, 6)).toBe("≈ 0,5 pièce");
+  });
+});
+
+describe("quantités de courses", () => {
+  it("affiche les quantités à acheter lisiblement", () => {
+    expect(formatShoppingQuantity(quantity("1500", "g"))).toBe("1,5 kg");
+    expect(formatShoppingQuantity(quantity("250", "ml"))).toBe("250 ml");
+    expect(formatShoppingQuantity(quantity("3", "piece"))).toBe("3 pièces");
+    expect(formatShoppingQuantity(quantity("1", "piece"))).toBe("1 pièce");
+  });
+
+  it("propose une valeur et une unité de rangement relisibles par le formulaire", () => {
+    expect(suggestPutAway(quantity("1500", "g"))).toEqual({ value: "1,5", unit: "kg" });
+    expect(suggestPutAway(quantity("375", "g"))).toEqual({ value: "375", unit: "g" });
+    expect(suggestPutAway(quantity("2", "l"))).toEqual({ value: "2", unit: "l" });
+    expect(suggestPutAway(quantity("2", "piece"))).toEqual({ value: "2", unit: "piece" });
+    // 1 250,5 g -> « 1,251 » kg (3 décimales), relu par le formulaire sans perte notable.
+    expect(parseAmount(suggestPutAway(quantity("1250.5", "g")).value)).toBe(1_251);
   });
 });
