@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Garde-manger
 
-## Getting Started
+Application de planification des repas à partir du stock du foyer : inventaire,
+planning hebdomadaire, liste de courses calculée, suivi du budget.
 
-First, run the development server:
+Stack : Next.js 16 (App Router, Cache Components) · TypeScript strict · Tailwind CSS 4 ·
+Supabase (PostgreSQL, Auth, RLS) · Zod · Vitest.
+
+## Démarrer en local
+
+Prérequis : Node.js 22+, Docker (pour Supabase local).
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local
+npm run db:start          # démarre Supabase ; affiche l'URL et les clés
+# reporter « anon key » dans NEXT_PUBLIC_SUPABASE_ANON_KEY de .env.local
+npm run db:reset          # applique migrations et seed
+npm run dev               # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Les e-mails locaux (confirmation, lien magique) arrivent dans Mailpit : http://127.0.0.1:54324.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Vérifier
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Commande           | Rôle                                                         |
+| ------------------ | ------------------------------------------------------------ |
+| `npm run check`    | lint + types + format + tests unitaires                      |
+| `npm test`         | tests unitaires (domaine, validation), sans base             |
+| `npm run test:db`  | migrations, RLS et fonctions SQL (voir `tests/db/README.md`) |
+| `npm run build`    | build de production                                          |
+| `npm run db:types` | régénère `src/types/database.ts` après une migration         |
 
-## Learn More
+## Organisation
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/app/            routes : (auth) publiques, (app) protégées, auth/callback
+src/components/     ui/ (primitives accessibles), composants par fonctionnalité
+src/domain/         règles métier pures (unités, besoins, courses) — sans I/O
+src/server/         clients Supabase, modules métier (schema, actions, service)
+src/proxy.ts        rafraîchit la session, redirige les visiteurs non connectés
+supabase/           config, migrations versionnées, seed
+tests/unit|db       Vitest
+docs/adr/           décisions d'architecture
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Règles de sécurité
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- La protection des données est assurée par la RLS PostgreSQL, testée dans `tests/db`.
+  Le proxy et l'interface ne sont qu'un confort de navigation.
+- Le client `service_role` (`src/server/supabase/admin.ts`) est interdit dans le code
+  applicatif par une règle ESLint.
+- Aucune clé secrète dans une variable `NEXT_PUBLIC_*`.
+- Une migration appliquée n'est jamais modifiée : on en ajoute une nouvelle.

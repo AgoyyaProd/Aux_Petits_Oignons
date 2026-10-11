@@ -39,3 +39,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# exemple de configuration versionné
+!.env.example
+
+# Supabase CLI
+supabase/.temp
+supabase/.branches
+
+coverage
