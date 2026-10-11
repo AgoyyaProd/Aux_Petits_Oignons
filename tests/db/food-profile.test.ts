@@ -104,6 +104,29 @@ describe("matériel des recettes", () => {
     await pool.query("delete from public.recipes where id = $1", [id]);
   });
 
+  it("distingue poêle, casserole, faitout, plat et moule d'après les étapes", async () => {
+    const need = async (slug: string) =>
+      (
+        await pool.query(
+          `select e.equipment_code from public.recipe_equipment e
+           join public.recipes r on r.id = e.recipe_id where r.slug = $1 order by 1`,
+          [slug],
+        )
+      ).rows.map((r) => r.equipment_code);
+    // Béchamel en casserole, montage dans un plat, cuisson au four.
+    expect(await need("gratin-poireaux-jambon")).toEqual(
+      expect.arrayContaining(["casserole", "four", "plat_four"]),
+    );
+    // « Les moules » sont des coquillages, cuits dans une cocotte : pas de moule à tarte.
+    const moules = await need("moules-marinieres");
+    expect(moules).toContain("faitout");
+    expect(moules).not.toContain("moule");
+    // Une quiche se fait dans un moule ; des œufs « au plat » ne demandent pas de plat.
+    expect(await need("quiche-lardons")).toContain("moule");
+    expect(await need("pommes-de-terre-oeufs-plat")).toEqual(expect.arrayContaining(["poele"]));
+    expect(await need("pommes-de-terre-oeufs-plat")).not.toContain("plat_four");
+  });
+
   it("un gratin demande le four", async () => {
     const { rows } = await pool.query(
       `select e.equipment_code from public.recipe_equipment e
