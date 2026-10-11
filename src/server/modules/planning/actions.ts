@@ -2,7 +2,8 @@
 
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
-import { generatePlan, type PlanEntry } from "@/domain/planning";
+import { autoPlace, generatePlan, parseSlotKey, slotKey, type PlanEntry } from "@/domain/planning";
+import { todayIn } from "@/lib/dates";
 import { ActionError } from "@/server/errors";
 import { getCurrentContext } from "@/server/modules/auth/session";
 import { firstErrors } from "@/server/modules/households/schema";
@@ -15,6 +16,7 @@ import {
   planActionSchema,
   replaceSchema,
   servingsSchema,
+  slotSchema,
   type GenerateField,
   type PlannerState,
 } from "./schema";
@@ -105,6 +107,11 @@ export async function generatePlanAction(
       locked: locked.map((e) => ({ recipeId: e.recipeId, servings: e.servings })),
       seed,
     });
+    // Les plats gardés conservent leur jour ; les nouveaux remplissent les cases libres.
+    const kept = result.entries.map((e, i) =>
+      i < locked.length ? { ...e, day: locked[i]!.day, slot: locked[i]!.slot } : e,
+    );
+    const entries = autoPlace(kept, input.week, todayIn(household.timezone));
     if (result.entries.length === 0) {
       return {
         status: "error",
@@ -118,7 +125,7 @@ export async function generatePlanAction(
       mealCount: input.mealCount,
       budgetCents: input.budget,
       seed,
-      entries: result.entries,
+      entries,
       expectedVersion: plan?.version ?? null,
       idempotencyKey: input.key,
     });
@@ -229,6 +236,7 @@ export async function addEntryAction(
   if (!parsed.success) return { status: "error", message: "Requête invalide." };
   if (parsed.data.version === null) return { status: "error", message: "Requête invalide." };
   let added = true;
+  const input = parsed.data;
   const state = await editEntries(parsed.data, async (entries, plan) => {
     if (entries.length >= 21) throw new ActionError("invalid", "Au plus 21 plats par semaine.");
     const { household, supabase } = await context();
@@ -245,7 +253,13 @@ export async function addEntryAction(
       added = false;
       return entries;
     }
-    return [...entries, { ...extra, locked: false }];
+    // Seul le nouveau plat est placé : on ne déplace pas ceux que le foyer a laissés sans jour.
+    const placed = autoPlace(
+      [...entries, { ...extra, locked: false }],
+      input.week,
+      todayIn(household.timezone),
+    ).at(-1)!;
+    return [...entries, placed];
   });
   if (state.status === "success" && !added) {
     return { status: "error", message: "Plus aucune recette compatible à proposer." };
@@ -269,7 +283,13 @@ export async function replaceEntryAction(formData: FormData): Promise<void> {
     }
     const entry = entryAt(entries, position);
     assertNotCooked(plan, position);
-    entries[position - 1] = { recipeId, servings: entry.servings || plan.people, locked: false };
+    entries[position - 1] = {
+      recipeId,
+      servings: entry.servings || plan.people,
+      locked: false,
+      day: entry.day,
+      slot: entry.slot,
+    };
     return entries;
   });
   redirect(
@@ -277,4 +297,40 @@ export async function replaceEntryAction(formData: FormData): Promise<void> {
       ? `/planner?semaine=${week}`
       : `/planner?semaine=${week}&remplacer=${position}&erreur=1`,
   );
+}
+
+/**
+ * Place un plat un jour donné (midi ou soir), ou le retire du planning.
+ * Si la case est déjà prise, les deux plats échangent leur place.
+ */
+export async function setSlotAction(
+  _prev: PlannerState,
+  formData: FormData,
+): Promise<PlannerState> {
+  const parsed = slotSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { status: "error", message: "Jour invalide." };
+  const { week, position, slot } = parsed.data;
+  const target = slot ? parseSlotKey(slot, week) : null;
+  if (slot && !target) return { status: "error", message: "Ce jour n'est pas dans la semaine." };
+  return editEntries(parsed.data, (entries, plan) => {
+    const entry = entryAt(entries, position);
+    assertNotCooked(plan, position);
+    const previous = { day: entry.day ?? null, slot: entry.slot ?? null };
+    if (target) {
+      const other = entries.findIndex(
+        (e, i) =>
+          i !== position - 1 && e.day && e.slot && slotKey({ day: e.day, slot: e.slot }) === slot,
+      );
+      if (other >= 0) {
+        if (plan.cooked.has(other + 1)) {
+          throw new ActionError("invalid", "Ce repas est déjà cuisiné : choisis un autre jour.");
+        }
+        entries[other]!.day = previous.day;
+        entries[other]!.slot = previous.slot;
+      }
+    }
+    entry.day = target?.day ?? null;
+    entry.slot = target?.slot ?? null;
+    return entries;
+  });
 }

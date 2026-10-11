@@ -3,12 +3,13 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { GenerateForm } from "@/components/planner/generate-form";
 import { PlanActionButton } from "@/components/planner/entry-action";
+import { SlotSelect } from "@/components/planner/slot-select";
 import { Alert } from "@/components/ui/alert";
 import { buttonClasses } from "@/components/ui/button";
 import { PageSkeleton } from "@/components/ui/skeleton";
 import { centsToInput, formatCents } from "@/domain/money";
 import { formatShortDate } from "@/lib/dates";
-import { formatWeek } from "@/lib/week";
+import { formatDay, formatWeek } from "@/lib/week";
 import {
   addEntryAction,
   removeEntryAction,
@@ -131,13 +132,7 @@ function PlanView({ page, error }: { page: PlannerPage; error: boolean }) {
       {error ? (
         <Alert tone="error">Ce remplacement n&apos;a pas pu être enregistré. Réessaie.</Alert>
       ) : null}
-      <ol className="flex flex-col gap-3">
-        {page.entries.map((entry) => (
-          <li key={entry.position}>
-            <EntryCard entry={entry} page={page} base={base} />
-          </li>
-        ))}
-      </ol>
+      <WeekSchedule page={page} base={base} />
       {page.entries.length < 21 ? (
         <div className="flex">
           <PlanActionButton
@@ -171,6 +166,62 @@ function PlanView({ page, error }: { page: PlannerPage; error: boolean }) {
         </div>
       </details>
     </>
+  );
+}
+
+/** Les plats jour par jour (midi puis soir), puis ceux qui ne sont pas encore placés. */
+function WeekSchedule({
+  page,
+  base,
+}: {
+  page: PlannerPage;
+  base: { week: string; version: number };
+}) {
+  const days = [...new Set(page.slots.map((s) => s.day))];
+  const unplaced = page.entries.filter((e) => !e.day);
+  return (
+    <div className="flex flex-col gap-4">
+      {days.map((day) => {
+        const meals = page.entries.filter((e) => e.day === day);
+        const isToday = day === page.today;
+        const past = day < page.today;
+        return (
+          <section key={day} aria-label={formatDay(day)} className="flex flex-col gap-2">
+            <h2
+              className={`text-sm font-semibold ${isToday ? "text-brand" : past ? "text-muted" : ""}`}
+            >
+              {formatDay(day)}
+              {isToday ? " · aujourd'hui" : ""}
+            </h2>
+            {meals.length ? (
+              <ol className="flex flex-col gap-3">
+                {meals.map((entry) => (
+                  <li key={entry.position}>
+                    <EntryCard entry={entry} page={page} base={base} />
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="text-muted border-border rounded-xl border border-dashed px-3 py-2 text-xs">
+                Rien de prévu.
+              </p>
+            )}
+          </section>
+        );
+      })}
+      {unplaced.length ? (
+        <section aria-label="Plats non placés" className="flex flex-col gap-2">
+          <h2 className="text-sm font-semibold">Pas encore placés</h2>
+          <ol className="flex flex-col gap-3">
+            {unplaced.map((entry) => (
+              <li key={entry.position}>
+                <EntryCard entry={entry} page={page} base={base} />
+              </li>
+            ))}
+          </ol>
+        </section>
+      ) : null}
+    </div>
   );
 }
 
@@ -258,8 +309,9 @@ function EntryCard({
             <span className="text-muted font-semibold">{entry.title}</span>
           )}
           <span className="text-muted text-xs">
-            {entry.totalMinutes !== null ? `${entry.totalMinutes} min · ` : ""}
-            {entry.cooked ? "Cuisiné ✓" : entry.locked ? "Gardé" : `Plat ${entry.position}`}
+            {entry.slot ? (entry.slot === "lunch" ? "Midi · " : "Soir · ") : ""}
+            {entry.totalMinutes !== null ? `${entry.totalMinutes} min` : ""}
+            {entry.cooked ? " · Cuisiné ✓" : entry.locked ? " · Gardé" : ""}
           </span>
         </div>
         <div className="flex shrink-0 flex-col items-end">
@@ -286,6 +338,21 @@ function EntryCard({
         </p>
       ) : (
         <div className="flex flex-wrap items-center gap-2">
+          <SlotSelect
+            week={base.week}
+            version={base.version}
+            formKey={page.newKey()}
+            position={entry.position}
+            value={entry.day && entry.slot ? `${entry.day}:${entry.slot}` : ""}
+            title={entry.title}
+            options={page.slots.map((s) => ({
+              value: s.value,
+              label: s.label,
+              taken:
+                page.entries.find((e) => e.day && e.slot && `${e.day}:${e.slot}` === s.value)
+                  ?.title ?? null,
+            }))}
+          />
           <div className="flex items-center gap-1" role="group" aria-label="Portions">
             <PlanActionButton
               action={setServingsAction}

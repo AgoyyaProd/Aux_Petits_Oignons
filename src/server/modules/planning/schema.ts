@@ -54,6 +54,11 @@ export const servingsSchema = entrySchema.extend({
 
 export const replaceSchema = entrySchema.extend({ recipeId: z.uuid() });
 
+/** Case du planning « AAAA-MM-JJ:lunch|dinner », ou vide pour « non placé ». */
+export const slotSchema = entrySchema.extend({
+  slot: z.string().regex(/^(\d{4}-\d{2}-\d{2}:(lunch|dinner))?$/, { error: "Jour invalide." }),
+});
+
 export type PlannerState = {
   status: "idle" | "error" | "success";
   message?: string;

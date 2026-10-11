@@ -4,7 +4,7 @@ import { Suspense, type ReactNode } from "react";
 import { buttonClasses } from "@/components/ui/button";
 import { formatCents } from "@/domain/money";
 import { expiryState } from "@/domain/pantry/priority";
-import { formatWeek } from "@/lib/week";
+import { formatSlot, formatWeek } from "@/lib/week";
 import { getCurrentContext } from "@/server/modules/auth/session";
 import { getPantry } from "@/server/modules/pantry/queries";
 import { getPlannerPage } from "@/server/modules/planning/queries";
@@ -170,7 +170,10 @@ async function WeekMenu() {
     );
   }
   const cooked = page.entries.filter((e) => e.cooked).length;
-  const next = page.entries.filter((e) => !e.cooked && e.slug).slice(0, 3);
+  // Entrées déjà triées par jour : les prochains plats à cuisiner, à partir d'aujourd'hui.
+  const next = page.entries
+    .filter((e) => !e.cooked && e.slug && (!e.day || e.day >= page.today))
+    .slice(0, 3);
   const budget = page.plan.budgetCents;
   const { cents, entriesWithMissing } = page.totals;
   return (
@@ -199,13 +202,18 @@ async function WeekMenu() {
                 {e.title}
               </Link>{" "}
               <span className="text-muted text-xs">
-                · {e.servings} portion{e.servings > 1 ? "s" : ""}
+                · {e.day && e.slot ? `${formatSlot(e.day, e.slot)} · ` : ""}
+                {e.servings} portion{e.servings > 1 ? "s" : ""}
               </span>
             </li>
           ))}
         </ul>
       ) : (
-        <p className="text-success text-sm">Tous les plats de la semaine sont cuisinés.</p>
+        <p className="text-success text-sm">
+          {cooked === page.entries.length
+            ? "Tous les plats de la semaine sont cuisinés."
+            : "Plus rien de prévu d'ici dimanche."}
+        </p>
       )}
     </Card>
   );

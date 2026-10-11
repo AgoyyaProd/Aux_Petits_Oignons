@@ -79,3 +79,16 @@ recette contraire aux allergies ou régimes du foyer. Aucune écriture directe d
 
 Le menu est une liste de plats pour la semaine ; leur placement jour par jour (midi/soir)
 viendra avec la liste de courses et le décompte du stock.
+
+## Addendum — plats placés jour par jour (migration 0019)
+
+- Chaque plat du menu peut avoir un jour (dans la semaine du menu) et un repas (midi ou soir),
+  les deux ensemble ou aucun. `meal_plan_save` les valide (AP422) ; une contrainte de table
+  garantit la paire.
+- À la proposition, les plats sont placés automatiquement (`autoPlace`, déterministe) : d'abord
+  les soirs à partir d'aujourd'hui, puis les midis, puis les jours passés. Les plats gardés et
+  cuisinés conservent leur jour. Un plat ajouté prend la première case libre ; un plat remplacé
+  garde la sienne. Déplacer un plat sur une case occupée échange les deux plats.
+- Liste de courses : un plat est daté de son jour (`mealDateFor`) ; un plat d'un jour passé non
+  cuisiné compte pour aujourd'hui ; un plat non placé compte pour aujourd'hui. Un produit du
+  garde-manger dont la DLC tombe avant ce jour n'est pas compté comme disponible.

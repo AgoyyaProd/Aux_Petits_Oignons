@@ -1,8 +1,14 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { suggestReplacements } from "@/domain/planning";
+import {
+  compareBySlot,
+  slotKey,
+  suggestReplacements,
+  weekSlots,
+  type MealSlot,
+} from "@/domain/planning";
 import { todayIn } from "@/lib/dates";
-import { addDays, isMonday, mondayOf } from "@/lib/week";
+import { addDays, formatSlot, isMonday, mondayOf } from "@/lib/week";
 import { getCurrentContext } from "@/server/modules/auth/session";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 import { costOfEntry, getPlanningCatalog } from "./catalog";
@@ -22,6 +28,9 @@ export interface PlannerEntryView {
   available: boolean;
   /** Plat déjà cuisiné : ses ingrédients ont été retirés du garde-manger. */
   cooked: boolean;
+  /** Jour et repas, ou null si le plat n'est pas encore placé. */
+  day: string | null;
+  slot: MealSlot | null;
 }
 
 export interface ReplacementView {
@@ -76,6 +85,8 @@ export async function getPlannerPage({ week, replace }: { week?: string; replace
         missingNames: [],
         available: false,
         cooked: plan!.cooked.has(i + 1),
+        day: e.day ?? null,
+        slot: e.slot ?? null,
       };
     }
     const cost = costOfEntry(meta, e.servings, catalog.priceBook);
@@ -91,8 +102,12 @@ export async function getPlannerPage({ week, replace }: { week?: string; replace
       missingNames: cost.missingNames,
       available: meta.compatible,
       cooked: plan!.cooked.has(i + 1),
+      day: e.day ?? null,
+      slot: e.slot ?? null,
     };
   });
+  // Affichage dans l'ordre de la semaine ; la position reste l'identifiant du plat.
+  entries.sort((a, b) => compareBySlot(a, b) || a.position - b.position);
 
   let replacements: ReplacementView[] = [];
   if (plan && replace && replace >= 1 && replace <= plan.entries.length) {
@@ -148,6 +163,13 @@ export async function getPlannerPage({ week, replace }: { week?: string; replace
       entriesWithMissing: entries.filter((e) => e.missingNames.length > 0).length,
       missingNames: [...missing].sort((a, b) => a.localeCompare(b, "fr")),
     },
+    today,
+    /** Cases de la semaine pour placer un plat (valeur « AAAA-MM-JJ:lunch|dinner »). */
+    slots: weekSlots(weekStart).map((ref) => ({
+      value: slotKey(ref),
+      label: formatSlot(ref.day, ref.slot),
+      day: ref.day,
+    })),
     replace: replace ?? null,
     replacements,
     candidateCount: catalog.candidates.length,

@@ -1,8 +1,12 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import type { PlanEntry } from "@/domain/planning";
+import type { MealSlot, PlanEntry } from "@/domain/planning";
 import { toActionError } from "@/server/errors";
 import type { Supabase } from "@/server/modules/recipes/queries";
+
+function isSlot(value: string | null): value is MealSlot {
+  return value === "lunch" || value === "dinner";
+}
 
 export interface StoredPlan {
   id: string;
@@ -26,7 +30,7 @@ export async function readPlan(
   const { data, error } = await supabase
     .from("meal_plans")
     .select(
-      "id, version, people, meal_count, budget_cents, seed, shopping_done_at, meal_plan_entries (position, recipe_id, servings, locked), meal_cookings (recipe_id)",
+      "id, version, people, meal_count, budget_cents, seed, shopping_done_at, meal_plan_entries (position, recipe_id, servings, locked, planned_on, meal_slot), meal_cookings (recipe_id)",
     )
     .eq("household_id", householdId)
     .eq("week_start", weekStart)
@@ -57,6 +61,8 @@ export async function readPlan(
       recipeId: e.recipe_id,
       servings: e.servings,
       locked: e.locked,
+      day: e.planned_on && e.meal_slot ? e.planned_on : null,
+      slot: e.planned_on && isSlot(e.meal_slot) ? e.meal_slot : null,
     })),
     shoppingDoneAt: data.shopping_done_at,
     cooked,
@@ -89,6 +95,8 @@ export async function savePlan(
       recipe_id: e.recipeId,
       servings: e.servings,
       locked: e.locked,
+      // Jour et repas vont ensemble (contrainte en base).
+      ...(e.day && e.slot ? { planned_on: e.day, slot: e.slot } : {}),
     })),
     p_expected_version: args.expectedVersion as number,
     p_idempotency_key: args.idempotencyKey ?? randomUUID(),

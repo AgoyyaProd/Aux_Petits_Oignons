@@ -47,3 +47,20 @@ export function formatWeek(monday: string): string {
   const sameMonth = monday.slice(5, 7) === sunday.slice(5, 7);
   return `Semaine du ${sameMonth ? from.split(" ")[0] : from} au ${to}`;
 }
+
+const weekdayDay = new Intl.DateTimeFormat("fr-FR", {
+  weekday: "long",
+  day: "numeric",
+  timeZone: "UTC",
+});
+
+/** « Lundi 12 » (« Samedi 1er »). */
+export function formatDay(iso: string): string {
+  const label = weekdayDay.format(toDate(iso)).replace(/ 1$/, " 1er");
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+/** « Lundi 12 midi », « Mardi 13 soir ». */
+export function formatSlot(day: string, slot: "lunch" | "dinner"): string {
+  return `${formatDay(day)} ${slot === "lunch" ? "midi" : "soir"}`;
+}

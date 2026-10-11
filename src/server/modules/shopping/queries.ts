@@ -10,6 +10,7 @@ import {
   type ShoppingWarning,
   type StockLot,
 } from "@/domain/shopping";
+import { mealDateFor } from "@/domain/planning";
 import { fromBase, type Dimension, type Quantity } from "@/domain/units";
 import { todayIn } from "@/lib/dates";
 import { addDays, isMonday, mondayOf } from "@/lib/week";
@@ -66,7 +67,6 @@ export async function getShoppingPage(week?: string) {
 
   const today = todayIn(household.timezone);
   const weekStart = week && isMonday(week) ? week : mondayOf(today);
-  const weekEnd = addDays(weekStart, 6);
   const base = {
     householdId: household.id,
     weekStart,
@@ -118,10 +118,8 @@ export async function getShoppingPage(week?: string) {
     category.set(i.id, i.category);
   }
 
-  // Les plats du menu ne sont pas encore placés jour par jour : on les date du jour même
-  // (ou du lundi pour une semaine à venir). Le stock est donc compté s'il est encore bon
-  // aujourd'hui ; le générateur met déjà en avant les produits à consommer vite.
-  const mealDate = today < weekStart ? weekStart : today > weekEnd ? weekEnd : today;
+  // Chaque plat est daté de son jour au planning (ou d'aujourd'hui s'il n'est pas placé) :
+  // un produit du garde-manger ne compte que s'il sera encore bon ce jour-là.
   const titles = new Map<string, string>();
   const meals: PlannedMealInput[] = [];
   plan.entries.forEach((e, i) => {
@@ -132,8 +130,8 @@ export async function getShoppingPage(week?: string) {
     titles.set(id, meta.title);
     meals.push({
       id,
-      date: mealDate,
-      slot: "dinner",
+      date: mealDateFor(e.day, weekStart, today),
+      slot: e.slot ?? "dinner",
       servings: e.servings,
       recipe: {
         id: meta.id,

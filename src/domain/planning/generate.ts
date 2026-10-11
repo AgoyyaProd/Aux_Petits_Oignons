@@ -40,10 +40,16 @@ export interface PlanRequest {
   seed: number;
 }
 
+export type MealSlot = "lunch" | "dinner";
+
 export interface PlanEntry {
   recipeId: string;
   servings: number;
   locked: boolean;
+  /** Jour du repas (AAAA-MM-JJ, dans la semaine du menu) ; absent = pas encore placé. */
+  day?: string | null;
+  /** Midi ou soir ; présent si et seulement si `day` l'est. */
+  slot?: MealSlot | null;
 }
 
 export interface PlanResult {
