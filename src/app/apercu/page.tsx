@@ -1,3 +1,4 @@
+import { RecipeFacts } from "@/components/recipes/recipe-facts";
 import { NutritionPanel } from "@/components/recipes/nutrition-panel";
 import { computeRecipeNutrition, type Per100g } from "@/domain/nutrition";
 import { quantity } from "@/domain/units";
@@ -204,6 +205,40 @@ export default function DesignPreview() {
             />
           </div>
         </KitchenProvider>
+      </section>
+      <section className="flex flex-col gap-4">
+        <h2 className="type-section">Informations de recette</h2>
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-stretch lg:gap-16">
+          <RecipeVisual
+            slug="boeuf-bourguignon"
+            title="Bœuf bourguignon"
+            className="aspect-[4/3] rounded-3xl lg:aspect-auto lg:h-full lg:min-h-[26rem]"
+          />
+          <div className="flex flex-col gap-4">
+            <RecipeFacts
+              prepMinutes={30}
+              cookMinutes={170}
+              servings={6}
+              stepCount={11}
+              difficulty="elaboree"
+              cost={{ cents: 2460, missingNames: [] }}
+              kcal={{ value: 612.4, partial: false }}
+              equipmentLabels={["Faitout ou cocotte", "Poêle"]}
+              allergenLabels={["Céleri", "Sulfites"]}
+            />
+            <RecipeFacts
+              prepMinutes={10}
+              cookMinutes={0}
+              servings={2}
+              stepCount={4}
+              difficulty="facile"
+              cost={{ cents: 610, missingNames: ["Graines de chia"] }}
+              kcal={null}
+              equipmentLabels={[]}
+              allergenLabels={[]}
+            />
+          </div>
+        </div>
       </section>
       <section className="flex flex-col gap-4">
         <h2 className="type-section">Valeurs nutritionnelles</h2>

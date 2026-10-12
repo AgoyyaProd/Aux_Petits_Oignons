@@ -10,23 +10,14 @@ import { KitchenProvider } from "@/components/recipes/kitchen";
 import { RatingButtons } from "@/components/recipes/rating-buttons";
 import { RecipeBody } from "@/components/recipes/recipe-body";
 import { FavoriteButton } from "@/components/recipes/favorite-button";
+import { RecipeFacts } from "@/components/recipes/recipe-facts";
 import { RecipeVisual } from "@/components/recipes/recipe-visual";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import {
-  ChevronLeftIcon,
-  ClockIcon,
-  FridgeIcon,
-  GaugeIcon,
-  LeafIcon,
-  PotIcon,
-  UsersIcon,
-  WalletIcon,
-} from "@/components/ui/icons";
-import { DIFFICULTY_LABEL, DIFFICULTY_RULE } from "@/domain/recipes/difficulty";
+import { ChevronLeftIcon, FridgeIcon, LeafIcon } from "@/components/ui/icons";
+import { DIFFICULTY_RULE } from "@/domain/recipes/difficulty";
 import { isInCurrentPlan } from "@/server/modules/planning/queries";
 import { PageSkeleton } from "@/components/ui/skeleton";
-import { formatCents } from "@/domain/money";
 import { formatDateTime, formatShortDate } from "@/lib/dates";
 import { formatWeek } from "@/lib/week";
 import { getCookStatus } from "@/server/modules/cooking/queries";
@@ -50,10 +41,7 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
   const recipe = await getRecipe(slug);
   if (!recipe) notFound();
 
-  const total = recipe.prepMinutes + recipe.cookMinutes;
   const [cook, inMenu] = await Promise.all([getCookStatus(recipe.id), isInCurrentPlan(recipe.id)]);
-
-  const perServing = recipe.cost ? Math.round(recipe.cost.cents / recipe.servings) : null;
 
   return (
     <KitchenProvider baseServings={recipe.servings}>
@@ -121,70 +109,17 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
                 produits sont plus chers et moins savoureux qu&apos;en pleine saison.
               </p>
             ) : null}
-            <section
-              aria-labelledby="infos"
-              className="bg-surface border-border flex flex-col gap-4 rounded-2xl border p-5"
-            >
-              <h2 id="infos" className="text-sm font-semibold">
-                Informations
-              </h2>
-              <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm 2xl:grid-cols-4">
-                <div className="flex flex-col gap-0.5">
-                  <dt className="text-muted inline-flex items-center gap-1.5">
-                    <ClockIcon size={16} /> Temps total
-                  </dt>
-                  <dd className="font-semibold">
-                    {total} min
-                    <span className="text-muted block text-xs font-normal">
-                      Prépa {recipe.prepMinutes} min
-                      {recipe.cookMinutes > 0
-                        ? `, cuisson ${recipe.cookMinutes} min`
-                        : ", sans cuisson"}
-                    </span>
-                  </dd>
-                </div>
-                <div className="flex flex-col gap-0.5" title={DIFFICULTY_RULE}>
-                  <dt className="text-muted inline-flex items-center gap-1.5">
-                    <GaugeIcon size={16} /> Difficulté
-                  </dt>
-                  <dd className="font-semibold">{DIFFICULTY_LABEL[recipe.difficulty]}</dd>
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <dt className="text-muted inline-flex items-center gap-1.5">
-                    <UsersIcon size={16} /> Portions
-                  </dt>
-                  <dd className="font-semibold">{recipe.servings} personnes</dd>
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <dt className="text-muted inline-flex items-center gap-1.5">
-                    <WalletIcon size={16} /> Coût estimé
-                  </dt>
-                  <dd className="font-semibold">
-                    {recipe.cost && perServing !== null ? (
-                      <>
-                        {recipe.cost.missingNames.length ? "≥ " : "≈ "}
-                        {formatCents(perServing)}
-                        <span className="text-muted font-normal"> la part</span>
-                      </>
-                    ) : (
-                      <span className="text-muted font-normal">Non estimé</span>
-                    )}
-                  </dd>
-                </div>
-              </dl>
-              {recipe.equipmentLabels.length ? (
-                <p className="inline-flex items-center gap-1.5 text-sm">
-                  <PotIcon size={16} className="text-muted" />
-                  <span className="text-muted">Matériel :</span>
-                  <span className="font-medium">{recipe.equipmentLabels.join(", ")}</span>
-                </p>
-              ) : null}
-              <p className="text-muted text-xs leading-relaxed">
-                {recipe.cost
-                  ? `Total ${recipe.cost.missingNames.length ? "minimum " : ""}${formatCents(recipe.cost.cents)} pour la recette${recipe.cost.missingNames.length ? ` (sans prix : ${recipe.cost.missingNames.join(", ")})` : ""}.`
-                  : "Aucun prix connu pour ces ingrédients."}
-              </p>
-            </section>
+            <RecipeFacts
+              prepMinutes={recipe.prepMinutes}
+              cookMinutes={recipe.cookMinutes}
+              servings={recipe.servings}
+              stepCount={recipe.steps.length}
+              difficulty={recipe.difficulty}
+              cost={recipe.cost}
+              kcal={recipe.nutrition?.reliable ? recipe.nutrition.perServing.kcal : null}
+              equipmentLabels={recipe.equipmentLabels}
+              allergenLabels={recipe.allergenLabels}
+            />
             {!recipe.exclusionLabel ? (
               <div className="flex flex-wrap items-start gap-3">
                 <AddToMenuButton recipeId={recipe.id} variant="primary" />
@@ -278,12 +213,8 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
         ) : null}
 
         <footer className="text-muted border-border border-t pt-5 text-sm leading-relaxed">
-          Allergènes :{" "}
-          {recipe.allergenLabels.length
-            ? recipe.allergenLabels.join(", ")
-            : "aucun des 14 allergènes réglementaires"}
-          . Déduits des ingrédients : vérifie toujours l&apos;étiquette des produits. Difficulté :{" "}
-          {DIFFICULTY_RULE.charAt(0).toLowerCase() + DIFFICULTY_RULE.slice(1)}
+          Allergènes déduits des ingrédients : vérifie toujours l&apos;étiquette des produits.
+          Difficulté : {DIFFICULTY_RULE.charAt(0).toLowerCase() + DIFFICULTY_RULE.slice(1)}
         </footer>
       </article>
     </KitchenProvider>

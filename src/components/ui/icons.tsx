@@ -213,3 +213,9 @@ export const ChevronDownIcon = (p: IconProps) => (
     <path d="m6 9 6 6 6-6" />
   </svg>
 );
+/** Flamme : énergie (kcal). */
+export const FlameIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M12 3c.5 3-1.5 4.5-3 6.5S7 13 7 15a5 5 0 0 0 10 0c0-2.5-1.5-4.5-2.5-5.5 0 1.5-.75 2.5-1.75 3C13.5 10 13.5 6 12 3z" />
+  </svg>
+);
