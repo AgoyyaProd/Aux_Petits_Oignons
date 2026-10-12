@@ -123,6 +123,8 @@ describe("matériel des recettes", () => {
     expect(moules).not.toContain("moule");
     // Une quiche se fait dans un moule ; des œufs « au plat » ne demandent pas de plat.
     expect(await need("quiche-lardons")).toContain("moule");
+    // « faitout » s'écrit en un mot.
+    expect(await need("minestrone")).toContain("faitout");
     expect(await need("pommes-de-terre-oeufs-plat")).toEqual(expect.arrayContaining(["poele"]));
     expect(await need("pommes-de-terre-oeufs-plat")).not.toContain("plat_four");
   });
