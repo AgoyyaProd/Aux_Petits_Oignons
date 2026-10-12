@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { PlanActionButton } from "@/components/planner/entry-action";
 import { GenerateForm } from "@/components/planner/generate-form";
 import { SlotSelect } from "@/components/planner/slot-select";
+import { WeekBalancePanel } from "@/components/planner/week-balance";
 import { RecipeVisual } from "@/components/recipes/recipe-visual";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -100,6 +101,7 @@ async function PlannerContent({ searchParams }: Pick<PageProps<"/planner">, "sea
           ) : null}
           <Replacements page={page} base={base} />
           <WeekGrid page={page} base={base} />
+          <WeekBalancePanel balance={page.balance} />
           <Regenerate page={page} />
         </>
       ) : (

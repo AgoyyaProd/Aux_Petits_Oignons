@@ -25,6 +25,7 @@ import { getCurrentContext } from "@/server/modules/auth/session";
 import { loadPriceBook } from "@/server/modules/prices/price-book";
 import { loadRatings, recipeHistory, type Rating } from "@/server/modules/recipes/ratings";
 import { createSupabaseServerClient } from "@/server/supabase/server";
+import { per100gFrom } from "@/server/modules/recipes/nutrition-data";
 
 export type Supabase = Awaited<ReturnType<typeof createSupabaseServerClient>>;
 
@@ -436,11 +437,6 @@ export interface RecipeDetail {
   nutrition: RecipeNutrition | null;
 }
 
-/** Valeur numérique de la base (numeric peut arriver en chaîne), null conservé. */
-function num(v: number | string | null): number | null {
-  return v === null ? null : Number(v);
-}
-
 export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
   const { household } = await getCurrentContext();
   if (!household) return null;
@@ -559,18 +555,7 @@ export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
             densityGPerMl: l.ingredients?.density_g_per_ml ?? null,
             pieceWeightG: l.ingredients?.piece_weight_g ?? null,
           },
-          per100g: n
-            ? {
-                kcal: num(n.kcal),
-                proteins: num(n.proteins_g),
-                carbs: num(n.carbs_g),
-                sugars: num(n.sugars_g),
-                fat: num(n.fat_g),
-                saturatedFat: num(n.saturated_fat_g),
-                fiber: num(n.fiber_g),
-                salt: num(n.salt_g),
-              }
-            : null,
+          per100g: per100gFrom(n),
         };
       }),
       r.servings,

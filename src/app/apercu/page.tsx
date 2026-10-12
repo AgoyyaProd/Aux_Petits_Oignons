@@ -1,6 +1,7 @@
 import { RecipeFacts } from "@/components/recipes/recipe-facts";
+import { WeekBalancePanel } from "@/components/planner/week-balance";
 import { NutritionPanel } from "@/components/recipes/nutrition-panel";
-import { computeRecipeNutrition, type Per100g } from "@/domain/nutrition";
+import { computeRecipeNutrition, weekBalance, type Per100g } from "@/domain/nutrition";
 import { quantity } from "@/domain/units";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -246,6 +247,10 @@ export default function DesignPreview() {
         <NutritionPanel nutrition={DEMO_NUTRITION_UNRELIABLE} />
       </section>
       <section className="flex flex-col gap-4">
+        <h2 className="type-section">Équilibre de la semaine</h2>
+        <WeekBalancePanel balance={DEMO_BALANCE} />
+      </section>
+      <section className="flex flex-col gap-4">
         <h2 className="type-section">Navigation</h2>
         <div className="bg-surface border-border max-w-64 rounded-2xl border p-3">
           <SideNavShell pathname="/planner" />
@@ -421,3 +426,31 @@ const DEMO_NUTRITION_UNRELIABLE = computeRecipeNutrition(
   ],
   4,
 );
+
+const DEMO_BALANCE = weekBalance([
+  {
+    title: "Saumon, riz et brocoli",
+    nutrition: DEMO_NUTRITION,
+    profile: { hasFish: true, hasLegumes: false, hasMeat: false, redMeatG: 0, charcuterieG: 0 },
+  },
+  {
+    title: "Dahl de lentilles corail",
+    nutrition: DEMO_NUTRITION,
+    profile: { hasFish: false, hasLegumes: true, hasMeat: false, redMeatG: 0, charcuterieG: 0 },
+  },
+  {
+    title: "Bœuf bourguignon",
+    nutrition: DEMO_NUTRITION,
+    profile: { hasFish: false, hasLegumes: false, hasMeat: true, redMeatG: 200, charcuterieG: 25 },
+  },
+  {
+    title: "Spaghetti carbonara",
+    nutrition: DEMO_NUTRITION,
+    profile: { hasFish: false, hasLegumes: false, hasMeat: true, redMeatG: 0, charcuterieG: 50 },
+  },
+  {
+    title: "Moules marinières",
+    nutrition: DEMO_NUTRITION_UNRELIABLE,
+    profile: { hasFish: true, hasLegumes: false, hasMeat: false, redMeatG: 0, charcuterieG: 0 },
+  },
+]);

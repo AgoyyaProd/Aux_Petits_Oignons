@@ -15,6 +15,7 @@ import { createSupabaseServerClient } from "@/server/supabase/server";
 import { costOfEntry, getPlanningCatalog } from "./catalog";
 import { recentRecipeIds } from "@/server/modules/recipes/ratings";
 import { readPlan } from "./repository";
+import { loadWeekBalance } from "@/server/modules/recipes/nutrition-data";
 
 export interface PlannerEntryView {
   position: number;
@@ -147,6 +148,11 @@ export async function getPlannerPage({ week, replace }: { week?: string; replace
     });
   }
 
+  const balance = await loadWeekBalance(
+    supabase,
+    entries.filter((e) => e.slug !== null).map((e) => ({ recipeId: e.recipeId, title: e.title })),
+  );
+
   const missing = new Set(entries.flatMap((e) => e.missingNames));
   const pricedIngredients = [...catalog.priceBook.values()].filter(
     (p) => p.source !== "free",
@@ -172,6 +178,8 @@ export async function getPlannerPage({ week, replace }: { week?: string; replace
       shoppingDoneAt: plan.shoppingDoneAt,
     },
     entries,
+    /** Équilibre nutritionnel des repas du menu (repères PNNS). */
+    balance,
     totals: {
       cents: entries.reduce((s, e) => s + e.cents, 0),
       entriesWithMissing: entries.filter((e) => e.missingNames.length > 0).length,
