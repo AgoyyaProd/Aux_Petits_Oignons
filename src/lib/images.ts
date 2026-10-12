@@ -60,7 +60,9 @@ export function recipeImageSmall(src: string): string | null {
 export const INGREDIENT_IMAGES: Readonly<Record<string, string>> = {};
 
 /** Visuels de la vitrine. */
-export const SITE_IMAGES: Readonly<{ hero: string | null }> = { hero: null };
+export const SITE_IMAGES: Readonly<{ hero: string | null }> = {
+  hero: "/images/recettes/buddha-bowl-quinoa.webp",
+};
 
 export function recipeImage(slug: string | null | undefined): string | null {
   return slug ? (RECIPE_IMAGES[slug] ?? null) : null;

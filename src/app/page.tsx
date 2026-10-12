@@ -21,19 +21,39 @@ export const metadata: Metadata = {
   title: { absolute: "Aux Petits Oignons — La cuisine du quotidien, bien pensée." },
 };
 
-/** Recettes réelles du catalogue (slug, titre, durée totale, parts, type). */
+/** Recettes réelles du catalogue, choisies parmi celles qui ont une photo. */
 const SELECTION = [
-  { slug: "poulet-basquaise", title: "Poulet basquaise", minutes: 65, servings: 4, tags: ["plat"] },
   {
-    slug: "risotto-butternut",
-    title: "Risotto à la courge butternut",
-    minutes: 45,
+    slug: "curry-pois-chiches-epinards",
+    title: "Curry de pois chiches aux épinards",
+    minutes: 30,
     servings: 4,
     tags: ["plat"],
   },
-  { slug: "shakshuka", title: "Shakshuka", minutes: 35, servings: 4, tags: ["plat"] },
-  { slug: "salade-nicoise", title: "Salade niçoise", minutes: 30, servings: 4, tags: ["salade"] },
+  { slug: "fajitas-poulet", title: "Fajitas de poulet", minutes: 30, servings: 4, tags: ["plat"] },
+  {
+    slug: "boeuf-bourguignon",
+    title: "Bœuf bourguignon",
+    minutes: 210,
+    servings: 6,
+    tags: ["plat"],
+  },
+  {
+    slug: "crumble-pommes",
+    title: "Crumble aux pommes",
+    minutes: 55,
+    servings: 6,
+    tags: ["dessert"],
+  },
 ] as const;
+
+function duration(m: number): string {
+  if (m < 60) return `${m}\u00a0min`;
+  const rest = m % 60;
+  return rest
+    ? `${Math.floor(m / 60)}\u00a0h\u00a0${String(rest).padStart(2, "0")}`
+    : `${m / 60}\u00a0h`;
+}
 
 /** Page publique, statique (prérendue). Un utilisateur connecté est redirigé par le proxy. */
 export default function HomePage() {
@@ -103,10 +123,20 @@ export default function HomePage() {
             </div>
             <div className="relative min-h-80 lg:min-h-[32rem]">
               <div className="absolute inset-0 lg:left-16">
-                <ImageSlot src={SITE_IMAGES.hero} alt="" tone="sage" iconSize={48} />
+                <ImageSlot
+                  src={SITE_IMAGES.hero}
+                  alt=""
+                  tone="sage"
+                  iconSize={48}
+                  sizes="(min-width: 1024px) 50vw, 100vw"
+                  priority
+                />
               </div>
               <LeafShape className="absolute top-10 left-2 hidden w-24 -rotate-12 lg:block" />
-              <DotShape className="absolute top-6 right-[38%] w-20 lg:w-24" />
+              {/* Sans photo, le rond jaune habille le vide ; sur une photo, il masquerait le plat. */}
+              {SITE_IMAGES.hero ? null : (
+                <DotShape className="absolute top-6 right-[38%] w-20 lg:w-24" />
+              )}
             </div>
           </div>
 
@@ -115,7 +145,7 @@ export default function HomePage() {
               Les produits à finir passent en premier dans tes menus.
             </Benefit>
             <Benefit badge="bowl" title="Des recettes simples">
-              Plus de 120 plats du quotidien, chiffrés et adaptés à ton foyer.
+              Plus de 150 plats du quotidien, chiffrés et adaptés à ton foyer.
             </Benefit>
             <Benefit badge="mix" title="Des menus équilibrés">
               Une semaine variée, midi et soir, pour toute la famille.
@@ -156,7 +186,7 @@ export default function HomePage() {
                   <h3 className="font-semibold">{r.title}</h3>
                   <p className="text-muted flex flex-wrap gap-x-4 gap-y-1 text-sm">
                     <span className="inline-flex items-center gap-1.5">
-                      <ClockIcon size={16} /> {r.minutes} min
+                      <ClockIcon size={16} /> {duration(r.minutes)}
                     </span>
                     <span className="inline-flex items-center gap-1.5">
                       <UsersIcon size={16} /> {r.servings} pers.
