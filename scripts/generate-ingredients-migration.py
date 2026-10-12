@@ -89,9 +89,9 @@ gnocchi|Gnocchis|feculents|mass|||gluten||gnocchi
 # --- Légumineuses
 lentille-verte|Lentilles vertes|legumineuses|mass|0.800||||lentilles, lentille
 lentille-corail|Lentilles corail|legumineuses|mass|0.800||||lentille corail
-pois-chiche|Pois chiches cuits|legumineuses|mass|||||pois chiches, pois chiche
-haricot-rouge|Haricots rouges cuits|legumineuses|mass|||||haricots rouges
-haricot-blanc|Haricots blancs cuits|legumineuses|mass|||||haricots blancs, flageolets
+pois-chiche|Pois chiches (conserve)|legumineuses|mass|||||pois chiches, pois chiche
+haricot-rouge|Haricots rouges (conserve)|legumineuses|mass|||||haricots rouges
+haricot-blanc|Haricots blancs (conserve)|legumineuses|mass|||||haricots blancs, flageolets
 tofu|Tofu ferme|legumineuses|mass|||soy||tofu
 # --- Viandes
 poulet-filet|Filet de poulet|viandes|mass||150||M|blanc de poulet, escalope de poulet, filets de poulet

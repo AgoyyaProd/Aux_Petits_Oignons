@@ -234,7 +234,7 @@
     "ingredients": [
       { "id": "quinoa", "name": "Quinoa", "optional": false },
       { "id": "patate-douce", "name": "Patate douce", "optional": false },
-      { "id": "pois-chiche", "name": "Pois chiches cuits", "optional": false },
+      { "id": "pois-chiche", "name": "Pois chiches (conserve)", "optional": false },
       { "id": "avocat", "name": "Avocat", "optional": false },
       { "id": "epinard", "name": "Épinards", "optional": false },
       { "id": "huile-olive", "name": "Huile d'olive", "optional": false },
@@ -333,7 +333,7 @@
     "slug": "chili-con-carne",
     "ingredients": [
       { "id": "boeuf-hache", "name": "Bœuf haché", "optional": false },
-      { "id": "haricot-rouge", "name": "Haricots rouges cuits", "optional": false },
+      { "id": "haricot-rouge", "name": "Haricots rouges (conserve)", "optional": false },
       { "id": "tomate-concassee", "name": "Tomates concassées en boîte", "optional": false },
       { "id": "oignon", "name": "Oignon", "optional": false },
       { "id": "poivron", "name": "Poivron", "optional": false },
@@ -361,7 +361,7 @@
   {
     "slug": "chili-sin-carne",
     "ingredients": [
-      { "id": "haricot-rouge", "name": "Haricots rouges cuits", "optional": false },
+      { "id": "haricot-rouge", "name": "Haricots rouges (conserve)", "optional": false },
       { "id": "mais", "name": "Maïs doux", "optional": false },
       { "id": "tomate-concassee", "name": "Tomates concassées en boîte", "optional": false },
       { "id": "poivron", "name": "Poivron", "optional": false },
@@ -389,7 +389,7 @@
     "slug": "chou-fleur-roti-curry",
     "ingredients": [
       { "id": "chou-fleur", "name": "Chou-fleur", "optional": false },
-      { "id": "pois-chiche", "name": "Pois chiches cuits", "optional": false },
+      { "id": "pois-chiche", "name": "Pois chiches (conserve)", "optional": false },
       { "id": "curry", "name": "Curry en poudre", "optional": false },
       { "id": "huile-olive", "name": "Huile d'olive", "optional": false },
       { "id": "yaourt", "name": "Yaourt nature", "optional": false },
@@ -557,7 +557,7 @@
       { "id": "courgette", "name": "Courgette", "optional": false },
       { "id": "carotte", "name": "Carotte", "optional": false },
       { "id": "navet", "name": "Navet", "optional": false },
-      { "id": "pois-chiche", "name": "Pois chiches cuits", "optional": false },
+      { "id": "pois-chiche", "name": "Pois chiches (conserve)", "optional": false },
       { "id": "tomate-concassee", "name": "Tomates concassées en boîte", "optional": false },
       { "id": "oignon", "name": "Oignon", "optional": false },
       { "id": "cumin", "name": "Cumin", "optional": false },
@@ -738,7 +738,7 @@
   {
     "slug": "curry-pois-chiches-epinards",
     "ingredients": [
-      { "id": "pois-chiche", "name": "Pois chiches cuits", "optional": false },
+      { "id": "pois-chiche", "name": "Pois chiches (conserve)", "optional": false },
       { "id": "epinard", "name": "Épinards", "optional": false },
       { "id": "lait-coco", "name": "Lait de coco", "optional": false },
       { "id": "tomate-concassee", "name": "Tomates concassées en boîte", "optional": false },
@@ -846,7 +846,7 @@
   {
     "slug": "falafels-four",
     "ingredients": [
-      { "id": "pois-chiche", "name": "Pois chiches cuits", "optional": false },
+      { "id": "pois-chiche", "name": "Pois chiches (conserve)", "optional": false },
       { "id": "oignon", "name": "Oignon", "optional": false },
       { "id": "ail", "name": "Ail (gousse)", "optional": false },
       { "id": "persil", "name": "Persil frais", "optional": false },
@@ -1444,7 +1444,7 @@
       { "id": "semoule", "name": "Semoule de blé", "optional": false },
       { "id": "courgette", "name": "Courgette", "optional": false },
       { "id": "carotte", "name": "Carotte", "optional": false },
-      { "id": "pois-chiche", "name": "Pois chiches cuits", "optional": false },
+      { "id": "pois-chiche", "name": "Pois chiches (conserve)", "optional": false },
       { "id": "oignon", "name": "Oignon", "optional": false },
       { "id": "tomate-concassee", "name": "Tomates concassées en boîte", "optional": false },
       { "id": "harissa", "name": "Harissa", "optional": true },
@@ -1471,7 +1471,7 @@
       { "id": "carotte", "name": "Carotte", "optional": false },
       { "id": "celeri-branche", "name": "Céleri branche", "optional": false },
       { "id": "oignon", "name": "Oignon", "optional": false },
-      { "id": "haricot-blanc", "name": "Haricots blancs cuits", "optional": false },
+      { "id": "haricot-blanc", "name": "Haricots blancs (conserve)", "optional": false },
       { "id": "tomate-concassee", "name": "Tomates concassées en boîte", "optional": false },
       { "id": "coquillettes", "name": "Coquillettes", "optional": false },
       { "id": "bouillon-legumes", "name": "Bouillon cube de légumes", "optional": false },
@@ -1871,7 +1871,7 @@
     "slug": "patates-douces-feta-pois-chiches",
     "ingredients": [
       { "id": "patate-douce", "name": "Patate douce", "optional": false },
-      { "id": "pois-chiche", "name": "Pois chiches cuits", "optional": false },
+      { "id": "pois-chiche", "name": "Pois chiches (conserve)", "optional": false },
       { "id": "feta", "name": "Feta", "optional": false },
       { "id": "huile-olive", "name": "Huile d'olive", "optional": false },
       { "id": "cumin", "name": "Cumin", "optional": false },
@@ -2695,7 +2695,7 @@
     "slug": "riz-haricots-rouges",
     "ingredients": [
       { "id": "riz", "name": "Riz", "optional": false },
-      { "id": "haricot-rouge", "name": "Haricots rouges cuits", "optional": false },
+      { "id": "haricot-rouge", "name": "Haricots rouges (conserve)", "optional": false },
       { "id": "poivron", "name": "Poivron", "optional": false },
       { "id": "oignon", "name": "Oignon", "optional": false },
       { "id": "tomate-concassee", "name": "Tomates concassées en boîte", "optional": false },
@@ -2841,7 +2841,7 @@
     "slug": "salade-fenouil-orange-pois-chiches",
     "ingredients": [
       { "id": "fenouil", "name": "Fenouil", "optional": false },
-      { "id": "pois-chiche", "name": "Pois chiches cuits", "optional": false },
+      { "id": "pois-chiche", "name": "Pois chiches (conserve)", "optional": false },
       { "id": "orange", "name": "Orange", "optional": false },
       { "id": "huile-olive", "name": "Huile d'olive", "optional": false },
       { "id": "cumin", "name": "Cumin", "optional": false },
@@ -3027,7 +3027,7 @@
       { "id": "quinoa", "name": "Quinoa", "optional": false },
       { "id": "avocat", "name": "Avocat", "optional": false },
       { "id": "mais", "name": "Maïs doux", "optional": false },
-      { "id": "haricot-rouge", "name": "Haricots rouges cuits", "optional": false },
+      { "id": "haricot-rouge", "name": "Haricots rouges (conserve)", "optional": false },
       { "id": "tomate-cerise", "name": "Tomate cerise", "optional": false },
       { "id": "citron-vert", "name": "Citron vert", "optional": false },
       { "id": "coriandre", "name": "Coriandre fraîche", "optional": false },
@@ -3310,7 +3310,7 @@
     "slug": "soupe-tomate-pois-chiches",
     "ingredients": [
       { "id": "tomate-concassee", "name": "Tomates concassées en boîte", "optional": false },
-      { "id": "pois-chiche", "name": "Pois chiches cuits", "optional": false },
+      { "id": "pois-chiche", "name": "Pois chiches (conserve)", "optional": false },
       { "id": "oignon", "name": "Oignon", "optional": false },
       { "id": "carotte", "name": "Carotte", "optional": false },
       { "id": "ail", "name": "Ail (gousse)", "optional": false },
