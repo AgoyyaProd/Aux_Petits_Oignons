@@ -137,6 +137,11 @@ export interface PlanEntry {
   day?: string | null;
   /** Midi ou soir ; présent si et seulement si `day` l'est. */
   slot?: MealSlot | null;
+  /**
+   * Reste d'un plat cuisiné en double plus tôt dans la semaine : ne compte ni dans les
+   * courses ni dans le coût, et ne se cuisine pas.
+   */
+  leftover?: boolean;
 }
 
 export interface PlanResult {

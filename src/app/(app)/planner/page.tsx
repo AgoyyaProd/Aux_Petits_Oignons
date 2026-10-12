@@ -26,6 +26,7 @@ import { formatShortDate } from "@/lib/dates";
 import { formatDay, formatWeek } from "@/lib/week";
 import {
   addEntryAction,
+  cookDoubleAction,
   removeEntryAction,
   reorganizeAction,
   replaceEntryAction,
@@ -480,14 +481,26 @@ function EntryTile({
               </span>
             ) : null}
             <span>{entry.servings} p.</span>
-            <span>
-              {entry.missingNames.length ? "≥ " : "≈ "}
-              {formatCents(entry.cents)}
-            </span>
+            {entry.leftover ? (
+              <span>déjà compté</span>
+            ) : (
+              <span>
+                {entry.missingNames.length ? "≥ " : "≈ "}
+                {formatCents(entry.cents)}
+              </span>
+            )}
           </span>
           <span className="flex flex-wrap gap-1">
             {entry.cooked ? <Badge tone="leaf">Cuisiné</Badge> : null}
-            {entry.locked && !entry.cooked ? (
+            {entry.leftover ? (
+              <Badge tone="soon">
+                Reste{entry.leftoverOf ? ` du ${entry.leftoverOf.toLowerCase()}` : ""}
+              </Badge>
+            ) : null}
+            {entry.hasLeftovers && !entry.cooked ? (
+              <Badge tone="soon">Cuisiné en double</Badge>
+            ) : null}
+            {entry.locked && !entry.cooked && !entry.leftover ? (
               <Badge tone="neutral">
                 <LockIcon size={12} /> Gardé
               </Badge>
@@ -523,61 +536,84 @@ function EntryTile({
                     ?.title ?? null,
               }))}
             />
-            <div
-              className="flex items-center justify-between gap-2"
-              role="group"
-              aria-label="Portions"
-            >
-              <PlanActionButton
-                action={setServingsAction}
-                fields={{
-                  ...fields,
-                  servings: Math.max(1, entry.servings - 1),
-                  key: page.newKey(),
-                }}
-                label="Une portion de moins"
-                className={iconButtonClasses()}
+            {entry.leftover ? null : (
+              <div
+                className="flex items-center justify-between gap-2"
+                role="group"
+                aria-label="Portions"
               >
-                <MinusIcon size={18} />
-              </PlanActionButton>
-              <span className="text-sm font-semibold tabular-nums">
-                {entry.servings} portion{entry.servings > 1 ? "s" : ""}
-              </span>
+                <PlanActionButton
+                  action={setServingsAction}
+                  fields={{
+                    ...fields,
+                    servings: Math.max(1, entry.servings - 1),
+                    key: page.newKey(),
+                  }}
+                  label="Une portion de moins"
+                  className={iconButtonClasses()}
+                >
+                  <MinusIcon size={18} />
+                </PlanActionButton>
+                <span className="text-sm font-semibold tabular-nums">
+                  {entry.servings} portion{entry.servings > 1 ? "s" : ""}
+                </span>
+                <PlanActionButton
+                  action={setServingsAction}
+                  fields={{
+                    ...fields,
+                    servings: Math.min(40, entry.servings + 1),
+                    key: page.newKey(),
+                  }}
+                  label="Une portion de plus"
+                  className={iconButtonClasses()}
+                >
+                  <PlusIcon size={18} />
+                </PlanActionButton>
+              </div>
+            )}
+            {entry.leftover ? (
+              <p className="text-muted text-xs">
+                Ses portions sont comptées dans le plat cuisiné en double : rien de plus à acheter.
+              </p>
+            ) : (
               <PlanActionButton
-                action={setServingsAction}
-                fields={{
-                  ...fields,
-                  servings: Math.min(40, entry.servings + 1),
-                  key: page.newKey(),
-                }}
-                label="Une portion de plus"
-                className={iconButtonClasses()}
-              >
-                <PlusIcon size={18} />
-              </PlanActionButton>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <PlanActionButton
-                action={toggleLockAction}
+                action={cookDoubleAction}
                 fields={{ ...fields, key: page.newKey() }}
-                label={
-                  entry.locked ? "Ne plus garder ce plat" : "Garder ce plat si je génère à nouveau"
-                }
-                className={`${small} ${entry.locked ? "border-brand bg-brand-soft" : ""}`}
+                label={`Cuisiner double : ${entry.title} une fois de plus en restes, au repas libre suivant`}
+                className={`${small} justify-start`}
               >
-                <LockIcon size={15} />
-                {entry.locked ? "Gardé" : "Garder"}
+                <PlusIcon size={15} />
+                Cuisiner double (restes)
               </PlanActionButton>
-              <Link
-                href={
-                  replacing
-                    ? `/planner?semaine=${page.weekStart}`
-                    : `/planner?semaine=${page.weekStart}&remplacer=${entry.position}#remplacer`
-                }
-                className={small}
-              >
-                {replacing ? "Annuler" : "Remplacer"}
-              </Link>
+            )}
+            <div className="flex flex-wrap gap-2">
+              {entry.leftover ? null : (
+                <PlanActionButton
+                  action={toggleLockAction}
+                  fields={{ ...fields, key: page.newKey() }}
+                  label={
+                    entry.locked
+                      ? "Ne plus garder ce plat"
+                      : "Garder ce plat si je génère à nouveau"
+                  }
+                  className={`${small} ${entry.locked ? "border-brand bg-brand-soft" : ""}`}
+                >
+                  <LockIcon size={15} />
+                  {entry.locked ? "Gardé" : "Garder"}
+                </PlanActionButton>
+              )}
+              {entry.leftover ? null : (
+                <Link
+                  href={
+                    replacing
+                      ? `/planner?semaine=${page.weekStart}`
+                      : `/planner?semaine=${page.weekStart}&remplacer=${entry.position}#remplacer`
+                  }
+                  className={small}
+                >
+                  {replacing ? "Annuler" : "Remplacer"}
+                </Link>
+              )}
               <PlanActionButton
                 action={removeEntryAction}
                 fields={{ ...fields, key: page.newKey() }}

@@ -42,7 +42,7 @@ export async function getBudgetPage() {
   const [plans, catalog] = await Promise.all([
     supabase
       .from("meal_plans")
-      .select("week_start, budget_cents, meal_plan_entries (recipe_id, servings)")
+      .select("week_start, budget_cents, meal_plan_entries (recipe_id, servings, leftover)")
       .eq("household_id", household.id)
       .gte("week_start", from)
       .lte("week_start", current),
@@ -58,6 +58,8 @@ export async function getBudgetPage() {
     let estimatedCents = 0;
     let isMinimum = false;
     for (const e of plan?.meal_plan_entries ?? []) {
+      // Un reste est déjà payé avec le plat cuisiné en double.
+      if (e.leftover) continue;
       const meta = catalog.recipes.get(e.recipe_id);
       if (!meta) {
         isMinimum = true;

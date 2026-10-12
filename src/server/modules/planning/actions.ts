@@ -3,7 +3,16 @@
 import { refresh } from "next/cache";
 import { monthOf } from "@/domain/recipes/season";
 import { redirect } from "next/navigation";
-import { autoPlace, generatePlan, parseSlotKey, slotKey, type PlanEntry } from "@/domain/planning";
+import {
+  addLeftover,
+  autoPlace,
+  generatePlan,
+  normalizeLeftovers,
+  parseSlotKey,
+  removeEntryWithLeftovers,
+  slotKey,
+  type PlanEntry,
+} from "@/domain/planning";
 import { todayIn } from "@/lib/dates";
 import { mondayOf } from "@/lib/week";
 import { randomUUID } from "node:crypto";
@@ -93,20 +102,23 @@ export async function generatePlanAction(
     // On ne garde que les plats verrouillés encore proposables (allergies changées entre-temps).
     const allowed = new Set(catalog.candidates.map((c) => c.id));
     // Plats cuisinés : toujours gardés (le stock a déjà été décompté).
-    const locked = (plan?.entries ?? []).filter(
+    const kept0 = (plan?.entries ?? []).filter(
       (e, i) => plan!.cooked.has(i + 1) || (e.locked && allowed.has(e.recipeId)),
     );
-    if (locked.length > input.mealCount) {
+    // Les restes gardés occupent un repas mais ne passent pas par le générateur (déjà payés).
+    const leftovers = kept0.filter((e) => e.leftover);
+    const locked = kept0.filter((e) => !e.leftover);
+    if (kept0.length > input.mealCount) {
       return {
         status: "error",
         fieldErrors: {
-          mealCount: `Tu as ${locked.length} plats gardés : demande au moins autant de repas.`,
+          mealCount: `Tu as ${kept0.length} plats gardés : demande au moins autant de repas.`,
         },
       };
     }
     const seed = plan ? plan.seed + 1 : 0;
     const result = generatePlan(catalog.candidates, {
-      mealCount: input.mealCount,
+      mealCount: input.mealCount - leftovers.length,
       people: input.people,
       budgetCents: input.budget,
       locked: locked.map((e) => ({ recipeId: e.recipeId, servings: e.servings })),
@@ -116,10 +128,16 @@ export async function generatePlanAction(
       seed,
     });
     // Les plats gardés conservent leur jour ; les nouveaux remplissent les cases libres.
-    const kept = result.entries.map((e, i) =>
-      i < locked.length ? { ...e, day: locked[i]!.day, slot: locked[i]!.slot } : e,
+    const kept = [
+      ...result.entries.map((e, i) =>
+        i < locked.length ? { ...e, day: locked[i]!.day, slot: locked[i]!.slot } : e,
+      ),
+      ...leftovers,
+    ];
+    const entries = normalizeLeftovers(
+      autoPlace(kept, input.week, todayIn(household.timezone)),
+      input.week,
     );
-    const entries = autoPlace(kept, input.week, todayIn(household.timezone));
     if (result.entries.length === 0) {
       return {
         status: "error",
@@ -160,9 +178,12 @@ async function editEntries(
   try {
     const { household, supabase } = await context();
     const plan = requirePlan(await readPlan(supabase, household.id, input.week), input.version);
-    const entries = await edit(
-      plan.entries.map((e) => ({ ...e })),
-      plan,
+    const entries = normalizeLeftovers(
+      await edit(
+        plan.entries.map((e) => ({ ...e })),
+        plan,
+      ),
+      input.week,
     );
     await savePlan(supabase, {
       householdId: household.id,
@@ -196,6 +217,36 @@ function assertNotCooked(plan: StoredPlan, position: number): void {
   }
 }
 
+/** Les portions d'un reste suivent son plat cuisiné : on ne les modifie pas à part. */
+function assertNotLeftover(entries: PlanEntry[], position: number): void {
+  if (entryAt(entries, position).leftover) {
+    throw new ActionError("invalid", "C'est un reste : modifie plutôt le plat cuisiné.");
+  }
+}
+
+/**
+ * « Cuisiner double » : le plat reçoit les portions d'un repas de plus, et un reste est placé
+ * au repas libre suivant. Les courses comptent le double ; le reste ne coûte rien de plus.
+ */
+export async function cookDoubleAction(
+  _prev: PlannerState,
+  formData: FormData,
+): Promise<PlannerState> {
+  const parsed = entrySchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { status: "error", message: "Requête invalide." };
+  const { week, position } = parsed.data;
+  return editEntries(parsed.data, (entries, plan) => {
+    const entry = entryAt(entries, position);
+    assertNotCooked(plan, position);
+    if (entry.leftover) throw new ActionError("invalid", "C'est déjà un reste.");
+    if (entries.length >= 21) throw new ActionError("invalid", "Au plus 21 plats par semaine.");
+    if (entry.servings + plan.people > 40) {
+      throw new ActionError("invalid", "Trop de portions pour un seul plat (40 au plus).");
+    }
+    return addLeftover(entries, position - 1, plan.people, week);
+  });
+}
+
 export async function toggleLockAction(
   _prev: PlannerState,
   formData: FormData,
@@ -204,6 +255,12 @@ export async function toggleLockAction(
   if (!parsed.success) return { status: "error", message: "Requête invalide." };
   return editEntries(parsed.data, (entries) => {
     const entry = entryAt(entries, parsed.data.position);
+    if (entry.leftover) {
+      throw new ActionError(
+        "invalid",
+        "Un reste est toujours gardé ; retire-le s'il ne sert plus.",
+      );
+    }
     entry.locked = !entry.locked;
     return entries;
   });
@@ -218,7 +275,7 @@ export async function removeEntryAction(
   return editEntries(parsed.data, (entries, plan) => {
     entryAt(entries, parsed.data.position);
     assertNotCooked(plan, parsed.data.position);
-    return entries.filter((_, i) => i !== parsed.data.position - 1);
+    return removeEntryWithLeftovers(entries, parsed.data.position - 1);
   });
 }
 
@@ -230,6 +287,7 @@ export async function setServingsAction(
   if (!parsed.success) return { status: "error", message: "Entre 1 et 40 portions." };
   return editEntries(parsed.data, (entries, plan) => {
     assertNotCooked(plan, parsed.data.position);
+    assertNotLeftover(entries, parsed.data.position);
     entryAt(entries, parsed.data.position).servings = parsed.data.servings;
     return entries;
   });
@@ -253,17 +311,18 @@ export async function addEntryAction(
       catalogFor(supabase, household),
       recentRecipeIds(supabase, household.id, input.week),
     ]);
+    const cooking = entries.filter((e) => !e.leftover);
     const result = generatePlan(catalog.candidates, {
       recentRecipeIds: recent,
       profile: catalog.profile,
       month: monthOf(input.week),
-      mealCount: entries.length + 1,
+      mealCount: cooking.length + 1,
       people: plan.people,
       budgetCents: plan.budgetCents,
-      locked: entries.map((e) => ({ recipeId: e.recipeId, servings: e.servings })),
+      locked: cooking.map((e) => ({ recipeId: e.recipeId, servings: e.servings })),
       seed: plan.seed + entries.length,
     });
-    const extra = result.entries[entries.length];
+    const extra = result.entries[cooking.length];
     if (!extra) {
       added = false;
       return entries;
@@ -303,6 +362,7 @@ export async function replaceEntryAction(formData: FormData): Promise<void> {
     }
     const entry = entryAt(entries, position);
     assertNotCooked(plan, position);
+    assertNotLeftover(entries, position);
     entries[position - 1] = {
       recipeId,
       servings: entry.servings || plan.people,
