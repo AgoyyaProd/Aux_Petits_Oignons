@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { CookButton } from "@/components/cooking/cook-button";
 import { AddToMenuButton } from "@/components/recipes/add-to-menu-button";
 import { CookMode } from "@/components/recipes/cook-mode";
+import { KitchenProvider } from "@/components/recipes/kitchen";
 import { RatingButtons } from "@/components/recipes/rating-buttons";
 import { RecipeBody } from "@/components/recipes/recipe-body";
 import { FavoriteButton } from "@/components/recipes/favorite-button";
@@ -53,215 +54,223 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
   const perServing = recipe.cost ? Math.round(recipe.cost.cents / recipe.servings) : null;
 
   return (
-    <article className="flex flex-col gap-10 lg:gap-14">
-      <nav aria-label="Fil d'Ariane" className="text-muted -mb-4 text-sm lg:-mb-6">
-        <ol className="flex flex-wrap items-center gap-1.5">
-          <li>
-            <Link href="/dashboard" className="hover:text-foreground">
-              Accueil
-            </Link>
-          </li>
-          <li aria-hidden="true">
-            <ChevronLeftIcon size={14} className="rotate-180" />
-          </li>
-          <li>
-            <Link href="/recipes" className="hover:text-foreground">
-              Recettes
-            </Link>
-          </li>
-          <li aria-hidden="true">
-            <ChevronLeftIcon size={14} className="rotate-180" />
-          </li>
-          <li
-            aria-current="page"
-            className="text-foreground max-w-[16rem] truncate font-medium lg:max-w-md"
-          >
-            {recipe.title}
-          </li>
-        </ol>
-      </nav>
-      <header className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-stretch lg:gap-16">
-        <RecipeVisual
-          slug={recipe.slug}
-          title={recipe.title}
-          className="aspect-[4/3] rounded-3xl lg:aspect-auto lg:h-full lg:min-h-[26rem]"
-          iconSize={40}
-        />
-        <div className="flex flex-col gap-6">
-          <h1 className="type-page">{recipe.title}</h1>
-          <div className="flex flex-wrap gap-1.5">
-            {recipe.vegan ? (
-              <Badge tone="leaf">Végétalien</Badge>
-            ) : recipe.vegetarian ? (
-              <Badge tone="leaf">Végétarien</Badge>
+    <KitchenProvider baseServings={recipe.servings}>
+      <article className="flex flex-col gap-10 lg:gap-14">
+        <nav aria-label="Fil d'Ariane" className="text-muted -mb-4 text-sm lg:-mb-6">
+          <ol className="flex flex-wrap items-center gap-1.5">
+            <li>
+              <Link href="/dashboard" className="hover:text-foreground">
+                Accueil
+              </Link>
+            </li>
+            <li aria-hidden="true">
+              <ChevronLeftIcon size={14} className="rotate-180" />
+            </li>
+            <li>
+              <Link href="/recipes" className="hover:text-foreground">
+                Recettes
+              </Link>
+            </li>
+            <li aria-hidden="true">
+              <ChevronLeftIcon size={14} className="rotate-180" />
+            </li>
+            <li
+              aria-current="page"
+              className="text-foreground max-w-[16rem] truncate font-medium lg:max-w-md"
+            >
+              {recipe.title}
+            </li>
+          </ol>
+        </nav>
+        <header className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-stretch lg:gap-16">
+          <RecipeVisual
+            slug={recipe.slug}
+            title={recipe.title}
+            className="aspect-[4/3] rounded-3xl lg:aspect-auto lg:h-full lg:min-h-[26rem]"
+            iconSize={40}
+          />
+          <div className="flex flex-col gap-6">
+            <h1 className="type-page">{recipe.title}</h1>
+            <div className="flex flex-wrap gap-1.5">
+              {recipe.vegan ? (
+                <Badge tone="leaf">Végétalien</Badge>
+              ) : recipe.vegetarian ? (
+                <Badge tone="leaf">Végétarien</Badge>
+              ) : null}
+              {recipe.tags.map((t) => (
+                <Badge key={t} tone="neutral">
+                  {RECIPE_TAG_LABEL[t] ?? t}
+                </Badge>
+              ))}
+            </div>
+            {recipe.description ? (
+              <p className="text-muted text-lg leading-relaxed">{recipe.description}</p>
             ) : null}
-            {recipe.tags.map((t) => (
-              <Badge key={t} tone="neutral">
-                {RECIPE_TAG_LABEL[t] ?? t}
-              </Badge>
-            ))}
-          </div>
-          {recipe.description ? (
-            <p className="text-muted text-lg leading-relaxed">{recipe.description}</p>
-          ) : null}
-          <section
-            aria-labelledby="infos"
-            className="bg-surface border-border flex flex-col gap-4 rounded-2xl border p-5"
-          >
-            <h2 id="infos" className="text-sm font-semibold">
-              Informations
-            </h2>
-            <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm 2xl:grid-cols-4">
-              <div className="flex flex-col gap-0.5">
-                <dt className="text-muted inline-flex items-center gap-1.5">
-                  <ClockIcon size={16} /> Temps total
-                </dt>
-                <dd className="font-semibold">
-                  {total} min
-                  <span className="text-muted block text-xs font-normal">
-                    Prépa {recipe.prepMinutes} min
-                    {recipe.cookMinutes > 0
-                      ? `, cuisson ${recipe.cookMinutes} min`
-                      : ", sans cuisson"}
-                  </span>
-                </dd>
-              </div>
-              <div className="flex flex-col gap-0.5" title={DIFFICULTY_RULE}>
-                <dt className="text-muted inline-flex items-center gap-1.5">
-                  <GaugeIcon size={16} /> Difficulté
-                </dt>
-                <dd className="font-semibold">{DIFFICULTY_LABEL[recipe.difficulty]}</dd>
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <dt className="text-muted inline-flex items-center gap-1.5">
-                  <UsersIcon size={16} /> Portions
-                </dt>
-                <dd className="font-semibold">{recipe.servings} personnes</dd>
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <dt className="text-muted inline-flex items-center gap-1.5">
-                  <WalletIcon size={16} /> Coût estimé
-                </dt>
-                <dd className="font-semibold">
-                  {recipe.cost && perServing !== null ? (
-                    <>
-                      {recipe.cost.missingNames.length ? "≥ " : "≈ "}
-                      {formatCents(perServing)}
-                      <span className="text-muted font-normal"> la part</span>
-                    </>
-                  ) : (
-                    <span className="text-muted font-normal">Non estimé</span>
-                  )}
-                </dd>
-              </div>
-            </dl>
-            {recipe.equipmentLabels.length ? (
-              <p className="inline-flex items-center gap-1.5 text-sm">
-                <PotIcon size={16} className="text-muted" />
-                <span className="text-muted">Matériel :</span>
-                <span className="font-medium">{recipe.equipmentLabels.join(", ")}</span>
+            <section
+              aria-labelledby="infos"
+              className="bg-surface border-border flex flex-col gap-4 rounded-2xl border p-5"
+            >
+              <h2 id="infos" className="text-sm font-semibold">
+                Informations
+              </h2>
+              <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm 2xl:grid-cols-4">
+                <div className="flex flex-col gap-0.5">
+                  <dt className="text-muted inline-flex items-center gap-1.5">
+                    <ClockIcon size={16} /> Temps total
+                  </dt>
+                  <dd className="font-semibold">
+                    {total} min
+                    <span className="text-muted block text-xs font-normal">
+                      Prépa {recipe.prepMinutes} min
+                      {recipe.cookMinutes > 0
+                        ? `, cuisson ${recipe.cookMinutes} min`
+                        : ", sans cuisson"}
+                    </span>
+                  </dd>
+                </div>
+                <div className="flex flex-col gap-0.5" title={DIFFICULTY_RULE}>
+                  <dt className="text-muted inline-flex items-center gap-1.5">
+                    <GaugeIcon size={16} /> Difficulté
+                  </dt>
+                  <dd className="font-semibold">{DIFFICULTY_LABEL[recipe.difficulty]}</dd>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <dt className="text-muted inline-flex items-center gap-1.5">
+                    <UsersIcon size={16} /> Portions
+                  </dt>
+                  <dd className="font-semibold">{recipe.servings} personnes</dd>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <dt className="text-muted inline-flex items-center gap-1.5">
+                    <WalletIcon size={16} /> Coût estimé
+                  </dt>
+                  <dd className="font-semibold">
+                    {recipe.cost && perServing !== null ? (
+                      <>
+                        {recipe.cost.missingNames.length ? "≥ " : "≈ "}
+                        {formatCents(perServing)}
+                        <span className="text-muted font-normal"> la part</span>
+                      </>
+                    ) : (
+                      <span className="text-muted font-normal">Non estimé</span>
+                    )}
+                  </dd>
+                </div>
+              </dl>
+              {recipe.equipmentLabels.length ? (
+                <p className="inline-flex items-center gap-1.5 text-sm">
+                  <PotIcon size={16} className="text-muted" />
+                  <span className="text-muted">Matériel :</span>
+                  <span className="font-medium">{recipe.equipmentLabels.join(", ")}</span>
+                </p>
+              ) : null}
+              <p className="text-muted text-xs leading-relaxed">
+                {recipe.cost
+                  ? `Total ${recipe.cost.missingNames.length ? "minimum " : ""}${formatCents(recipe.cost.cents)} pour la recette${recipe.cost.missingNames.length ? ` (sans prix : ${recipe.cost.missingNames.join(", ")})` : ""}.`
+                  : "Aucun prix connu pour ces ingrédients."}
               </p>
+            </section>
+            {!recipe.exclusionLabel ? (
+              <div className="flex flex-wrap items-start gap-3">
+                <AddToMenuButton recipeId={recipe.id} variant="primary" />
+                <FavoriteButton
+                  recipeId={recipe.id}
+                  title={recipe.title}
+                  favorite={recipe.rating === 1}
+                  bordered
+                />
+                <CookMode
+                  title={recipe.title}
+                  steps={recipe.steps}
+                  ingredients={recipe.ingredients}
+                  stepDetails={recipe.stepDetails}
+                />
+              </div>
             ) : null}
-            <p className="text-muted text-xs leading-relaxed">
-              {recipe.cost
-                ? `Total ${recipe.cost.missingNames.length ? "minimum " : ""}${formatCents(recipe.cost.cents)} pour la recette${recipe.cost.missingNames.length ? ` (sans prix : ${recipe.cost.missingNames.join(", ")})` : ""}.`
-                : "Aucun prix connu pour ces ingrédients."}
+            <details className="text-sm">
+              <summary className="text-muted cursor-pointer">Avis et historique</summary>
+              <div className="mt-3 flex flex-col gap-2">
+                <RatingButtons recipeId={recipe.id} rating={recipe.rating} />
+                <History history={recipe.history} />
+              </div>
+            </details>
+          </div>
+        </header>
+
+        {recipe.exclusionLabel ? (
+          <Alert tone="error">
+            Incompatible avec ton foyer : {recipe.exclusionLabel}. Cette recette n&apos;est proposée
+            ni dans le catalogue ni dans les menus.
+          </Alert>
+        ) : null}
+        {recipe.toRemoveNames.length > 0 ? (
+          <Alert tone="info">
+            Ingrédient facultatif que tu ne manges pas : {recipe.toRemoveNames.join(", ")}. La
+            recette se fait sans.
+          </Alert>
+        ) : null}
+
+        {cook?.kind === "ready" ? (
+          <section aria-label="Plat du menu" className="flex flex-col gap-2">
+            <p className="text-sm font-semibold">
+              Ce plat est au menu de la semaine. Une fois préparé :
             </p>
-          </section>
-          {!recipe.exclusionLabel ? (
-            <div className="flex flex-wrap items-start gap-3">
-              <AddToMenuButton recipeId={recipe.id} variant="primary" />
-              <FavoriteButton
+            <div className="self-start">
+              <CookButton
+                week={cook.week}
                 recipeId={recipe.id}
-                title={recipe.title}
-                favorite={recipe.rating === 1}
-                bordered
+                servings={cook.servings}
+                formKey={cook.formKey}
               />
-              <CookMode title={recipe.title} steps={recipe.steps} />
             </div>
-          ) : null}
-          <details className="text-sm">
-            <summary className="text-muted cursor-pointer">Avis et historique</summary>
-            <div className="mt-3 flex flex-col gap-2">
-              <RatingButtons recipeId={recipe.id} rating={recipe.rating} />
-              <History history={recipe.history} />
-            </div>
-          </details>
-        </div>
-      </header>
+          </section>
+        ) : cook?.kind === "cooked" ? (
+          <Alert tone="success">
+            Cuisiné le {formatDateTime(cook.cookedAt, "Europe/Paris")} : ingrédients retirés du
+            garde-manger.
+          </Alert>
+        ) : null}
 
-      {recipe.exclusionLabel ? (
-        <Alert tone="error">
-          Incompatible avec ton foyer : {recipe.exclusionLabel}. Cette recette n&apos;est proposée
-          ni dans le catalogue ni dans les menus.
-        </Alert>
-      ) : null}
-      {recipe.toRemoveNames.length > 0 ? (
-        <Alert tone="info">
-          Ingrédient facultatif que tu ne manges pas : {recipe.toRemoveNames.join(", ")}. La recette
-          se fait sans.
-        </Alert>
-      ) : null}
+        <RecipeBody
+          recipeId={recipe.id}
+          ingredients={recipe.ingredients}
+          steps={recipe.steps}
+          stepDetails={recipe.stepDetails}
+          baseServings={recipe.servings}
+          inMenu={inMenu}
+        />
 
-      {cook?.kind === "ready" ? (
-        <section aria-label="Plat du menu" className="flex flex-col gap-2">
-          <p className="text-sm font-semibold">
-            Ce plat est au menu de la semaine. Une fois préparé :
-          </p>
-          <div className="self-start">
-            <CookButton
-              week={cook.week}
-              recipeId={recipe.id}
-              servings={cook.servings}
-              formKey={cook.formKey}
-            />
-          </div>
-        </section>
-      ) : cook?.kind === "cooked" ? (
-        <Alert tone="success">
-          Cuisiné le {formatDateTime(cook.cookedAt, "Europe/Paris")} : ingrédients retirés du
-          garde-manger.
-        </Alert>
-      ) : null}
-
-      <RecipeBody
-        recipeId={recipe.id}
-        ingredients={recipe.ingredients}
-        steps={recipe.steps}
-        baseServings={recipe.servings}
-        inMenu={inMenu}
-      />
-
-      {recipe.storageNote ? (
-        <section
-          aria-labelledby="conservation"
-          className="bg-leaf-soft flex gap-4 rounded-2xl p-5 sm:p-6"
-        >
-          <span
-            aria-hidden="true"
-            className="bg-surface text-forest dark:text-brand flex size-11 shrink-0 items-center justify-center rounded-full"
+        {recipe.storageNote ? (
+          <section
+            aria-labelledby="conservation"
+            className="bg-leaf-soft flex gap-4 rounded-2xl p-5 sm:p-6"
           >
-            <FridgeIcon size={22} />
-          </span>
-          <div className="flex flex-col gap-1.5">
-            <h2 id="conservation" className="type-section text-[1.1875rem]">
-              Conservation
-            </h2>
-            <p className="leading-relaxed">{recipe.storageNote}</p>
-          </div>
-        </section>
-      ) : null}
+            <span
+              aria-hidden="true"
+              className="bg-surface text-forest dark:text-brand flex size-11 shrink-0 items-center justify-center rounded-full"
+            >
+              <FridgeIcon size={22} />
+            </span>
+            <div className="flex flex-col gap-1.5">
+              <h2 id="conservation" className="type-section text-[1.1875rem]">
+                Conservation
+              </h2>
+              <p className="leading-relaxed">{recipe.storageNote}</p>
+            </div>
+          </section>
+        ) : null}
 
-      <footer className="text-muted border-border border-t pt-5 text-sm leading-relaxed">
-        Allergènes :{" "}
-        {recipe.allergenLabels.length
-          ? recipe.allergenLabels.join(", ")
-          : "aucun des 14 allergènes réglementaires"}
-        . Déduits des ingrédients : vérifie toujours l&apos;étiquette des produits. Difficulté :{" "}
-        {DIFFICULTY_RULE.charAt(0).toLowerCase() + DIFFICULTY_RULE.slice(1)} Pas de valeurs
-        nutritionnelles : nous n&apos;avons pas de données fiables pour les calculer.
-      </footer>
-    </article>
+        <footer className="text-muted border-border border-t pt-5 text-sm leading-relaxed">
+          Allergènes :{" "}
+          {recipe.allergenLabels.length
+            ? recipe.allergenLabels.join(", ")
+            : "aucun des 14 allergènes réglementaires"}
+          . Déduits des ingrédients : vérifie toujours l&apos;étiquette des produits. Difficulté :{" "}
+          {DIFFICULTY_RULE.charAt(0).toLowerCase() + DIFFICULTY_RULE.slice(1)} Pas de valeurs
+          nutritionnelles : nous n&apos;avons pas de données fiables pour les calculer.
+        </footer>
+      </article>
+    </KitchenProvider>
   );
 }
 

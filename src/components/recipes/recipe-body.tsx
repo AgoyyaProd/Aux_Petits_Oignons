@@ -5,6 +5,7 @@ import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CheckIcon, MinusIcon, PlusIcon } from "@/components/ui/icons";
 import { formatRecipeQuantity } from "@/lib/format-quantity";
+import { StepTimerButtons, useKitchen } from "@/components/recipes/kitchen";
 import {
   addExtraAction,
   addManyExtrasAction,
@@ -15,7 +16,7 @@ import type { RecipeDetail } from "@/server/modules/recipes/queries";
 type Ingredient = RecipeDetail["ingredients"][number];
 const idle: ExtraState = { status: "idle" };
 
-function qty(item: Ingredient, servings: number, base: number) {
+export function qty(item: Ingredient, servings: number, base: number) {
   return item.quantity && item.unit
     ? formatRecipeQuantity(item.quantity, item.unit, servings, base)
     : "au goût";
@@ -31,18 +32,21 @@ export function RecipeBody({
   recipeId,
   ingredients,
   steps,
+  stepDetails,
   baseServings,
   inMenu,
 }: {
   recipeId: string;
   ingredients: Ingredient[];
   steps: string[];
+  stepDetails: RecipeDetail["stepDetails"];
   baseServings: number;
   /** La recette est au menu : ses ingrédients sont déjà dans la liste calculée. */
   inMenu: boolean;
 }) {
   const [tab, setTab] = useState<"ingredients" | "steps">("ingredients");
-  const [servings, setServings] = useState(baseServings);
+  // Portions partagées avec le mode cuisine et les étapes (voir KitchenProvider).
+  const { servings, setServings } = useKitchen();
   const required = ingredients.filter((i) => !i.optional);
   const optional = ingredients.filter((i) => i.optional);
   const missing = required.filter((i) => !i.inStock);
@@ -95,7 +99,7 @@ export function RecipeBody({
                 <StepButton
                   label="Une portion de moins"
                   disabled={servings <= 1}
-                  onClick={() => setServings((s) => Math.max(1, s - 1))}
+                  onClick={() => setServings(Math.max(1, servings - 1))}
                 >
                   <MinusIcon size={18} />
                 </StepButton>
@@ -105,7 +109,7 @@ export function RecipeBody({
                 <StepButton
                   label="Une portion de plus"
                   disabled={servings >= 20}
-                  onClick={() => setServings((s) => Math.min(20, s + 1))}
+                  onClick={() => setServings(Math.min(20, servings + 1))}
                 >
                   <PlusIcon size={18} />
                 </StepButton>
@@ -177,8 +181,12 @@ export function RecipeBody({
           </aside>
         </div>
       ) : (
-        <section role="tabpanel" id="panel-steps" aria-labelledby="tab-steps" className="max-w-2xl">
-          <ol className="flex flex-col gap-6">
+        <section role="tabpanel" id="panel-steps" aria-labelledby="tab-steps" className="max-w-3xl">
+          <p className="text-muted mb-5 text-sm">
+            Quantités pour {servings} personne{servings > 1 ? "s" : ""}. Touche une durée pour
+            lancer un minuteur.
+          </p>
+          <ol className="flex flex-col gap-7">
             {steps.map((step, i) => (
               <li key={i} className="flex gap-4">
                 <span
@@ -187,13 +195,59 @@ export function RecipeBody({
                 >
                   {i + 1}
                 </span>
-                <p className="pt-1.5 leading-relaxed">{step}</p>
+                <div className="flex min-w-0 flex-1 flex-col gap-3 pt-1.5">
+                  <p className="leading-relaxed">{step}</p>
+                  <StepIngredients
+                    ids={stepDetails[i]?.ingredientIds ?? []}
+                    ingredients={ingredients}
+                    servings={servings}
+                    base={baseServings}
+                  />
+                  <StepTimerButtons step={i + 1} timers={stepDetails[i]?.timers ?? []} />
+                </div>
               </li>
             ))}
           </ol>
         </section>
       )}
     </div>
+  );
+}
+
+/** Ingrédients utilisés à une étape, avec leur quantité pour le nombre de portions choisi. */
+export function StepIngredients({
+  ids,
+  ingredients,
+  servings,
+  base,
+  size = "md",
+}: {
+  ids: string[];
+  ingredients: Ingredient[];
+  servings: number;
+  base: number;
+  size?: "md" | "lg";
+}) {
+  const items = ids.flatMap((id) => {
+    const item = ingredients.find((x) => x.ingredientId === id);
+    return item ? [item] : [];
+  });
+  if (!items.length) return null;
+  return (
+    <ul aria-label="Ingrédients de l'étape" className="flex flex-wrap gap-2">
+      {items.map((item) => (
+        <li
+          key={item.ingredientId}
+          className={[
+            "bg-surface-muted inline-flex items-baseline gap-1.5 rounded-lg",
+            size === "lg" ? "px-3.5 py-2 text-base" : "px-2.5 py-1 text-sm",
+          ].join(" ")}
+        >
+          <span className="font-semibold tabular-nums">{qty(item, servings, base)}</span>
+          <span className="text-muted">{item.name}</span>
+        </li>
+      ))}
+    </ul>
   );
 }
 

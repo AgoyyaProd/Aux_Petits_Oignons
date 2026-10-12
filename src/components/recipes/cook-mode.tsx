@@ -1,14 +1,29 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { StepTimerButtons, TimerTray, useKitchen } from "@/components/recipes/kitchen";
+import { StepIngredients } from "@/components/recipes/recipe-body";
 import { Button } from "@/components/ui/button";
+import type { RecipeDetail } from "@/server/modules/recipes/queries";
 import { ChevronLeftIcon, ChevronRightIcon, CloseIcon, PotIcon } from "@/components/ui/icons";
 
 /**
  * Mode cuisine : une étape à la fois, en grand, plein écran, l'écran reste allumé quand le
- * navigateur le permet. Fermeture par Échap ou le bouton ; flèches du clavier pour naviguer.
+ * navigateur le permet. Chaque étape montre ses ingrédients (quantités pour le nombre de
+ * portions choisi) et ses minuteurs. Fermeture par Échap ou le bouton ; flèches du clavier.
  */
-export function CookMode({ title, steps }: { title: string; steps: string[] }) {
+export function CookMode({
+  title,
+  steps,
+  ingredients,
+  stepDetails,
+}: {
+  title: string;
+  steps: string[];
+  ingredients: RecipeDetail["ingredients"];
+  stepDetails: RecipeDetail["stepDetails"];
+}) {
+  const { servings, baseServings } = useKitchen();
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
   const dialog = useRef<HTMLDialogElement>(null);
@@ -51,7 +66,9 @@ export function CookMode({ title, steps }: { title: string; steps: string[] }) {
       >
         <div className="mx-auto flex h-full max-w-2xl flex-col px-5 pt-[max(1.25rem,env(safe-area-inset-top))] pb-[max(1.25rem,env(safe-area-inset-bottom))]">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-muted truncate text-sm font-semibold">{title}</p>
+            <p className="text-muted min-w-0 truncate text-sm font-semibold">
+              {title} · {servings} pers.
+            </p>
             <button
               type="button"
               onClick={() => setOpen(false)}
@@ -74,13 +91,28 @@ export function CookMode({ title, steps }: { title: string; steps: string[] }) {
               style={{ width: `${((index + 1) / steps.length) * 100}%` }}
             />
           </div>
-          <div className="flex flex-1 flex-col justify-center gap-6 py-8" aria-live="polite">
+          <div className="flex flex-1 flex-col justify-center gap-6 overflow-y-auto py-8">
             <p className="font-display text-accent-strong text-6xl font-semibold">{index + 1}</p>
-            <p className="text-2xl leading-snug font-medium sm:text-3xl">{steps[index]}</p>
+            <p className="text-2xl leading-snug font-medium sm:text-3xl" aria-live="polite">
+              {steps[index]}
+            </p>
+            <StepIngredients
+              ids={stepDetails[index]?.ingredientIds ?? []}
+              ingredients={ingredients}
+              servings={servings}
+              base={baseServings}
+              size="lg"
+            />
+            <StepTimerButtons
+              step={index + 1}
+              timers={stepDetails[index]?.timers ?? []}
+              size="lg"
+            />
             <p className="text-muted text-sm">
               Étape {index + 1} sur {steps.length}
             </p>
           </div>
+          <TimerTray className="mb-3" />
           <div className="grid grid-cols-2 gap-3">
             <Button
               variant="secondary"

@@ -11,7 +11,11 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Field } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/skeleton";
-import type { RecipeCard as Card } from "@/server/modules/recipes/queries";
+import type { RecipeCard as Card, RecipeDetail } from "@/server/modules/recipes/queries";
+import { CookMode } from "@/components/recipes/cook-mode";
+import { KitchenProvider } from "@/components/recipes/kitchen";
+import { RecipeBody } from "@/components/recipes/recipe-body";
+import { matchStepIngredients, parseStepTimers } from "@/domain/recipes/steps";
 
 export const metadata: Metadata = { title: "Aperçu du design system", robots: { index: false } };
 
@@ -177,6 +181,27 @@ export default function DesignPreview() {
       </section>
 
       <section className="flex flex-col gap-4">
+        <h2 className="type-section">Étapes, quantités et minuteurs</h2>
+        <KitchenProvider baseServings={2}>
+          <div className="flex flex-col gap-4">
+            <CookMode
+              title={DEMO.title}
+              steps={DEMO.steps}
+              ingredients={DEMO.ingredients}
+              stepDetails={DEMO.stepDetails}
+            />
+            <RecipeBody
+              recipeId="demo"
+              ingredients={DEMO.ingredients}
+              steps={DEMO.steps}
+              stepDetails={DEMO.stepDetails}
+              baseServings={2}
+              inMenu
+            />
+          </div>
+        </KitchenProvider>
+      </section>
+      <section className="flex flex-col gap-4">
         <h2 className="type-section">Navigation</h2>
         <div className="bg-surface border-border max-w-64 rounded-2xl border p-3">
           <SideNavShell pathname="/planner" />
@@ -188,3 +213,62 @@ export default function DesignPreview() {
     </div>
   );
 }
+
+/** Recette fictive de démonstration (galerie uniquement) : étapes, quantités, minuteurs. */
+const DEMO_INGREDIENTS: RecipeDetail["ingredients"] = [
+  {
+    ingredientId: "pates",
+    name: "Pâtes",
+    quantity: "200",
+    unit: "g",
+    optional: false,
+    note: null,
+    inStock: true,
+    inCupboard: false,
+  },
+  {
+    ingredientId: "oignon",
+    name: "Oignon",
+    quantity: "1",
+    unit: "piece",
+    optional: false,
+    note: null,
+    inStock: true,
+    inCupboard: false,
+  },
+  {
+    ingredientId: "huile",
+    name: "Huile d'olive",
+    quantity: "1",
+    unit: "tbsp",
+    optional: false,
+    note: null,
+    inStock: true,
+    inCupboard: true,
+  },
+  {
+    ingredientId: "coulis",
+    name: "Coulis de tomate",
+    quantity: "250",
+    unit: "g",
+    optional: false,
+    note: null,
+    inStock: false,
+    inCupboard: false,
+  },
+];
+const DEMO_STEPS = [
+  "Éplucher et hacher l'oignon.",
+  "Chauffer l'huile dans une casserole à feu moyen et faire fondre l'oignon 5 minutes.",
+  "Verser le coulis et laisser mijoter 15 minutes à feu doux.",
+  "Cuire les pâtes 9 à 11 minutes dans une grande casserole d'eau bouillante, puis les égoutter.",
+];
+const DEMO = {
+  title: "Pâtes à la sauce tomate (démo)",
+  ingredients: DEMO_INGREDIENTS,
+  steps: DEMO_STEPS,
+  stepDetails: matchStepIngredients(
+    DEMO_STEPS,
+    DEMO_INGREDIENTS.map((i) => ({ id: i.ingredientId, name: i.name })),
+  ).map((ingredientIds, i) => ({ ingredientIds, timers: parseStepTimers(DEMO_STEPS[i]!) })),
+};

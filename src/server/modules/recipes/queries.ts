@@ -9,6 +9,7 @@ import {
 import { isPriority } from "@/domain/pantry/priority";
 import { estimateRecipeCost, millicentsToCents } from "@/domain/pricing";
 import { recipeDifficulty, type Difficulty } from "@/domain/recipes/difficulty";
+import { matchStepIngredients, parseStepTimers, type StepTimer } from "@/domain/recipes/steps";
 import type { EatingStyle, FoodProfile, Objective } from "@/domain/planning";
 import { withParents } from "@/domain/shopping";
 import { fromBase } from "@/domain/units";
@@ -394,6 +395,8 @@ export interface RecipeDetail {
     inCupboard: boolean;
   }[];
   steps: string[];
+  /** Par étape : ingrédients cités pour la première fois et durées (minuteurs). */
+  stepDetails: { ingredientIds: string[]; timers: StepTimer[] }[];
   allergenLabels: string[];
   vegetarian: boolean;
   vegan: boolean;
@@ -457,6 +460,9 @@ export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
     ctx.constraints,
   );
   const ingredientNames = new Map(lines.map((l) => [l.ingredient_id, l.ingredients?.name ?? "?"]));
+  const steps = [...(r.recipe_steps ?? [])]
+    .sort((a, b) => a.position - b.position)
+    .map((step) => step.instruction);
 
   return {
     id: r.id,
@@ -478,9 +484,11 @@ export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
       inStock: ctx.available.has(l.ingredient_id),
       inCupboard: ctx.staple.has(l.ingredient_id),
     })),
-    steps: [...(r.recipe_steps ?? [])]
-      .sort((a, b) => a.position - b.position)
-      .map((s) => s.instruction),
+    steps,
+    stepDetails: matchStepIngredients(
+      steps,
+      lines.map((l) => ({ id: l.ingredient_id, name: l.ingredients?.name ?? "" })),
+    ).map((ingredientIds, i) => ({ ingredientIds, timers: parseStepTimers(steps[i]!) })),
     allergenLabels: allergenCodes.map((c) => names.allergen.get(c) ?? c).sort(),
     vegetarian: !dietCodes.includes("vegetarian"),
     vegan: !dietCodes.includes("vegan"),
