@@ -6,6 +6,7 @@ import { requireUser } from "@/server/modules/auth/session";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 import { resolveIngredient } from "@/server/modules/pantry/repository";
 import { AISLES } from "@/lib/categories";
+import { ALL_PATTERN_SLOTS, isPatternSlot, MAX_MEALS_PER_COOK } from "@/domain/planning";
 import {
   avoidedFoodSchema,
   foodProfileSchema,
@@ -195,4 +196,41 @@ export async function saveAisleOrderAction(
     ok: true,
     message: order ? "Ordre des rayons enregistré." : "Ordre par défaut rétabli.",
   };
+}
+
+/**
+ * Semaine type du foyer : repas prévus au menu (au moins un) et repas couverts par une cuisson.
+ * Réservé au propriétaire (RLS) ; valeurs contrôlées ici et par la contrainte en base.
+ */
+export async function saveMealPatternAction(
+  householdId: string,
+  slots: string[],
+  mealsPerCook: number,
+): Promise<{ ok: boolean; message: string }> {
+  await requireUser();
+  const unique = [...new Set(slots)];
+  if (
+    !/^[0-9a-f-]{36}$/.test(householdId) ||
+    unique.length === 0 ||
+    unique.length !== slots.length ||
+    !unique.every(isPatternSlot)
+  ) {
+    return { ok: false, message: "Choisis au moins un repas de la semaine." };
+  }
+  if (!Number.isInteger(mealsPerCook) || mealsPerCook < 1 || mealsPerCook > MAX_MEALS_PER_COOK) {
+    return { ok: false, message: "Entre 1 et 3 repas par cuisson." };
+  }
+  const ordered = ALL_PATTERN_SLOTS.filter((s) => unique.includes(s));
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("households")
+    .update({ meal_slots: ordered, meals_per_cook: mealsPerCook })
+    .eq("id", householdId)
+    .select("id");
+  if (error) return { ok: false, message: toActionError(error).message };
+  if (!data?.length) {
+    return { ok: false, message: "Seul le propriétaire du foyer peut modifier ce réglage." };
+  }
+  refresh();
+  return { ok: true, message: "Semaine type enregistrée. Elle s'applique aux prochains menus." };
 }

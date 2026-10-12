@@ -6,9 +6,13 @@ import { redirect } from "next/navigation";
 import {
   addLeftover,
   autoPlace,
+  batchGroups,
   generatePlan,
   normalizeLeftovers,
   parseSlotKey,
+  placeBatches,
+  toPattern,
+  type MealPattern,
   removeEntryWithLeftovers,
   slotKey,
   type PlanEntry,
@@ -50,20 +54,29 @@ async function context() {
   return { household, supabase };
 }
 
-async function catalogFor(
-  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
-  household: { id: string; timezone: string },
-) {
-  const settings = await supabase
+type Db = Awaited<ReturnType<typeof createSupabaseServerClient>>;
+
+/** Réglages du foyer utiles au menu : durée maximale et semaine type. */
+async function planningSettings(db: Db, householdId: string) {
+  const settings = await db
     .from("households")
-    .select("max_prep_minutes")
-    .eq("id", household.id)
+    .select("max_prep_minutes, meal_slots, meals_per_cook")
+    .eq("id", householdId)
     .single();
   if (settings.error) throw new Error(settings.error.message);
-  return loadPlanningCatalog(supabase, {
-    ...household,
+  return {
     maxPrepMinutes: settings.data.max_prep_minutes,
+    pattern: toPattern(settings.data.meal_slots, settings.data.meals_per_cook),
+  };
+}
+
+async function catalogFor(supabase: Db, household: { id: string; timezone: string }) {
+  const settings = await planningSettings(supabase, household.id);
+  const catalog = await loadPlanningCatalog(supabase, {
+    ...household,
+    maxPrepMinutes: settings.maxPrepMinutes,
   });
+  return { ...catalog, pattern: settings.pattern };
 }
 
 /** Le menu doit exister et être à la version vue par l'utilisateur. */
@@ -101,9 +114,15 @@ export async function generatePlanAction(
     if (plan) requirePlan(plan, input.version);
     // On ne garde que les plats verrouillés encore proposables (allergies changées entre-temps).
     const allowed = new Set(catalog.candidates.map((c) => c.id));
-    // Plats cuisinés : toujours gardés (le stock a déjà été décompté).
+    // Plats cuisinés : toujours gardés (le stock a déjà été décompté). Les restes d'un plat
+    // gardé le suivent.
+    const keptSources = (plan?.entries ?? []).filter(
+      (e, i) => !e.leftover && (plan!.cooked.has(i + 1) || (e.locked && allowed.has(e.recipeId))),
+    );
+    const keptIds = new Set(keptSources.map((e) => e.recipeId));
     const kept0 = (plan?.entries ?? []).filter(
-      (e, i) => plan!.cooked.has(i + 1) || (e.locked && allowed.has(e.recipeId)),
+      (e, i) =>
+        plan!.cooked.has(i + 1) || (e.leftover ? keptIds.has(e.recipeId) : keptSources.includes(e)),
     );
     // Les restes gardés occupent un repas mais ne passent pas par le générateur (déjà payés).
     const leftovers = kept0.filter((e) => e.leftover);
@@ -117,9 +136,21 @@ export async function generatePlanAction(
       };
     }
     const seed = plan ? plan.seed + 1 : 0;
+    const pattern = catalog.pattern;
+    const today = todayIn(household.timezone);
+    // Les plats gardés conservent leur jour (et leurs portions) ; les repas restants sont
+    // découpés en lots : un nouveau plat par lot, ses restes aux repas suivants du lot.
+    const keptPlaced = autoPlace([...locked, ...leftovers], input.week, today, pattern);
+    const groups = batchGroups(
+      keptPlaced,
+      input.mealCount - kept0.length,
+      input.week,
+      today,
+      pattern,
+    );
     const result = generatePlan(catalog.candidates, {
-      mealCount: input.mealCount - leftovers.length,
-      people: input.people,
+      mealCount: locked.length + groups.length,
+      people: input.people * pattern.mealsPerCook,
       budgetCents: input.budget,
       locked: locked.map((e) => ({ recipeId: e.recipeId, servings: e.servings })),
       recentRecipeIds: recent,
@@ -127,16 +158,11 @@ export async function generatePlanAction(
       month: monthOf(input.week),
       seed,
     });
-    // Les plats gardés conservent leur jour ; les nouveaux remplissent les cases libres.
-    const kept = [
-      ...result.entries.map((e, i) =>
-        i < locked.length ? { ...e, day: locked[i]!.day, slot: locked[i]!.slot } : e,
-      ),
-      ...leftovers,
-    ];
+    const fresh = result.entries.slice(locked.length).map((e) => e.recipeId);
     const entries = normalizeLeftovers(
-      autoPlace(kept, input.week, todayIn(household.timezone)),
+      placeBatches(keptPlaced, fresh, groups, input.people),
       input.week,
+      pattern,
     );
     if (result.entries.length === 0) {
       return {
@@ -168,7 +194,11 @@ export async function generatePlanAction(
   }
 }
 
-type EntryEdit = (entries: PlanEntry[], plan: StoredPlan) => PlanEntry[] | Promise<PlanEntry[]>;
+type EntryEdit = (
+  entries: PlanEntry[],
+  plan: StoredPlan,
+  pattern: MealPattern,
+) => PlanEntry[] | Promise<PlanEntry[]>;
 
 /** Modifie les plats d'un menu existant puis l'enregistre entièrement. */
 async function editEntries(
@@ -177,13 +207,19 @@ async function editEntries(
 ): Promise<PlannerState> {
   try {
     const { household, supabase } = await context();
-    const plan = requirePlan(await readPlan(supabase, household.id, input.week), input.version);
+    const [stored, settings] = await Promise.all([
+      readPlan(supabase, household.id, input.week),
+      planningSettings(supabase, household.id),
+    ]);
+    const plan = requirePlan(stored, input.version);
     const entries = normalizeLeftovers(
       await edit(
         plan.entries.map((e) => ({ ...e })),
         plan,
+        settings.pattern,
       ),
       input.week,
+      settings.pattern,
     );
     await savePlan(supabase, {
       householdId: household.id,
@@ -235,7 +271,7 @@ export async function cookDoubleAction(
   const parsed = entrySchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { status: "error", message: "Requête invalide." };
   const { week, position } = parsed.data;
-  return editEntries(parsed.data, (entries, plan) => {
+  return editEntries(parsed.data, (entries, plan, pattern) => {
     const entry = entryAt(entries, position);
     assertNotCooked(plan, position);
     if (entry.leftover) throw new ActionError("invalid", "C'est déjà un reste.");
@@ -243,7 +279,7 @@ export async function cookDoubleAction(
     if (entry.servings + plan.people > 40) {
       throw new ActionError("invalid", "Trop de portions pour un seul plat (40 au plus).");
     }
-    return addLeftover(entries, position - 1, plan.people, week);
+    return addLeftover(entries, position - 1, plan.people, week, pattern);
   });
 }
 
@@ -304,7 +340,7 @@ export async function addEntryAction(
   let added = true;
   const input = parsed.data;
   const slotParam = String(formData.get("slot") ?? "");
-  const state = await editEntries(parsed.data, async (entries, plan) => {
+  const state = await editEntries(parsed.data, async (entries, plan, pattern) => {
     if (entries.length >= 21) throw new ActionError("invalid", "Au plus 21 plats par semaine.");
     const { household, supabase } = await context();
     const [catalog, recent] = await Promise.all([
@@ -337,6 +373,7 @@ export async function addEntryAction(
           [...entries, { ...extra, locked: false }],
           input.week,
           todayIn(household.timezone),
+          pattern,
         ).at(-1)!;
     return [...entries, placed];
   });
@@ -448,6 +485,7 @@ export async function addRecipeToPlanAction(
       [...entries, { recipeId, servings: people, locked: false }],
       week,
       today,
+      catalog.pattern,
     ).at(-1)!;
     await savePlan(supabase, {
       householdId: household.id,
@@ -484,11 +522,12 @@ export async function reorganizeAction(
   }
   const { household } = await getCurrentContext();
   const today = household ? todayIn(household.timezone) : parsed.data.week;
-  return editEntries(parsed.data, (entries, plan) =>
+  return editEntries(parsed.data, (entries, plan, pattern) =>
     autoPlace(
       entries.map((e, i) => (plan.cooked.has(i + 1) ? e : { ...e, day: null, slot: null })),
       parsed.data.week,
       today,
+      pattern,
     ),
   );
 }

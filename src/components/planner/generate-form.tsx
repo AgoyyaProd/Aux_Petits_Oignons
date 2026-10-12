@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,8 @@ interface Props {
   defaults: { mealCount: number; people: number; budget: string };
   submitLabel: string;
   lockedCount?: number;
+  /** Repas couverts par une cuisson (semaine type du foyer). */
+  mealsPerCook?: number;
 }
 
 /** Nombre de repas, de personnes et budget -> proposition de menu. */
@@ -24,6 +27,7 @@ export function GenerateForm({
   defaults,
   submitLabel,
   lockedCount = 0,
+  mealsPerCook = 1,
 }: Props) {
   const [state, action, pending] = useActionState(generatePlanAction, idlePlanner);
 
@@ -66,6 +70,14 @@ export function GenerateForm({
           className="col-span-2 sm:col-span-1"
         />
       </div>
+      <p className="text-muted text-xs">
+        {mealsPerCook > 1
+          ? `Un plat cuisiné couvre ${mealsPerCook} repas : ses restes sont placés aux repas suivants. `
+          : "Les plats sont placés sur les repas prévus de ta semaine type. "}
+        <Link href="/settings#semaine" className="text-brand font-semibold underline">
+          Ma semaine de repas
+        </Link>
+      </p>
       {lockedCount > 0 ? (
         <p className="text-muted text-xs">
           {lockedCount} plat{lockedCount > 1 ? "s" : ""} gardé{lockedCount > 1 ? "s" : ""} : il

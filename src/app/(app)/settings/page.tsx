@@ -8,6 +8,7 @@ import { FoodProfileForm } from "@/components/settings/food-profile-form";
 import { ThemeSelect } from "@/components/settings/theme-select";
 import { SignOutButton } from "@/components/pwa/sign-out-button";
 import { AisleOrderForm } from "@/components/settings/aisle-order-form";
+import { MealPatternForm } from "@/components/settings/meal-pattern-form";
 import { buttonClasses } from "@/components/ui/button";
 import { signOutAction } from "@/server/modules/auth/actions";
 import { PageHeader } from "@/components/ui/page-header";
@@ -63,6 +64,14 @@ async function SettingsContent() {
       />
       <Section title="Foyer" id="foyer">
         <HouseholdForm household={settings.household} isOwner={settings.isOwner} />
+      </Section>
+      <Section title="Ma semaine de repas" id="semaine">
+        <MealPatternForm
+          householdId={settings.household.id}
+          slots={settings.household.meal_slots}
+          mealsPerCook={settings.household.meals_per_cook}
+          isOwner={settings.isOwner}
+        />
       </Section>
       <Section title="Membres du foyer" id="membres">
         <MembersSection

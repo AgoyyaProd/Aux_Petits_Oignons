@@ -1,6 +1,7 @@
 import { RecipeFacts } from "@/components/recipes/recipe-facts";
 import { WeekBalancePanel } from "@/components/planner/week-balance";
 import { AisleOrderForm } from "@/components/settings/aisle-order-form";
+import { MealPatternForm } from "@/components/settings/meal-pattern-form";
 import { WeekSheet } from "@/components/planner/week-sheet";
 import { NutritionPanel } from "@/components/recipes/nutrition-panel";
 import { computeRecipeNutrition, weekBalance, type Per100g } from "@/domain/nutrition";
@@ -257,6 +258,23 @@ export default function DesignPreview() {
         <AisleOrderForm
           householdId="00000000-0000-0000-0000-000000000000"
           order={["oeufs_laitiers", "fruits", "legumes"]}
+          isOwner
+        />
+      </section>
+      <section id="semaine" className="flex max-w-xl flex-col gap-4">
+        <h2 className="type-section">Ma semaine de repas</h2>
+        <MealPatternForm
+          householdId="00000000-0000-0000-0000-000000000000"
+          slots={[
+            "mon:dinner",
+            "tue:dinner",
+            "wed:dinner",
+            "thu:dinner",
+            "fri:dinner",
+            "sat:dinner",
+            "sun:dinner",
+          ]}
+          mealsPerCook={2}
           isOwner
         />
       </section>

@@ -3,7 +3,10 @@ import { monthOf } from "@/domain/recipes/season";
 import { randomUUID } from "node:crypto";
 import {
   compareBySlot,
+  isPlannedSlot,
+  plannedSlots,
   slotKey,
+  toPattern,
   suggestReplacements,
   weekSlots,
   type MealSlot,
@@ -66,7 +69,7 @@ export async function getPlannerPage({ week, replace }: { week?: string; replace
 
   const settings = await supabase
     .from("households")
-    .select("max_prep_minutes, reference_store")
+    .select("max_prep_minutes, reference_store, meal_slots, meals_per_cook")
     .eq("id", household.id)
     .single();
   if (settings.error) throw new Error(settings.error.message);
@@ -171,6 +174,7 @@ export async function getPlannerPage({ week, replace }: { week?: string; replace
     entries.filter((e) => e.slug !== null).map((e) => ({ recipeId: e.recipeId, title: e.title })),
   );
 
+  const pattern = toPattern(settings.data.meal_slots, settings.data.meals_per_cook);
   const missing = new Set(entries.flatMap((e) => e.missingNames));
   const pricedIngredients = [...catalog.priceBook.values()].filter(
     (p) => p.source !== "free",
@@ -186,8 +190,11 @@ export async function getPlannerPage({ week, replace }: { week?: string; replace
     defaults: {
       people: household.people_count,
       budgetCents: household.weekly_budget_cents,
-      mealCount: 5,
+      /** Un repas par case prévue de la semaine type. */
+      mealCount: plannedSlots(weekStart, pattern).length,
     },
+    /** Repas couverts par une cuisson (réglage du foyer). */
+    mealsPerCook: pattern.mealsPerCook,
     plan: plan && {
       version: plan.version,
       people: plan.people,
@@ -209,6 +216,8 @@ export async function getPlannerPage({ week, replace }: { week?: string; replace
       value: slotKey(ref),
       label: formatSlot(ref.day, ref.slot),
       day: ref.day,
+      /** Repas prévu dans la semaine type du foyer. */
+      planned: isPlannedSlot(ref, weekStart, pattern),
     })),
     replace: replace ?? null,
     replacements,

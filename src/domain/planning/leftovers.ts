@@ -1,5 +1,12 @@
 import type { PlanEntry } from "./generate";
-import { compareBySlot, slotKey, weekSlots, type SlotRef } from "./schedule";
+import {
+  compareBySlot,
+  isPlannedSlot,
+  slotKey,
+  weekSlots,
+  type MealPattern,
+  type SlotRef,
+} from "./schedule";
 
 /**
  * Restes et cuisine en avance.
@@ -14,18 +21,26 @@ export function sourceIndexOf(entries: readonly PlanEntry[], recipeId: string): 
   return entries.findIndex((e) => e.recipeId === recipeId && !e.leftover);
 }
 
-/** Première case libre strictement après `after` dans la semaine ; null s'il n'y en a pas. */
+/**
+ * Première case libre strictement après `after` dans la semaine, parmi les repas prévus de la
+ * semaine type ; null s'il n'y en a pas.
+ */
 export function nextFreeSlotAfter(
   entries: readonly PlanEntry[],
   weekStart: string,
   after: SlotRef,
+  pattern?: MealPattern,
 ): SlotRef | null {
   const taken = new Set(
     entries.flatMap((e) => (e.day && e.slot ? [slotKey({ day: e.day, slot: e.slot })] : [])),
   );
   const slots = weekSlots(weekStart);
   const from = slots.findIndex((s) => slotKey(s) === slotKey(after));
-  return slots.slice(from + 1).find((s) => !taken.has(slotKey(s))) ?? null;
+  return (
+    slots
+      .slice(from + 1)
+      .find((s) => !taken.has(slotKey(s)) && isPlannedSlot(s, weekStart, pattern)) ?? null
+  );
 }
 
 /**
@@ -37,12 +52,13 @@ export function addLeftover(
   index: number,
   people: number,
   weekStart: string,
+  pattern?: MealPattern,
 ): PlanEntry[] {
   const source = entries[index];
   if (!source || source.leftover) throw new Error("Seul un plat cuisiné peut avoir des restes.");
   const slot =
     source.day && source.slot
-      ? nextFreeSlotAfter(entries, weekStart, { day: source.day, slot: source.slot })
+      ? nextFreeSlotAfter(entries, weekStart, { day: source.day, slot: source.slot }, pattern)
       : null;
   const out = entries.map((e, i) =>
     i === index ? { ...e, servings: Math.min(40, e.servings + people), locked: true } : { ...e },
@@ -79,7 +95,11 @@ export function removeEntryWithLeftovers(
  *  - si `weekStart` est fourni, un reste placé avant (ou au même repas que) son plat cuisiné
  *    est déplacé au repas libre suivant, ou laissé sans jour s'il n'y en a pas.
  */
-export function normalizeLeftovers(entries: readonly PlanEntry[], weekStart?: string): PlanEntry[] {
+export function normalizeLeftovers(
+  entries: readonly PlanEntry[],
+  weekStart?: string,
+  pattern?: MealPattern,
+): PlanEntry[] {
   const out = entries.map((e) =>
     e.leftover && sourceIndexOf(entries, e.recipeId) < 0 ? { ...e, leftover: false } : { ...e },
   );
@@ -89,7 +109,7 @@ export function normalizeLeftovers(entries: readonly PlanEntry[], weekStart?: st
     const src = out[sourceIndexOf(out, e.recipeId)]!;
     if (!src.day || !src.slot || compareBySlot(e, src) > 0) return;
     const others = out.filter((_, j) => j !== i);
-    const next = nextFreeSlotAfter(others, weekStart, { day: src.day, slot: src.slot });
+    const next = nextFreeSlotAfter(others, weekStart, { day: src.day, slot: src.slot }, pattern);
     e.day = next?.day ?? null;
     e.slot = next?.slot ?? null;
   });

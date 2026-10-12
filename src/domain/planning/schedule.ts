@@ -1,5 +1,19 @@
 import type { MealSlot, PlanEntry } from "./generate";
 
+export const WEEKDAY_CODES = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
+export type WeekdayCode = (typeof WEEKDAY_CODES)[number];
+
+/** Code d'un repas de la semaine type : « mon:lunch », « sun:dinner »… */
+export type PatternSlot = `${WeekdayCode}:${MealSlot}`;
+
+/** Semaine type du foyer (voir pattern.ts). */
+export interface MealPattern {
+  /** Repas prévus au menu ; jamais vide. */
+  slots: ReadonlySet<string>;
+  /** Repas couverts par une cuisson (1 à 3). */
+  mealsPerCook: number;
+}
+
 /** Une case du planning : un jour de la semaine et un repas. */
 export interface SlotRef {
   day: string;
@@ -25,6 +39,19 @@ export function weekSlots(weekStart: string): SlotRef[] {
   ]);
 }
 
+/** Code de semaine type d'une case datée (la semaine commence le lundi `weekStart`). */
+export function patternSlotOf(ref: SlotRef, weekStart: string): PatternSlot | null {
+  const index = weekDays(weekStart).indexOf(ref.day);
+  return index < 0 ? null : (`${WEEKDAY_CODES[index]!}:${ref.slot}` as PatternSlot);
+}
+
+/** La case est-elle un repas prévu au menu ? Sans semaine type, toutes le sont. */
+export function isPlannedSlot(ref: SlotRef, weekStart: string, pattern?: MealPattern): boolean {
+  if (!pattern) return true;
+  const code = patternSlotOf(ref, weekStart);
+  return code !== null && pattern.slots.has(code);
+}
+
 export function slotKey(ref: SlotRef): string {
   return `${ref.day}:${ref.slot}`;
 }
@@ -37,9 +64,9 @@ export function parseSlotKey(value: string, weekStart: string): SlotRef | null {
 /**
  * Ordre de remplissage automatique : d'abord les soirs à partir de `from` (aujourd'hui pour la
  * semaine en cours, sinon le lundi), puis les midis à partir de `from`, puis les jours déjà
- * passés. Déterministe.
+ * passés. Avec une semaine type, seuls les repas prévus. Déterministe.
  */
-export function fillOrder(weekStart: string, from: string): SlotRef[] {
+export function fillOrder(weekStart: string, from: string, pattern?: MealPattern): SlotRef[] {
   const days = weekDays(weekStart);
   const start = from < weekStart ? weekStart : from;
   const upcoming = days.filter((d) => d >= start);
@@ -49,18 +76,19 @@ export function fillOrder(weekStart: string, from: string): SlotRef[] {
     ...upcoming.map((day) => ({ day, slot: "lunch" as const })),
     ...past.map((day) => ({ day, slot: "dinner" as const })),
     ...past.map((day) => ({ day, slot: "lunch" as const })),
-  ];
+  ].filter((s) => isPlannedSlot(s, weekStart, pattern));
 }
 
 /**
  * Place les plats sans jour dans les cases libres, sans toucher aux plats déjà placés.
  * Un plat dont le jour n'est plus dans la semaine est considéré comme non placé.
- * S'il n'y a plus de case libre, le plat reste sans jour.
+ * S'il n'y a plus de case libre (parmi les repas prévus), le plat reste sans jour.
  */
 export function autoPlace<T extends PlanEntry>(
   entries: readonly T[],
   weekStart: string,
   from: string,
+  pattern?: MealPattern,
 ): T[] {
   const valid = new Set(weekSlots(weekStart).map(slotKey));
   const taken = new Set<string>();
@@ -71,7 +99,7 @@ export function autoPlace<T extends PlanEntry>(
     }
     return { ...e, day: null, slot: null };
   });
-  const free = fillOrder(weekStart, from).filter((s) => !taken.has(slotKey(s)));
+  const free = fillOrder(weekStart, from, pattern).filter((s) => !taken.has(slotKey(s)));
   let next = 0;
   for (const e of out) {
     if (e.day) continue;

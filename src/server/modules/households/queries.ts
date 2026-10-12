@@ -65,7 +65,7 @@ export async function getHouseholdSettings() {
   const full = await supabase
     .from("households")
     .select(
-      "id, name, people_count, weekly_budget_cents, currency, timezone, max_prep_minutes, aisle_order",
+      "id, name, people_count, weekly_budget_cents, currency, timezone, max_prep_minutes, aisle_order, meal_slots, meals_per_cook",
     )
     .eq("id", household.id)
     .single();

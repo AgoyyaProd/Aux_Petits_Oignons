@@ -178,6 +178,7 @@ function EmptyPlan({ page }: { page: PlannerPage }) {
             budget: centsToInput(page.defaults.budgetCents),
           }}
           submitLabel="Générer mon menu"
+          mealsPerCook={page.mealsPerCook}
         />
       </div>
     </section>
@@ -213,6 +214,7 @@ function Regenerate({ page }: { page: PlannerPage }) {
         }}
         submitLabel="Générer mon menu"
         lockedCount={lockedCount}
+        mealsPerCook={page.mealsPerCook}
       />
     </section>
   );
@@ -375,6 +377,8 @@ function WeekGrid({ page, base }: { page: PlannerPage; base: Base }) {
               </h2>
               {(["lunch", "dinner"] as const).map((slot) => {
                 const meals = page.entries.filter((e) => e.day === day && e.slot === slot);
+                const planned =
+                  page.slots.find((s) => s.value === `${day}:${slot}`)?.planned ?? true;
                 return (
                   <div
                     key={slot}
@@ -394,10 +398,23 @@ function WeekGrid({ page, base }: { page: PlannerPage; base: Base }) {
                         fields={{ ...base, key: page.newKey(), slot: `${day}:${slot}` }}
                         label={`Proposer un plat pour ${formatDay(day)} ${slot === "lunch" ? "midi" : "soir"}`}
                         pendingLabel="…"
-                        className="border-border-strong text-muted hover:border-accent hover:text-accent-strong bg-surface/60 flex min-h-14 w-full items-center justify-center gap-1.5 rounded-xl border border-dashed text-sm font-medium transition-colors lg:min-h-40 lg:flex-col"
+                        className={
+                          planned
+                            ? "border-border-strong text-muted hover:border-accent hover:text-accent-strong bg-surface/60 flex min-h-14 w-full items-center justify-center gap-1.5 rounded-xl border border-dashed text-sm font-medium transition-colors lg:min-h-40 lg:flex-col"
+                            : "text-muted/80 hover:text-accent-strong hover:border-border-strong flex min-h-11 w-full items-center justify-center gap-1.5 rounded-xl border border-transparent text-xs transition-colors lg:min-h-40 lg:flex-col"
+                        }
                       >
-                        <PlusIcon size={20} />
-                        <span className="lg:sr-only">Ajouter</span>
+                        {planned ? (
+                          <>
+                            <PlusIcon size={20} />
+                            <span className="lg:sr-only">Ajouter</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>Pas prévu</span>
+                            <PlusIcon size={14} />
+                          </>
+                        )}
                       </PlanActionButton>
                     )}
                   </div>

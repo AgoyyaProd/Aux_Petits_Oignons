@@ -267,14 +267,14 @@ isOneToOne: false
                   ]
                 },"households": {
                   Row: {
-                    "aisle_order": (string)[] | null,"created_at": string,"created_by": string | null,"currency": string,"id": string,"max_prep_minutes": number | null,"name": string,"people_count": number,"reference_store": string | null,"timezone": string,"updated_at": string,"weekly_budget_cents": number | null
+                    "aisle_order": (string)[] | null,"created_at": string,"created_by": string | null,"currency": string,"id": string,"max_prep_minutes": number | null,"meal_slots": (string)[],"meals_per_cook": number,"name": string,"people_count": number,"reference_store": string | null,"timezone": string,"updated_at": string,"weekly_budget_cents": number | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "aisle_order"?: (string)[] | null,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"id"?: string,"max_prep_minutes"?: number | null,"name": string,"people_count"?: number,"reference_store"?: string | null,"timezone"?: string,"updated_at"?: string,"weekly_budget_cents"?: number | null
+                    "aisle_order"?: (string)[] | null,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"id"?: string,"max_prep_minutes"?: number | null,"meal_slots"?: (string)[],"meals_per_cook"?: number,"name": string,"people_count"?: number,"reference_store"?: string | null,"timezone"?: string,"updated_at"?: string,"weekly_budget_cents"?: number | null
                   }
                   Update: {
-                    "aisle_order"?: (string)[] | null,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"id"?: string,"max_prep_minutes"?: number | null,"name"?: string,"people_count"?: number,"reference_store"?: string | null,"timezone"?: string,"updated_at"?: string,"weekly_budget_cents"?: number | null
+                    "aisle_order"?: (string)[] | null,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"id"?: string,"max_prep_minutes"?: number | null,"meal_slots"?: (string)[],"meals_per_cook"?: number,"name"?: string,"people_count"?: number,"reference_store"?: string | null,"timezone"?: string,"updated_at"?: string,"weekly_budget_cents"?: number | null
                   }
                   Relationships: [
                     
