@@ -30,7 +30,7 @@ export async function readPlan(
   const { data, error } = await supabase
     .from("meal_plans")
     .select(
-      "id, version, people, meal_count, budget_cents, seed, shopping_done_at, meal_plan_entries (position, recipe_id, servings, locked, planned_on, meal_slot), meal_cookings (recipe_id)",
+      "id, version, people, meal_count, budget_cents, seed, shopping_done_at, meal_plan_entries (position, recipe_id, servings, locked, planned_on, meal_slot, leftover), meal_cookings (recipe_id)",
     )
     .eq("household_id", householdId)
     .eq("week_start", weekStart)
@@ -44,6 +44,8 @@ export async function readPlan(
     toMark.set(c.recipe_id, (toMark.get(c.recipe_id) ?? 0) + 1);
   const cooked = new Set<number>();
   entries.forEach((e, i) => {
+    // Un reste ne se cuisine pas : le journal ne concerne que les plats préparés.
+    if (e.leftover) return;
     const left = toMark.get(e.recipe_id) ?? 0;
     if (left > 0) {
       cooked.add(i + 1);
@@ -63,6 +65,7 @@ export async function readPlan(
       locked: e.locked,
       day: e.planned_on && e.meal_slot ? e.planned_on : null,
       slot: e.planned_on && isSlot(e.meal_slot) ? e.meal_slot : null,
+      ...(e.leftover ? { leftover: true } : {}),
     })),
     shoppingDoneAt: data.shopping_done_at,
     cooked,
@@ -97,6 +100,7 @@ export async function savePlan(
       locked: e.locked,
       // Jour et repas vont ensemble (contrainte en base).
       ...(e.day && e.slot ? { planned_on: e.day, slot: e.slot } : {}),
+      ...(e.leftover ? { leftover: true } : {}),
     })),
     p_expected_version: args.expectedVersion as number,
     p_idempotency_key: args.idempotencyKey ?? randomUUID(),

@@ -38,6 +38,12 @@ export interface PlannerEntryView {
   /** Jour et repas, ou null si le plat n'est pas encore placé. */
   day: string | null;
   slot: MealSlot | null;
+  /** Reste d'un plat cuisiné en double : son coût est compté dans ce plat. */
+  leftover: boolean;
+  /** Repas où le plat est cuisiné (« Lundi 12 soir »), pour un reste placé. */
+  leftoverOf: string | null;
+  /** Ce plat est cuisiné en double : un reste est prévu plus tard. */
+  hasLeftovers: boolean;
 }
 
 export interface ReplacementView {
@@ -96,9 +102,17 @@ export async function getPlannerPage({ week, replace }: { week?: string; replace
         cooked: plan!.cooked.has(i + 1),
         day: e.day ?? null,
         slot: e.slot ?? null,
+        leftover: Boolean(e.leftover),
+        leftoverOf: null,
+        hasLeftovers: false,
       };
     }
-    const cost = costOfEntry(meta, e.servings, catalog.priceBook);
+    const source = e.leftover
+      ? plan!.entries.find((s) => s.recipeId === e.recipeId && !s.leftover)
+      : undefined;
+    const cost = e.leftover
+      ? { cents: 0, missingNames: [] as string[] }
+      : costOfEntry(meta, e.servings, catalog.priceBook);
     return {
       position: i + 1,
       recipeId: e.recipeId,
@@ -115,6 +129,10 @@ export async function getPlannerPage({ week, replace }: { week?: string; replace
       cooked: plan!.cooked.has(i + 1),
       day: e.day ?? null,
       slot: e.slot ?? null,
+      leftover: Boolean(e.leftover),
+      leftoverOf: source?.day && source.slot ? formatSlot(source.day, source.slot) : null,
+      hasLeftovers:
+        !e.leftover && plan!.entries.some((o) => o.leftover && o.recipeId === e.recipeId),
     };
   });
   // Affichage dans l'ordre de la semaine ; la position reste l'identifiant du plat.

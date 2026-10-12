@@ -445,14 +445,14 @@ isOneToOne: false
                   ]
                 },"meal_plan_entries": {
                   Row: {
-                    "created_at": string,"household_id": string,"id": string,"locked": boolean,"meal_slot": string | null,"plan_id": string,"planned_on": string | null,"position": number,"recipe_id": string,"servings": number
+                    "created_at": string,"household_id": string,"id": string,"leftover": boolean,"locked": boolean,"meal_slot": string | null,"plan_id": string,"planned_on": string | null,"position": number,"recipe_id": string,"servings": number
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"household_id": string,"id"?: string,"locked"?: boolean,"meal_slot"?: string | null,"plan_id": string,"planned_on"?: string | null,"position": number,"recipe_id": string,"servings": number
+                    "created_at"?: string,"household_id": string,"id"?: string,"leftover"?: boolean,"locked"?: boolean,"meal_slot"?: string | null,"plan_id": string,"planned_on"?: string | null,"position": number,"recipe_id": string,"servings": number
                   }
                   Update: {
-                    "created_at"?: string,"household_id"?: string,"id"?: string,"locked"?: boolean,"meal_slot"?: string | null,"plan_id"?: string,"planned_on"?: string | null,"position"?: number,"recipe_id"?: string,"servings"?: number
+                    "created_at"?: string,"household_id"?: string,"id"?: string,"leftover"?: boolean,"locked"?: boolean,"meal_slot"?: string | null,"plan_id"?: string,"planned_on"?: string | null,"position"?: number,"recipe_id"?: string,"servings"?: number
                   }
                   Relationships: [
                     {

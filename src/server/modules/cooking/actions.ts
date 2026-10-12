@@ -39,7 +39,9 @@ export async function cookAction(_prev: CookState, formData: FormData): Promise<
 
   const plan = await readPlan(supabase, household.id, week);
   const index =
-    plan?.entries.findIndex((e, i) => e.recipeId === recipeId && !plan.cooked.has(i + 1)) ?? -1;
+    plan?.entries.findIndex(
+      (e, i) => e.recipeId === recipeId && !e.leftover && !plan.cooked.has(i + 1),
+    ) ?? -1;
   if (!plan || index < 0) {
     return {
       status: "error",

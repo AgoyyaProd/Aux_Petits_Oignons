@@ -125,8 +125,8 @@ export async function getShoppingPage(week?: string) {
   const meals: PlannedMealInput[] = [];
   plan.entries.forEach((e, i) => {
     const meta = catalog.recipes.get(e.recipeId);
-    // Un plat déjà cuisiné n'a plus besoin de rien.
-    if (!meta || plan.cooked.has(i + 1)) return;
+    // Un plat déjà cuisiné n'a plus besoin de rien ; un reste est compté dans son plat cuisiné.
+    if (!meta || plan.cooked.has(i + 1) || e.leftover) return;
     const id = `plat-${i + 1}`;
     titles.set(id, meta.title);
     meals.push({
@@ -223,7 +223,7 @@ export async function getShoppingPage(week?: string) {
     ...base,
     extras,
     plan: {
-      mealCount: plan.entries.length - plan.cooked.size,
+      mealCount: plan.entries.filter((e, i) => !e.leftover && !plan.cooked.has(i + 1)).length,
       people: plan.people,
       shoppingDoneAt: plan.shoppingDoneAt,
     },

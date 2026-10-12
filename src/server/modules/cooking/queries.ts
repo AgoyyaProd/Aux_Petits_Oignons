@@ -25,7 +25,7 @@ export async function getCookStatus(recipeId: string): Promise<CookStatus | null
     const plan = await readPlan(supabase, household.id, week);
     if (!plan || !plan.shoppingDoneAt) continue;
     const index = plan.entries.findIndex(
-      (e, i) => e.recipeId === recipeId && !plan.cooked.has(i + 1),
+      (e, i) => e.recipeId === recipeId && !e.leftover && !plan.cooked.has(i + 1),
     );
     if (index >= 0) {
       return {
