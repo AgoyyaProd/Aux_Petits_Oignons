@@ -1,0 +1,64 @@
+name: Tests de bout en bout
+
+# Parcourt les écrans principaux du site en ligne avec le compte de test (lecture seule),
+# sur ordinateur et sur téléphone, et garde des captures d'écran.
+# Nécessite les secrets E2E_EMAIL et E2E_PASSWORD ; sans eux, le job est ignoré.
+
+on:
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Adresse du site à tester"
+        required: false
+        default: "https://aux-petits-oignons-azure.vercel.app"
+  schedule:
+    - cron: "17 6 * * *"
+
+concurrency:
+  group: e2e
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: Écrans principaux (ordinateur et téléphone)
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name != 'deployment_status' ||
+      (github.event.deployment_status.state == 'success' &&
+       github.event.deployment.environment == 'Production')
+    env:
+      E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
+      E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+      E2E_BASE_URL: ${{ github.event.inputs.base_url || 'https://aux-petits-oignons-azure.vercel.app' }}
+    steps:
+      - name: Secrets présents ?
+        id: check
+        run: |
+          if [ -z "$E2E_EMAIL" ] || [ -z "$E2E_PASSWORD" ]; then
+            echo "Secrets E2E_EMAIL / E2E_PASSWORD absents : tests ignorés."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v5
+        if: steps.check.outputs.ok == 'true'
+      - uses: actions/setup-node@v5
+        if: steps.check.outputs.ok == 'true'
+        with:
+          node-version: 22
+          cache: npm
+      - if: steps.check.outputs.ok == 'true'
+        run: npm ci
+      - if: steps.check.outputs.ok == 'true'
+        run: npx playwright install --with-deps chromium
+      - if: steps.check.outputs.ok == 'true'
+        run: npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: always() && steps.check.outputs.ok == 'true'
+        with:
+          name: captures-e2e
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 14

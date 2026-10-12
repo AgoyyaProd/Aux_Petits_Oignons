@@ -53,6 +53,20 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"app_errors": {
+                  Row: {
+                    "digest": string | null,"id": number,"kind": string,"message": string,"occurred_at": string,"path": string | null,"release": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "digest"?: string | null,"id"?: never,"kind": string,"message": string,"occurred_at"?: string,"path"?: string | null,"release"?: string | null
+                  }
+                  Update: {
+                    "digest"?: string | null,"id"?: never,"kind"?: string,"message"?: string,"occurred_at"?: string,"path"?: string | null,"release"?: string | null
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"diets": {
                   Row: {
                     "code": string,"label": string
@@ -893,6 +907,9 @@ isOneToOne: false
                            },
 "pantry_update_details":
 { Args: { "p_expected_version": number,"p_expires_on": string,"p_expiry_kind": Database["public"]['Enums']["expiry_kind"],"p_item_id": string,"p_location": Database["public"]['Enums']["storage_loc"],"p_opened": boolean }; Returns: Json
+                           },
+"report_app_error":
+{ Args: { "p_digest"?: string,"p_kind": string,"p_message": string,"p_path"?: string,"p_release"?: string }; Returns: undefined
                            },
 "resolve_ingredient":
 { Args: { "p_label": string }; Returns: string

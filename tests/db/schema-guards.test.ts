@@ -26,6 +26,8 @@ describe("garde-fous du schéma public", () => {
     expect(rows).toEqual([]);
   });
 
+  const ANON_ALLOWED = new Set(["report_app_error"]);
+
   it("les fonctions SECURITY DEFINER fixent leur search_path et sont fermées à anon", async () => {
     const { rows } = await pool.query<{ fn: string; has_search_path: boolean; anon_exec: boolean }>(
       `select p.proname as fn,
@@ -38,6 +40,9 @@ describe("garde-fous du schéma public", () => {
     expect(rows.length).toBeGreaterThan(0);
     for (const row of rows) {
       expect(row.has_search_path, `${row.fn} : search_path`).toBe(true);
+      // Seule exception : le journal d'erreurs, appelé aussi sans session (rendu serveur,
+      // page de connexion). Écriture seule, plafonnée, sans aucune lecture possible.
+      if (ANON_ALLOWED.has(row.fn)) continue;
       expect(row.anon_exec, `${row.fn} : exécutable par anon`).toBe(false);
     }
   });

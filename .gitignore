@@ -49,3 +49,6 @@ supabase/.branches
 
 coverage
 scripts/__pycache__/
+tests/e2e/.auth/
+test-results/
+playwright-report/
