@@ -54,7 +54,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             </Link>
           </div>
         </header>
-        <main className="w-full max-w-[88rem] flex-1 px-4 pt-6 pb-28 sm:px-6 lg:px-12 lg:pt-12 lg:pb-20 xl:px-16">
+        <main className="mx-auto w-full max-w-[120rem] flex-1 px-4 pt-6 pb-28 sm:px-6 lg:px-12 lg:pt-12 lg:pb-20 xl:px-16">
           {children}
         </main>
       </div>
