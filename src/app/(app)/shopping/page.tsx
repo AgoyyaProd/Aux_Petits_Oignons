@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { CheckLine } from "@/components/shopping/check-line";
+import { ShoppingLiveRefresh } from "@/components/shopping/live-refresh";
 import { AddExtraForm, ExportListButton, ExtraLine } from "@/components/shopping/extras";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -59,6 +60,7 @@ async function ShoppingContent({ searchParams }: Pick<PageProps<"/shopping">, "s
         <div className="flex w-full flex-col gap-3 sm:w-auto">
           <h1 className="type-page">Ma liste de courses</h1>
           <WeekNav page={page} />
+          <ShoppingLiveRefresh householdId={page.householdId} week={page.weekStart} />
         </div>
         <div className={ACTIONS_ROW}>
           {lines.length + page.extras.length > 0 && !allChecked ? (

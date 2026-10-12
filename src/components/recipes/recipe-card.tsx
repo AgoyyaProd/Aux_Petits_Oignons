@@ -3,7 +3,7 @@ import { AddToMenuButton } from "@/components/recipes/add-to-menu-button";
 import { FavoriteButton } from "@/components/recipes/favorite-button";
 import { RecipeVisual } from "@/components/recipes/recipe-visual";
 import { Badge } from "@/components/ui/badge";
-import { ClockIcon, GaugeIcon } from "@/components/ui/icons";
+import { ClockIcon, GaugeIcon, LeafIcon } from "@/components/ui/icons";
 import { formatCents } from "@/domain/money";
 import { DIFFICULTY_LABEL, DIFFICULTY_RULE } from "@/domain/recipes/difficulty";
 import type { RecipeCard as RecipeCardData } from "@/server/modules/recipes/queries";
@@ -74,6 +74,11 @@ export function RecipeCard({ recipe }: { recipe: RecipeCardData }) {
             </Badge>
           ) : null}
           {recipe.usesPriority ? <Badge tone="urgent">Finit un produit</Badge> : null}
+          {recipe.season === "in" ? (
+            <Badge tone="leaf">
+              <LeafIcon size={12} /> De saison
+            </Badge>
+          ) : null}
           {recipe.vegan ? (
             <Badge tone="neutral">Végétalien</Badge>
           ) : recipe.vegetarian ? (

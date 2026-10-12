@@ -17,6 +17,7 @@ import {
   ClockIcon,
   FridgeIcon,
   GaugeIcon,
+  LeafIcon,
   PotIcon,
   UsersIcon,
   WalletIcon,
@@ -92,6 +93,11 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
           <div className="flex flex-col gap-6">
             <h1 className="type-page">{recipe.title}</h1>
             <div className="flex flex-wrap gap-1.5">
+              {recipe.season === "in" ? (
+                <Badge tone="leaf">
+                  <LeafIcon size={12} /> De saison
+                </Badge>
+              ) : null}
               {recipe.vegan ? (
                 <Badge tone="leaf">Végétalien</Badge>
               ) : recipe.vegetarian ? (
@@ -105,6 +111,12 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
             </div>
             {recipe.description ? (
               <p className="text-muted text-lg leading-relaxed">{recipe.description}</p>
+            ) : null}
+            {recipe.season === "out" && recipe.outOfSeasonNames.length ? (
+              <p className="text-muted text-sm">
+                Hors saison en ce moment : {recipe.outOfSeasonNames.join(", ").toLowerCase()}. Ces
+                produits sont plus chers et moins savoureux qu&apos;en pleine saison.
+              </p>
             ) : null}
             <section
               aria-labelledby="infos"

@@ -189,6 +189,7 @@ export async function loadPlanningCatalog(
       ),
       novel: !everPlanned.has(r.id),
       totalMinutes: meta.totalMinutes,
+      ingredientSlugs: required.flatMap((l) => (l.ingredients?.slug ? [l.ingredients.slug] : [])),
     });
   }
 

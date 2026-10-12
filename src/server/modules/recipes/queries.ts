@@ -9,6 +9,12 @@ import {
 import { isPriority } from "@/domain/pantry/priority";
 import { estimateRecipeCost, millicentsToCents } from "@/domain/pricing";
 import { recipeDifficulty, type Difficulty } from "@/domain/recipes/difficulty";
+import {
+  monthOf,
+  outOfSeasonIngredients,
+  recipeSeason,
+  type SeasonStatus,
+} from "@/domain/recipes/season";
 import { matchStepIngredients, parseStepTimers, type StepTimer } from "@/domain/recipes/steps";
 import type { EatingStyle, FoodProfile, Objective } from "@/domain/planning";
 import { withParents } from "@/domain/shopping";
@@ -160,6 +166,8 @@ export interface RecipeCard {
   costIsMinimum: boolean;
   /** Difficulté calculée (règle fixe, voir domain/recipes/difficulty). */
   difficulty: Difficulty;
+  /** Saison ce mois-ci : « in » de saison, « out » hors saison, null sans produit saisonnier. */
+  season: SeasonStatus;
 }
 
 /** Seuil « petit budget » : coût estimé par portion. */
@@ -177,6 +185,8 @@ export interface CatalogFilters {
   useSoon?: boolean;
   diet?: "vegetarian" | "vegan";
   smallBudget?: boolean;
+  /** Uniquement les plats de saison ce mois-ci. */
+  inSeason?: boolean;
 }
 
 /**
@@ -186,13 +196,14 @@ export interface CatalogFilters {
 export async function getRecipeCatalog(filters: CatalogFilters) {
   const { household } = await getCurrentContext();
   if (!household) return null;
+  const month = monthOf(todayIn(household.timezone));
   const supabase = await createSupabaseServerClient();
 
   const [recipes, allergens, conflicts, ctx, names, ratings, priceBook] = await Promise.all([
     supabase
       .from("recipes")
       .select(
-        "id, slug, title, description, servings, prep_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, is_optional, quantity_base, dimension, ingredients (name, density_g_per_ml, piece_weight_g)), recipe_steps (count), recipe_equipment (equipment_code)",
+        "id, slug, title, description, servings, prep_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, is_optional, quantity_base, dimension, ingredients (slug, name, density_g_per_ml, piece_weight_g)), recipe_steps (count), recipe_equipment (equipment_code)",
       )
       .eq("status", "published")
       .order("title"),
@@ -287,6 +298,11 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
         : null;
     const vegetarian = !recipeConflicts.includes("vegetarian");
     const vegan = !recipeConflicts.includes("vegan");
+    const season = recipeSeason(
+      lines.map((l) => ({ slug: l.ingredients?.slug ?? "", optional: l.is_optional })),
+      month,
+    );
+    if (filters.inSeason && season !== "in") continue;
     if (filters.withStock && (coverage.total === 0 || coverage.inStock / coverage.total < 0.5)) {
       continue;
     }
@@ -322,6 +338,7 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
         cookMinutes: r.cook_minutes,
         steps: r.recipe_steps?.[0]?.count ?? 0,
       }),
+      season,
     });
   }
 
@@ -411,6 +428,9 @@ export interface RecipeDetail {
   difficulty: Difficulty;
   /** Matériel requis (déduit des étapes), en libellés. */
   equipmentLabels: string[];
+  /** Saison ce mois-ci, et produits hors saison qui l'expliquent. */
+  season: SeasonStatus;
+  outOfSeasonNames: string[];
 }
 
 export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
@@ -421,7 +441,7 @@ export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
   const { data: r, error } = await supabase
     .from("recipes")
     .select(
-      "id, slug, title, description, storage_note, servings, prep_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, quantity, unit_code, quantity_base, dimension, is_optional, preparation_note, position, ingredients (name, density_g_per_ml, piece_weight_g)), recipe_steps (position, instruction), recipe_equipment (equipment_code)",
+      "id, slug, title, description, storage_note, servings, prep_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, quantity, unit_code, quantity_base, dimension, is_optional, preparation_note, position, ingredients (slug, name, density_g_per_ml, piece_weight_g)), recipe_steps (position, instruction), recipe_equipment (equipment_code)",
     )
     .eq("slug", slug)
     .maybeSingle();
@@ -505,6 +525,18 @@ export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
     equipmentLabels: [...names.equipment.entries()]
       .filter(([code]) => equipmentCodes.includes(code))
       .map(([, label]) => label),
+    ...(() => {
+      const month = monthOf(todayIn(household.timezone));
+      const seasonal = lines.map((l) => ({
+        slug: l.ingredients?.slug ?? "",
+        optional: l.is_optional,
+        name: l.ingredients?.name ?? "?",
+      }));
+      return {
+        season: recipeSeason(seasonal, month),
+        outOfSeasonNames: outOfSeasonIngredients(seasonal, month).map((i) => i.name),
+      };
+    })(),
     cost: (() => {
       const estimate = estimateRecipeCost(
         lines.map((l) => ({

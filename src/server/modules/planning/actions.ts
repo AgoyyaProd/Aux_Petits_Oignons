@@ -1,6 +1,7 @@
 "use server";
 
 import { refresh } from "next/cache";
+import { monthOf } from "@/domain/recipes/season";
 import { redirect } from "next/navigation";
 import { autoPlace, generatePlan, parseSlotKey, slotKey, type PlanEntry } from "@/domain/planning";
 import { todayIn } from "@/lib/dates";
@@ -111,6 +112,7 @@ export async function generatePlanAction(
       locked: locked.map((e) => ({ recipeId: e.recipeId, servings: e.servings })),
       recentRecipeIds: recent,
       profile: catalog.profile,
+      month: monthOf(input.week),
       seed,
     });
     // Les plats gardés conservent leur jour ; les nouveaux remplissent les cases libres.
@@ -254,6 +256,7 @@ export async function addEntryAction(
     const result = generatePlan(catalog.candidates, {
       recentRecipeIds: recent,
       profile: catalog.profile,
+      month: monthOf(input.week),
       mealCount: entries.length + 1,
       people: plan.people,
       budgetCents: plan.budgetCents,

@@ -1,4 +1,5 @@
 import "server-only";
+import { monthOf } from "@/domain/recipes/season";
 import { randomUUID } from "node:crypto";
 import {
   compareBySlot,
@@ -128,6 +129,7 @@ export async function getPlannerPage({ week, replace }: { week?: string; replace
       seed: plan.seed,
       recentRecipeIds: recent,
       profile: catalog.profile,
+      month: monthOf(weekStart),
     }).flatMap((id) => {
       const meta = catalog.recipes.get(id);
       if (!meta) return [];

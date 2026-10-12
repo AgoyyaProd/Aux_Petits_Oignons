@@ -1,4 +1,5 @@
 import { DomainError } from "../errors";
+import { recipeSeason, seasonScore } from "@/domain/recipes/season";
 import { MAX_PER_FAMILY } from "./variety";
 
 /**
@@ -42,6 +43,19 @@ export interface PlanCandidate {
   novel?: boolean;
   /** Durée totale, en minutes. */
   totalMinutes?: number;
+  /** Identifiants (slug) des ingrédients obligatoires, pour la saisonnalité. */
+  ingredientSlugs?: readonly string[];
+}
+
+/** Bonus ou malus de saison d'un candidat pour le mois du menu (0 sans mois connu). */
+export function candidateSeasonScore(c: PlanCandidate, month: number | undefined): number {
+  if (!month || !c.ingredientSlugs) return 0;
+  return seasonScore(
+    recipeSeason(
+      c.ingredientSlugs.map((slug) => ({ slug, optional: false })),
+      month,
+    ),
+  );
 }
 
 export type EatingStyle = "omnivore" | "flexitarien" | "pescetarien" | "vegetarien" | "vegetalien";
@@ -108,6 +122,8 @@ export interface PlanRequest {
   recentRecipeIds?: readonly string[];
   /** Style et objectifs du foyer (préférences douces). */
   profile?: FoodProfile;
+  /** Mois du menu (1 à 12) : les plats de saison sont favorisés, ceux hors saison écartés. */
+  month?: number;
   seed: number;
 }
 
@@ -184,6 +200,7 @@ export function generatePlan(candidates: readonly PlanCandidate[], req: PlanRequ
     2 * c.stockCoverage +
     (c.favorite ? FAVORITE_BONUS : 0) +
     profileBonus(c, objectives, maxCost) +
+    candidateSeasonScore(c, req.month) +
     1.5 * (jitter.get(c.id) ?? 0);
   const recent = new Set(req.recentRecipeIds ?? []);
   const flexi = req.profile?.style === "flexitarien";
@@ -321,6 +338,7 @@ export function suggestReplacements(
     limit = 3,
     recentRecipeIds = [],
     profile,
+    month,
   }: {
     people: number;
     budgetCents: number | null;
@@ -328,6 +346,7 @@ export function suggestReplacements(
     limit?: number;
     recentRecipeIds?: readonly string[];
     profile?: FoodProfile;
+    month?: number;
   },
 ): string[] {
   const current = entries[index];
@@ -362,6 +381,7 @@ export function suggestReplacements(
     3 * Math.min(c.priorityUses, 3) +
     2 * c.stockCoverage +
     (c.favorite ? FAVORITE_BONUS : 0) +
+    candidateSeasonScore(c, month) +
     1.5 * (jitter.get(c.id) ?? 0);
 
   return candidates

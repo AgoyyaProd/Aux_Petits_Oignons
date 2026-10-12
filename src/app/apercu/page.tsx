@@ -44,6 +44,7 @@ export default function DesignPreview() {
     costPerServingCents: 245,
     costIsMinimum: false,
     difficulty: "moyenne",
+    season: "in",
     ...over,
   });
   const families = [

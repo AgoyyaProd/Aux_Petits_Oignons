@@ -18,6 +18,7 @@ import { expiryState } from "@/domain/pantry/priority";
 import { formatLongDate, hourIn } from "@/lib/dates";
 import { formatShoppingQuantity } from "@/lib/format-quantity";
 import { ImageSlot } from "@/components/ui/image-slot";
+import { DismissibleBanner } from "@/components/pantry/dismissible-banner";
 import { ingredientImage } from "@/lib/images";
 import { formatDay } from "@/lib/week";
 import { getCurrentContext } from "@/server/modules/auth/session";
@@ -39,6 +40,10 @@ export default function DashboardPage() {
     <div className="flex flex-col gap-8 lg:gap-10">
       <Suspense fallback={<div className="bg-border/60 h-16 w-72 animate-pulse rounded-lg" />}>
         <Greeting />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <UseSoonBanner />
       </Suspense>
 
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -582,5 +587,94 @@ async function Suggestions() {
         </ul>
       )}
     </section>
+  );
+}
+
+/**
+ * Bandeau « À consommer bientôt » : produits à DLC proche, dépassée ou entamés, et des
+ * recettes qui les utilisent. Rien n'est envoyé : il s'affiche à l'ouverture de l'appli et
+ * se masque pour la journée.
+ */
+async function UseSoonBanner() {
+  const [pantry, catalog] = await Promise.all([getPantry(), getRecipeCatalog({ useSoon: true })]);
+  if (!pantry) return null;
+  const urgent = pantry.items
+    .filter((i) => i.priority)
+    .sort((a, b) => (a.expiresOn ?? "9999").localeCompare(b.expiresOn ?? "9999"));
+  if (urgent.length === 0) return null;
+  const recipes = (catalog?.cards ?? [])
+    .filter((c) => c.compatibility.compatible && c.rating !== -1 && c.usesPriority)
+    .slice(0, 3);
+  const shown = urgent.slice(0, 4);
+  const key = `${pantry.today}:${urgent.map((i) => i.id).join(",")}`;
+
+  return (
+    <DismissibleBanner dismissKey={key} label="À consommer bientôt">
+      <div className="flex flex-col gap-1">
+        <h2 className="type-section text-[1.1875rem]">
+          {urgent.length} produit{urgent.length > 1 ? "s" : ""} à consommer bientôt
+        </h2>
+        <p className="text-muted text-sm">
+          Date limite proche ou produit entamé : utilise-les en priorité pour ne rien jeter.
+        </p>
+      </div>
+      <ul className="flex flex-wrap gap-2">
+        {shown.map((item) => {
+          const b = expiryBadge(item, pantry.today);
+          return (
+            <li
+              key={item.id}
+              className="bg-surface inline-flex items-center gap-2 rounded-full py-1.5 pr-1.5 pl-3.5 text-sm font-medium"
+            >
+              {item.ingredientName}
+              <Badge tone={b.tone}>{b.label}</Badge>
+            </li>
+          );
+        })}
+        {urgent.length > shown.length ? (
+          <li className="text-muted self-center text-sm">
+            et {urgent.length - shown.length} autre{urgent.length - shown.length > 1 ? "s" : ""}
+          </li>
+        ) : null}
+      </ul>
+      {recipes.length ? (
+        <div className="flex flex-col gap-2">
+          <p className="text-sm font-semibold">Des idées pour les utiliser :</p>
+          <ul className="grid gap-2 sm:grid-cols-3">
+            {recipes.map((r) => (
+              <li key={r.id}>
+                <Link
+                  href={`/recipes/${r.slug}`}
+                  className="bg-surface hover:border-border-strong border-border flex items-center gap-3 rounded-xl border p-2 pr-3"
+                >
+                  <RecipeVisual
+                    slug={r.slug}
+                    title={r.title}
+                    className="size-12 shrink-0 rounded-lg"
+                    iconSize={16}
+                  />
+                  <span className="flex min-w-0 flex-col">
+                    <span className="line-clamp-2 text-sm leading-snug font-semibold">
+                      {r.title}
+                    </span>
+                    <span className="text-muted inline-flex items-center gap-1 text-xs">
+                      <ClockIcon size={12} /> {r.totalMinutes} min
+                    </span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
+        <Link href="/recipes?vite=1" className="text-accent-strong hover:underline">
+          Toutes les recettes qui les utilisent
+        </Link>
+        <Link href="/pantry" className="text-brand hover:underline">
+          Voir le garde-manger
+        </Link>
+      </div>
+    </DismissibleBanner>
   );
 }
