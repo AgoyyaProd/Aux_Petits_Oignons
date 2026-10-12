@@ -267,14 +267,14 @@ isOneToOne: false
                   ]
                 },"households": {
                   Row: {
-                    "created_at": string,"created_by": string | null,"currency": string,"id": string,"max_prep_minutes": number | null,"name": string,"people_count": number,"reference_store": string | null,"timezone": string,"updated_at": string,"weekly_budget_cents": number | null
+                    "aisle_order": (string)[] | null,"created_at": string,"created_by": string | null,"currency": string,"id": string,"max_prep_minutes": number | null,"name": string,"people_count": number,"reference_store": string | null,"timezone": string,"updated_at": string,"weekly_budget_cents": number | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"created_by"?: string | null,"currency"?: string,"id"?: string,"max_prep_minutes"?: number | null,"name": string,"people_count"?: number,"reference_store"?: string | null,"timezone"?: string,"updated_at"?: string,"weekly_budget_cents"?: number | null
+                    "aisle_order"?: (string)[] | null,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"id"?: string,"max_prep_minutes"?: number | null,"name": string,"people_count"?: number,"reference_store"?: string | null,"timezone"?: string,"updated_at"?: string,"weekly_budget_cents"?: number | null
                   }
                   Update: {
-                    "created_at"?: string,"created_by"?: string | null,"currency"?: string,"id"?: string,"max_prep_minutes"?: number | null,"name"?: string,"people_count"?: number,"reference_store"?: string | null,"timezone"?: string,"updated_at"?: string,"weekly_budget_cents"?: number | null
+                    "aisle_order"?: (string)[] | null,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"id"?: string,"max_prep_minutes"?: number | null,"name"?: string,"people_count"?: number,"reference_store"?: string | null,"timezone"?: string,"updated_at"?: string,"weekly_budget_cents"?: number | null
                   }
                   Relationships: [
                     
@@ -945,6 +945,9 @@ isOneToOne: false
                            },
 "shopping_put_away":
 { Args: { "p_household_id": string,"p_idempotency_key": string,"p_items": Json }; Returns: Json
+                           },
+"text_array_is_distinct":
+{ Args: { "a": (string)[] }; Returns: boolean
                            }
           }
           Enums: {

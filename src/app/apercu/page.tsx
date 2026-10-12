@@ -1,5 +1,6 @@
 import { RecipeFacts } from "@/components/recipes/recipe-facts";
 import { WeekBalancePanel } from "@/components/planner/week-balance";
+import { AisleOrderForm } from "@/components/settings/aisle-order-form";
 import { NutritionPanel } from "@/components/recipes/nutrition-panel";
 import { computeRecipeNutrition, weekBalance, type Per100g } from "@/domain/nutrition";
 import { quantity } from "@/domain/units";
@@ -249,6 +250,14 @@ export default function DesignPreview() {
       <section className="flex flex-col gap-4">
         <h2 className="type-section">Équilibre de la semaine</h2>
         <WeekBalancePanel balance={DEMO_BALANCE} />
+      </section>
+      <section className="flex max-w-xl flex-col gap-4">
+        <h2 className="type-section">Ordre des rayons</h2>
+        <AisleOrderForm
+          householdId="00000000-0000-0000-0000-000000000000"
+          order={["oeufs_laitiers", "fruits", "legumes"]}
+          isOwner
+        />
       </section>
       <section className="flex flex-col gap-4">
         <h2 className="type-section">Navigation</h2>

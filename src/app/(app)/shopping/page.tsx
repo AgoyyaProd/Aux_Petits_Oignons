@@ -308,8 +308,13 @@ function ListView({ page, byRecipe }: { page: ListPage; byRecipe: boolean }) {
             Par recette
           </Link>
         </div>
-        <span className="text-muted text-sm">
+        <span className="text-muted flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
           Quantités nécessaires, pas des tailles de paquet.
+          {!byRecipe ? (
+            <Link href="/settings#rayons" className="text-foreground underline underline-offset-2">
+              Ordre de mon magasin
+            </Link>
+          ) : null}
         </span>
       </div>
 

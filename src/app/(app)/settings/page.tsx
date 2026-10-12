@@ -6,6 +6,7 @@ import { HouseholdForm } from "@/components/settings/household-form";
 import { MembersSection } from "@/components/settings/members-section";
 import { FoodProfileForm } from "@/components/settings/food-profile-form";
 import { ThemeSelect } from "@/components/settings/theme-select";
+import { AisleOrderForm } from "@/components/settings/aisle-order-form";
 import { buttonClasses } from "@/components/ui/button";
 import { signOutAction } from "@/server/modules/auth/actions";
 import { PageHeader } from "@/components/ui/page-header";
@@ -93,6 +94,13 @@ async function SettingsContent() {
             Gérer mes prix
           </Link>
         </div>
+      </Section>
+      <Section title="Ordre des rayons de mon magasin" id="rayons">
+        <AisleOrderForm
+          householdId={settings.household.id}
+          order={settings.household.aisle_order}
+          isOwner={settings.isOwner}
+        />
       </Section>
       <Section title="Aliments que tu ne veux pas manger" id="aliments">
         <AvoidedFoodsForm

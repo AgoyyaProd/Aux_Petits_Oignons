@@ -5,6 +5,7 @@ import { toActionError } from "@/server/errors";
 import { requireUser } from "@/server/modules/auth/session";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 import { resolveIngredient } from "@/server/modules/pantry/repository";
+import { AISLES } from "@/lib/categories";
 import {
   avoidedFoodSchema,
   foodProfileSchema,
@@ -163,5 +164,35 @@ export async function saveFoodProfileAction(
   return {
     status: "success",
     message: "Préférences enregistrées : les prochains menus en tiennent compte.",
+  };
+}
+
+/** Ordre des rayons du magasin du foyer (propriétaire seulement, contrôlé par la RLS). */
+export async function saveAisleOrderAction(
+  householdId: string,
+  order: string[] | null,
+): Promise<{ ok: boolean; message: string }> {
+  await requireUser();
+  const valid = new Set(AISLES.map((a) => a.category));
+  if (
+    !/^[0-9a-f-]{36}$/.test(householdId) ||
+    (order !== null && (order.length !== new Set(order).size || order.some((c) => !valid.has(c))))
+  ) {
+    return { ok: false, message: "Ordre des rayons invalide." };
+  }
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("households")
+    .update({ aisle_order: order })
+    .eq("id", householdId)
+    .select("id");
+  if (error) return { ok: false, message: toActionError(error).message };
+  if (!data?.length) {
+    return { ok: false, message: "Seul le propriétaire du foyer peut modifier ce réglage." };
+  }
+  refresh();
+  return {
+    ok: true,
+    message: order ? "Ordre des rayons enregistré." : "Ordre par défaut rétabli.",
   };
 }

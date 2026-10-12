@@ -12,7 +12,7 @@ import {
 } from "@/domain/shopping";
 import { mealDateFor } from "@/domain/planning";
 import { fromBase, type Dimension, type Quantity } from "@/domain/units";
-import { AISLES } from "@/lib/categories";
+import { AISLES, orderedAisles } from "@/lib/categories";
 import { todayIn } from "@/lib/dates";
 import { addDays, isMonday, mondayOf } from "@/lib/week";
 import { getCurrentContext } from "@/server/modules/auth/session";
@@ -63,7 +63,7 @@ export async function getShoppingPage(week?: string) {
 
   const settings = await supabase
     .from("households")
-    .select("max_prep_minutes")
+    .select("max_prep_minutes, aisle_order")
     .eq("id", household.id)
     .single();
   if (settings.error) throw new Error(settings.error.message);
@@ -212,10 +212,12 @@ export async function getShoppingPage(week?: string) {
     }
   }
 
-  const aisles = AISLES.map((a) => ({
-    ...a,
-    lines: toBuy.filter((l) => l.category === a.category),
-  })).filter((a) => a.lines.length > 0);
+  const aisles = orderedAisles(settings.data.aisle_order)
+    .map((a) => ({
+      ...a,
+      lines: toBuy.filter((l) => l.category === a.category),
+    }))
+    .filter((a) => a.lines.length > 0);
 
   return {
     ...base,

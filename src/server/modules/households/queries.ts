@@ -64,7 +64,9 @@ export async function getHouseholdSettings() {
 
   const full = await supabase
     .from("households")
-    .select("id, name, people_count, weekly_budget_cents, currency, timezone, max_prep_minutes")
+    .select(
+      "id, name, people_count, weekly_budget_cents, currency, timezone, max_prep_minutes, aisle_order",
+    )
     .eq("id", household.id)
     .single();
   if (full.error) throw new Error(`Lecture du foyer impossible : ${full.error.message}`);
