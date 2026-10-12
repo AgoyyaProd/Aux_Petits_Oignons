@@ -52,8 +52,8 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
   const perServing = recipe.cost ? Math.round(recipe.cost.cents / recipe.servings) : null;
 
   return (
-    <article className="flex flex-col gap-10">
-      <nav aria-label="Fil d'Ariane" className="text-muted -mb-4 text-sm">
+    <article className="flex flex-col gap-10 lg:gap-14">
+      <nav aria-label="Fil d'Ariane" className="text-muted -mb-4 text-sm lg:-mb-6">
         <ol className="flex flex-wrap items-center gap-1.5">
           <li>
             <Link href="/dashboard" className="hover:text-foreground">
@@ -71,19 +71,22 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
           <li aria-hidden="true">
             <ChevronLeftIcon size={14} className="rotate-180" />
           </li>
-          <li aria-current="page" className="text-foreground max-w-[16rem] truncate font-medium">
+          <li
+            aria-current="page"
+            className="text-foreground max-w-[16rem] truncate font-medium lg:max-w-md"
+          >
             {recipe.title}
           </li>
         </ol>
       </nav>
-      <header className="grid gap-6 lg:grid-cols-[1.1fr_1fr] lg:gap-12">
+      <header className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-stretch lg:gap-16">
         <RecipeVisual
           slug={recipe.slug}
           title={recipe.title}
-          className="aspect-[4/3] rounded-3xl"
+          className="aspect-[4/3] rounded-3xl lg:aspect-auto lg:h-full lg:min-h-[26rem]"
           iconSize={40}
         />
-        <div className="flex flex-col gap-5 lg:py-2">
+        <div className="flex flex-col gap-6">
           <h1 className="type-page">{recipe.title}</h1>
           <div className="flex flex-wrap gap-1.5">
             {recipe.vegan ? (
@@ -102,12 +105,12 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
           ) : null}
           <section
             aria-labelledby="infos"
-            className="bg-surface border-border flex flex-col gap-3 rounded-2xl border p-4"
+            className="bg-surface border-border flex flex-col gap-4 rounded-2xl border p-5"
           >
             <h2 id="infos" className="text-sm font-semibold">
               Informations
             </h2>
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-4">
+            <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm 2xl:grid-cols-4">
               <div className="flex flex-col gap-0.5">
                 <dt className="text-muted inline-flex items-center gap-1.5">
                   <ClockIcon size={16} /> Temps total
