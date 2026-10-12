@@ -1,7 +1,8 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { THEME_KEY, type ThemeChoice } from "@/lib/theme";
+import type { ThemeChoice } from "@/lib/theme";
+import { chooseTheme, readThemeChoice, subscribeTheme } from "@/lib/theme-client";
 
 const OPTIONS: { value: ThemeChoice; label: string; hint: string }[] = [
   { value: "light", label: "Clair", hint: "Fond crème" },
@@ -9,36 +10,9 @@ const OPTIONS: { value: ThemeChoice; label: string; hint: string }[] = [
   { value: "auto", label: "Automatique", hint: "Comme l'appareil" },
 ];
 
-const listeners = new Set<() => void>();
-function read(): ThemeChoice {
-  try {
-    const v = localStorage.getItem(THEME_KEY);
-    return v === "light" || v === "dark" ? v : "auto";
-  } catch {
-    return "auto";
-  }
-}
-function subscribe(fn: () => void) {
-  listeners.add(fn);
-  return () => listeners.delete(fn);
-}
-
 /** Choix de l'apparence, appliqué immédiatement et mémorisé sur cet appareil. */
 export function ThemeSelect() {
-  const value = useSyncExternalStore(subscribe, read, () => "auto" as ThemeChoice);
-
-  function choose(next: ThemeChoice) {
-    try {
-      if (next === "auto") localStorage.removeItem(THEME_KEY);
-      else localStorage.setItem(THEME_KEY, next);
-    } catch {
-      // Stockage indisponible (navigation privée) : le choix vaut pour la page en cours.
-    }
-    const apply = (window as Window & { __apoApplyTheme?: () => void }).__apoApplyTheme;
-    if (apply) apply();
-    else if (next !== "auto") document.documentElement.setAttribute("data-theme", next);
-    listeners.forEach((fn) => fn());
-  }
+  const value = useSyncExternalStore(subscribeTheme, readThemeChoice, () => "auto" as ThemeChoice);
 
   return (
     <fieldset className="flex flex-col gap-3">
@@ -59,7 +33,7 @@ export function ThemeSelect() {
               name="theme"
               value={o.value}
               checked={value === o.value}
-              onChange={() => choose(o.value)}
+              onChange={() => chooseTheme(o.value)}
               className="accent-brand size-4"
             />
             <span

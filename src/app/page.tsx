@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import type { ReactNode } from "react";
 import { Logo, LogoMark } from "@/components/brand/logo";
 import { BrandBadge, DotShape, LeafShape } from "@/components/brand/shapes";
@@ -59,6 +60,7 @@ export default function HomePage() {
           ))}
         </nav>
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <Link href="/login" className={buttonClasses("secondary")}>
             Se connecter
           </Link>
