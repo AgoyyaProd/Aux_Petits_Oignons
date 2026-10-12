@@ -12,6 +12,8 @@ export function RecipeVisual({
   imageUrl,
   className = "",
   iconSize,
+  sizes,
+  priority,
 }: {
   slug: string;
   title: string;
@@ -20,6 +22,8 @@ export function RecipeVisual({
   imageUrl?: string | null;
   className?: string;
   iconSize?: number;
+  sizes?: string;
+  priority?: boolean;
 }) {
   let h = 0;
   for (let i = 0; i < slug.length; i += 1) h = (h * 31 + slug.charCodeAt(i)) >>> 0;
@@ -30,6 +34,8 @@ export function RecipeVisual({
       tone={h % 3 === 0 ? "sage" : "cream"}
       className={className}
       iconSize={iconSize}
+      sizes={sizes}
+      priority={priority}
     />
   );
 }

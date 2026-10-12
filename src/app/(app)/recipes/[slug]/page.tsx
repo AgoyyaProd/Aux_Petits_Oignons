@@ -90,6 +90,8 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
             title={recipe.title}
             className="aspect-[4/3] rounded-3xl lg:aspect-auto lg:h-full lg:min-h-[26rem]"
             iconSize={40}
+            sizes="(min-width: 1024px) 55vw, 100vw"
+            priority
           />
           <div className="flex flex-col gap-6">
             <h1 className="type-page">{recipe.title}</h1>

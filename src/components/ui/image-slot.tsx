@@ -1,3 +1,5 @@
+import { recipeImageSmall } from "@/lib/images";
+
 /**
  * Emplacement d'image : affiche la photo si elle existe, sinon un fond neutre (crème ou
  * sauge) avec une petite icône. Il remplit son conteneur : c'est le parent qui fixe le
@@ -10,6 +12,8 @@ export function ImageSlot({
   tone = "cream",
   className = "",
   iconSize = 28,
+  sizes = "(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw",
+  priority = false,
 }: {
   src?: string | null;
   /** Texte alternatif de la photo ; l'emplacement vide, lui, est décoratif. */
@@ -17,6 +21,10 @@ export function ImageSlot({
   tone?: "cream" | "sage";
   className?: string;
   iconSize?: number;
+  /** Largeur affichée, pour que le navigateur choisisse la bonne taille de photo. */
+  sizes?: string;
+  /** Photo visible dès l'arrivée sur la page (ex. fiche recette) : pas de chargement différé. */
+  priority?: boolean;
 }) {
   // Le parent fixe la taille, OU la classe elle-même (aspect-*, size-*, h-*) : dans ce cas on
   // ne force pas la hauteur à 100 %, sinon le ratio est écrasé dans une grille étirée.
@@ -26,9 +34,18 @@ export function ImageSlot({
       ? "w-full"
       : "h-full w-full";
   if (src) {
+    const small = recipeImageSmall(src);
     return (
       // eslint-disable-next-line @next/next/no-img-element -- chemins locaux, dimensions fixées par le parent
-      <img src={src} alt={alt} className={`block object-cover ${fill} ${className}`} />
+      <img
+        src={src}
+        srcSet={small ? `${small} 600w, ${src} 1200w` : undefined}
+        sizes={small ? sizes : undefined}
+        alt={alt}
+        loading={priority ? "eager" : "lazy"}
+        decoding="async"
+        className={`block object-cover ${fill} ${className}`}
+      />
     );
   }
   return (
