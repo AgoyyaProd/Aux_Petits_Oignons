@@ -62,6 +62,16 @@ jobs:
             const s = r.stats;
             const msg = `${s.expected} réussis, ${s.unexpected} en échec, ${s.flaky} instables, ${s.skipped} ignorés`;
             console.log(`::notice title=Tests de bout en bout::${msg}`);
+            const walk = (suite, out = []) => {
+              for (const spec of suite.specs ?? [])
+                for (const t of spec.tests)
+                  if (t.status === "flaky" || t.status === "unexpected")
+                    out.push(`${t.status === "flaky" ? "instable" : "échec"} : [${t.projectName}] ${spec.title}`);
+              for (const child of suite.suites ?? []) walk(child, out);
+              return out;
+            };
+            for (const line of r.suites.flatMap((x) => walk(x)))
+              console.log(`::warning title=Test à surveiller::${line}`);
           ' || echo "::warning title=Tests de bout en bout::Rapport JSON absent"
       - uses: actions/upload-artifact@v4
         if: always() && steps.check.outputs.ok == 'true'
