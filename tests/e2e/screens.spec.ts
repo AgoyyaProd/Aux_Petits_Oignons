@@ -47,3 +47,19 @@ test("liste de courses : écoute du foyer en direct", async ({ page }) => {
     timeout: 15_000,
   });
 });
+
+test("hors ligne : la liste de courses reste consultable", async ({ page, context }) => {
+  await page.goto("/shopping");
+  await expect(page.getByRole("heading", { level: 1, name: "Ma liste de courses" })).toBeVisible();
+  // Le service worker prend la main, puis une visite en ligne enregistre la page.
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.ready;
+  });
+  await page.reload();
+  await page.waitForLoadState("networkidle");
+  await context.setOffline(true);
+  await page.reload();
+  await expect(page.getByRole("heading", { level: 1, name: "Ma liste de courses" })).toBeVisible();
+  await expect(page.getByText("Hors ligne : tu consultes la dernière version")).toBeVisible();
+  await context.setOffline(false);
+});

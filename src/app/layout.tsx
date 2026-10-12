@@ -3,6 +3,7 @@ import "@fontsource-variable/fraunces/opsz.css";
 import "@fontsource-variable/inter/index.css";
 import "./globals.css";
 import { THEME_SCRIPT } from "@/lib/theme";
+import { ServiceWorkerSetup } from "@/components/pwa/service-worker";
 
 export const metadata: Metadata = {
   title: { default: "Aux Petits Oignons", template: "%s · Aux Petits Oignons" },
@@ -33,7 +34,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        {children}
+        <ServiceWorkerSetup />
+      </body>
     </html>
   );
 }

@@ -5,6 +5,7 @@ import { SideNav, SideNavShell, TabBar, TabBarShell } from "@/components/layout/
 import { iconButtonClasses } from "@/components/ui/button";
 import { SearchIcon } from "@/components/ui/icons";
 import { getCurrentContext } from "@/server/modules/auth/session";
+import { OfflineBanner } from "@/components/pwa/offline-banner";
 
 /**
  * Coquille de l'application, statique et prérendue :
@@ -40,6 +41,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
+        <OfflineBanner />
         <header className="border-border bg-background/95 sticky top-0 z-20 border-b backdrop-blur lg:hidden print:hidden">
           <div className="flex w-full items-center justify-between gap-4 px-4 py-2.5 sm:px-6">
             <Link href="/dashboard" aria-label="Aux Petits Oignons, accueil" className="shrink-0">

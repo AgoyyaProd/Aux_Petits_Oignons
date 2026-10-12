@@ -6,6 +6,7 @@ import { HouseholdForm } from "@/components/settings/household-form";
 import { MembersSection } from "@/components/settings/members-section";
 import { FoodProfileForm } from "@/components/settings/food-profile-form";
 import { ThemeSelect } from "@/components/settings/theme-select";
+import { SignOutButton } from "@/components/pwa/sign-out-button";
 import { AisleOrderForm } from "@/components/settings/aisle-order-form";
 import { buttonClasses } from "@/components/ui/button";
 import { signOutAction } from "@/server/modules/auth/actions";
@@ -114,9 +115,7 @@ async function SettingsContent() {
       </Section>
       <Section title="Compte" id="compte">
         <form action={signOutAction}>
-          <button type="submit" className={buttonClasses("secondary")}>
-            Se déconnecter
-          </button>
+          <SignOutButton />
         </form>
       </Section>
     </>

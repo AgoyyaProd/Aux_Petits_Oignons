@@ -1,5 +1,14 @@
 /** Chemins accessibles sans session. Tout le reste exige une connexion. */
-const PUBLIC_PATHS = ["/", "/login", "/signup", "/manifest.webmanifest", "/apercu"] as const;
+const PUBLIC_PATHS = [
+  "/",
+  "/login",
+  "/signup",
+  "/manifest.webmanifest",
+  "/apercu",
+  // Service worker et page de secours hors ligne : chargés sans session.
+  "/sw.js",
+  "/hors-ligne",
+] as const;
 // /api/cron/ : appelé par Vercel Cron sans session ; la route vérifie son propre secret.
 const PUBLIC_PREFIXES = ["/auth/", "/api/cron/"] as const;
 
