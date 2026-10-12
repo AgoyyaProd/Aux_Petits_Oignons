@@ -25,8 +25,9 @@ l'usage quotidien, installable.
 - **Photographies** : aucune photo n'est disponible et aucune image ne doit contredire la
   recette. `RecipeVisual` compose un visuel géométrique (langage du logo) selon la famille du
   plat ; il accepte une `imageUrl` pour les vraies photos.
-- **Limites affichées, jamais simulées** : pas de difficulté ni de valeurs nutritionnelles
-  (pas de données fiables) ; le budget distingue objectif et estimations et indique que les
+- **Limites affichées, jamais simulées** : valeurs nutritionnelles présentées comme une
+  estimation (table Ciqual de l'Anses), avec les ingrédients non comptés et les minimums
+  signalés (révision du 12 octobre) ; le budget distingue objectif et estimations et indique que les
   dépenses réelles ne sont pas suivies.
 - **Galerie** `/apercu` : composants avec données de démonstration, construite seulement si
   `DESIGN_PREVIEW=1` (404 en production).

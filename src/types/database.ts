@@ -351,6 +351,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"ingredient_nutrition": {
+                  Row: {
+                    "carbs_g": number | null,"ciqual_code": number,"ciqual_name": string,"fat_g": number | null,"fiber_g": number | null,"ingredient_id": string,"kcal": number | null,"note": string | null,"proteins_g": number | null,"salt_g": number | null,"saturated_fat_g": number | null,"source": string,"sugars_g": number | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "carbs_g"?: number | null,"ciqual_code": number,"ciqual_name": string,"fat_g"?: number | null,"fiber_g"?: number | null,"ingredient_id": string,"kcal"?: number | null,"note"?: string | null,"proteins_g"?: number | null,"salt_g"?: number | null,"saturated_fat_g"?: number | null,"source"?: string,"sugars_g"?: number | null
+                  }
+                  Update: {
+                    "carbs_g"?: number | null,"ciqual_code"?: number,"ciqual_name"?: string,"fat_g"?: number | null,"fiber_g"?: number | null,"ingredient_id"?: string,"kcal"?: number | null,"note"?: string | null,"proteins_g"?: number | null,"salt_g"?: number | null,"saturated_fat_g"?: number | null,"source"?: string,"sugars_g"?: number | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "ingredient_nutrition_ingredient_id_fkey"
+      columns: ["ingredient_id"]
+isOneToOne: true
+      referencedRelation: "ingredients"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"ingredient_price_sources": {
                   Row: {
                     "approximate": boolean,"ingredient_id": string,"kind": string,"tags": (string)[],"updated_at": string

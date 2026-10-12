@@ -1,3 +1,4 @@
+import { NutritionPanel } from "@/components/recipes/nutrition-panel";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -252,6 +253,8 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
           inMenu={inMenu}
         />
 
+        <NutritionPanel nutrition={recipe.nutrition} />
+
         {recipe.storageNote ? (
           <section
             aria-labelledby="conservation"
@@ -278,8 +281,7 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
             ? recipe.allergenLabels.join(", ")
             : "aucun des 14 allergènes réglementaires"}
           . Déduits des ingrédients : vérifie toujours l&apos;étiquette des produits. Difficulté :{" "}
-          {DIFFICULTY_RULE.charAt(0).toLowerCase() + DIFFICULTY_RULE.slice(1)} Pas de valeurs
-          nutritionnelles : nous n&apos;avons pas de données fiables pour les calculer.
+          {DIFFICULTY_RULE.charAt(0).toLowerCase() + DIFFICULTY_RULE.slice(1)}
         </footer>
       </article>
     </KitchenProvider>

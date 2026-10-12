@@ -6,6 +6,7 @@ import {
   type Compatibility,
   type HouseholdConstraints,
 } from "@/domain/recipes/compatibility";
+import { computeRecipeNutrition, type RecipeNutrition } from "@/domain/nutrition";
 import { isPriority } from "@/domain/pantry/priority";
 import { estimateRecipeCost, millicentsToCents } from "@/domain/pricing";
 import { recipeDifficulty, type Difficulty } from "@/domain/recipes/difficulty";
@@ -431,6 +432,13 @@ export interface RecipeDetail {
   /** Saison ce mois-ci, et produits hors saison qui l'expliquent. */
   season: SeasonStatus;
   outOfSeasonNames: string[];
+  /** Valeurs nutritionnelles estimées par portion (Ciqual), null si rien n'est calculable. */
+  nutrition: RecipeNutrition | null;
+}
+
+/** Valeur numérique de la base (numeric peut arriver en chaîne), null conservé. */
+function num(v: number | string | null): number | null {
+  return v === null ? null : Number(v);
 }
 
 export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
@@ -441,7 +449,7 @@ export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
   const { data: r, error } = await supabase
     .from("recipes")
     .select(
-      "id, slug, title, description, storage_note, servings, prep_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, quantity, unit_code, quantity_base, dimension, is_optional, preparation_note, position, ingredients (slug, name, density_g_per_ml, piece_weight_g)), recipe_steps (position, instruction), recipe_equipment (equipment_code)",
+      "id, slug, title, description, storage_note, servings, prep_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, quantity, unit_code, quantity_base, dimension, is_optional, preparation_note, position, ingredients (slug, name, density_g_per_ml, piece_weight_g, ingredient_nutrition (kcal, proteins_g, carbs_g, sugars_g, fat_g, saturated_fat_g, fiber_g, salt_g))), recipe_steps (position, instruction), recipe_equipment (equipment_code)",
     )
     .eq("slug", slug)
     .maybeSingle();
@@ -537,6 +545,36 @@ export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
         outOfSeasonNames: outOfSeasonIngredients(seasonal, month).map((i) => i.name),
       };
     })(),
+    nutrition: computeRecipeNutrition(
+      lines.map((l) => {
+        const n = l.ingredients?.ingredient_nutrition ?? null;
+        return {
+          name: l.ingredients?.name ?? "?",
+          optional: l.is_optional,
+          quantity:
+            l.quantity_base !== null && l.dimension
+              ? fromBase(String(l.quantity_base), l.dimension)
+              : null,
+          conversions: {
+            densityGPerMl: l.ingredients?.density_g_per_ml ?? null,
+            pieceWeightG: l.ingredients?.piece_weight_g ?? null,
+          },
+          per100g: n
+            ? {
+                kcal: num(n.kcal),
+                proteins: num(n.proteins_g),
+                carbs: num(n.carbs_g),
+                sugars: num(n.sugars_g),
+                fat: num(n.fat_g),
+                saturatedFat: num(n.saturated_fat_g),
+                fiber: num(n.fiber_g),
+                salt: num(n.salt_g),
+              }
+            : null,
+        };
+      }),
+      r.servings,
+    ),
     cost: (() => {
       const estimate = estimateRecipeCost(
         lines.map((l) => ({

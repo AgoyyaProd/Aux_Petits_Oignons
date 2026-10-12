@@ -1,3 +1,6 @@
+import { NutritionPanel } from "@/components/recipes/nutrition-panel";
+import { computeRecipeNutrition, type Per100g } from "@/domain/nutrition";
+import { quantity } from "@/domain/units";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Logo, LogoMark } from "@/components/brand/logo";
@@ -203,6 +206,11 @@ export default function DesignPreview() {
         </KitchenProvider>
       </section>
       <section className="flex flex-col gap-4">
+        <h2 className="type-section">Valeurs nutritionnelles</h2>
+        <NutritionPanel nutrition={DEMO_NUTRITION} />
+        <NutritionPanel nutrition={DEMO_NUTRITION_UNRELIABLE} />
+      </section>
+      <section className="flex flex-col gap-4">
         <h2 className="type-section">Navigation</h2>
         <div className="bg-surface border-border max-w-64 rounded-2xl border p-3">
           <SideNavShell pathname="/planner" />
@@ -273,3 +281,108 @@ const DEMO = {
     DEMO_INGREDIENTS.map((i) => ({ id: i.ingredientId, name: i.name })),
   ).map((ingredientIds, i) => ({ ingredientIds, timers: parseStepTimers(DEMO_STEPS[i]!) })),
 };
+
+/** Valeurs Ciqual 2025 réelles (riz blanc cru, œuf cru, huile d'olive, ricotta). */
+const CIQ: Record<string, Per100g> = {
+  riz: {
+    kcal: 350,
+    proteins: 7.02,
+    carbs: 77.5,
+    sugars: 0.12,
+    fat: 0.79,
+    saturatedFat: 0.16,
+    fiber: 1.53,
+    salt: 0.008,
+  },
+  oeuf: {
+    kcal: 140,
+    proteins: 12.8,
+    carbs: 0.06,
+    sugars: 0.06,
+    fat: 9.83,
+    saturatedFat: 2.64,
+    fiber: 0,
+    salt: 0.31,
+  },
+  huile: {
+    kcal: 899,
+    proteins: 0.25,
+    carbs: 0,
+    sugars: 0,
+    fat: 99.9,
+    saturatedFat: 15.2,
+    fiber: 0,
+    salt: 0,
+  },
+  ricotta: {
+    kcal: null,
+    proteins: 8.13,
+    carbs: 4.09,
+    sugars: 3.69,
+    fat: 10.7,
+    saturatedFat: 7.38,
+    fiber: 0,
+    salt: 0.27,
+  },
+};
+
+const DEMO_NUTRITION = computeRecipeNutrition(
+  [
+    {
+      name: "Riz",
+      optional: false,
+      quantity: quantity("300", "g"),
+      conversions: {},
+      per100g: CIQ.riz!,
+    },
+    {
+      name: "Œuf",
+      optional: false,
+      quantity: quantity("4", "piece"),
+      conversions: { pieceWeightG: 55 },
+      per100g: CIQ.oeuf!,
+    },
+    {
+      name: "Huile d'olive",
+      optional: false,
+      quantity: quantity("2", "tbsp"),
+      conversions: { densityGPerMl: 0.92 },
+      per100g: CIQ.huile!,
+    },
+    {
+      name: "Ricotta",
+      optional: false,
+      quantity: quantity("100", "g"),
+      conversions: {},
+      per100g: CIQ.ricotta!,
+    },
+    {
+      name: "Pâte de curry",
+      optional: false,
+      quantity: quantity("30", "g"),
+      conversions: {},
+      per100g: null,
+    },
+  ],
+  4,
+);
+
+const DEMO_NUTRITION_UNRELIABLE = computeRecipeNutrition(
+  [
+    {
+      name: "Huile d'olive",
+      optional: false,
+      quantity: quantity("2", "tbsp"),
+      conversions: { densityGPerMl: 0.92 },
+      per100g: CIQ.huile!,
+    },
+    {
+      name: "Moules",
+      optional: false,
+      quantity: quantity("2", "kg"),
+      conversions: {},
+      per100g: null,
+    },
+  ],
+  4,
+);
