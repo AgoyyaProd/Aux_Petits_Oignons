@@ -76,3 +76,16 @@ export async function loadPriceBook(
   }
   return book;
 }
+
+/**
+ * Ingrédients gratuits et toujours disponibles (l'eau du robinet) : jamais sur la liste de
+ * courses, jamais décomptés du garde-manger.
+ */
+export async function loadFreeIngredientIds(supabase: Supabase): Promise<Set<string>> {
+  const { data, error } = await supabase
+    .from("ingredient_price_sources")
+    .select("ingredient_id")
+    .eq("kind", "free");
+  if (error) throw new Error(`Lecture des ingrédients gratuits impossible : ${error.message}`);
+  return new Set(data.map((r) => r.ingredient_id));
+}

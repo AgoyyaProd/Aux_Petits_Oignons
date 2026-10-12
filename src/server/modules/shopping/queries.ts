@@ -17,6 +17,7 @@ import { todayIn } from "@/lib/dates";
 import { addDays, isMonday, mondayOf } from "@/lib/week";
 import { getCurrentContext } from "@/server/modules/auth/session";
 import { getPlanningCatalog } from "@/server/modules/planning/catalog";
+import { loadFreeIngredientIds } from "@/server/modules/prices/price-book";
 import { readPlan } from "@/server/modules/planning/repository";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 
@@ -155,10 +156,10 @@ export async function getShoppingPage(week?: string) {
     opened: p.opened_at !== null,
     status: p.status,
   }));
-  const staples = await supabase
-    .from("household_staples")
-    .select("ingredient_id")
-    .eq("household_id", household.id);
+  const [staples, free] = await Promise.all([
+    supabase.from("household_staples").select("ingredient_id").eq("household_id", household.id),
+    loadFreeIngredientIds(supabase),
+  ]);
   if (staples.error) throw new Error(staples.error.message);
 
   // Variantes : des farfalle en stock couvrent un besoin de « Pâtes ».
@@ -170,7 +171,7 @@ export async function getShoppingPage(week?: string) {
     meals,
     ingredients: info,
     stock: remapVariantLots(stock, parentOf, required),
-    cupboard: new Set(staples.data.map((s) => s.ingredient_id)),
+    cupboard: new Set([...staples.data.map((s) => s.ingredient_id), ...free]),
   });
 
   const checked = new Set(checks.data!.map((c) => `${c.ingredient_id}|${c.dimension}`));
@@ -181,6 +182,8 @@ export async function getShoppingPage(week?: string) {
   let unpriced = 0;
 
   for (const line of result.lines) {
+    // L'eau du robinet n'a rien à faire sur la liste, même au placard.
+    if (free.has(line.ingredientId)) continue;
     if (line.inCupboard) {
       cupboard.push({ name: line.ingredientName });
       continue;

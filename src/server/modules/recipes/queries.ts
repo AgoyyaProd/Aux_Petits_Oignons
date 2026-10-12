@@ -26,6 +26,7 @@ import { loadPriceBook } from "@/server/modules/prices/price-book";
 import { loadRatings, recipeHistory, type Rating } from "@/server/modules/recipes/ratings";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 import { per100gFrom } from "@/server/modules/recipes/nutrition-data";
+import { loadFreeIngredientIds } from "@/server/modules/prices/price-book";
 
 export type Supabase = Awaited<ReturnType<typeof createSupabaseServerClient>>;
 
@@ -56,7 +57,7 @@ export async function householdContext(
   householdId: string,
   timeZone = "Europe/Paris",
 ) {
-  const [diets, exclusions, pantry, staples, variants, profile] = await Promise.all([
+  const [diets, exclusions, pantry, staples, variants, profile, free] = await Promise.all([
     supabase.from("household_diets").select("diet_code").eq("household_id", householdId),
     supabase
       .from("household_exclusions")
@@ -75,6 +76,7 @@ export async function householdContext(
       .select("eating_style, objectives, equipment")
       .eq("household_id", householdId)
       .maybeSingle(),
+    loadFreeIngredientIds(supabase),
   ]);
   if (profile.error) fail("du profil alimentaire", profile.error);
   if (diets.error) fail("des régimes", diets.error);
@@ -109,8 +111,9 @@ export async function householdContext(
       .map((p) => p.ingredient_id),
     parentOf,
   );
-  // Placard : présents par déclaration du foyer (sans quantité, jamais décomptés).
-  const staple = new Set(staples.data.map((s) => s.ingredient_id));
+  // Placard : présents par déclaration du foyer (sans quantité, jamais décomptés), et l'eau du
+  // robinet, toujours disponible.
+  const staple = new Set([...staples.data.map((s) => s.ingredient_id), ...free]);
   const available = withParents([...pantry.data.map((p) => p.ingredient_id), ...staple], parentOf);
   return { constraints, available, priority, staple, foodProfile };
 }

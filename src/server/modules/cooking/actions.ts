@@ -1,6 +1,7 @@
 "use server";
 
 import { refresh } from "next/cache";
+import { loadFreeIngredientIds } from "@/server/modules/prices/price-book";
 import { z } from "zod";
 import { planCooking, type CookLot } from "@/domain/cooking";
 import { remapVariantLots, type IngredientInfo, type RecipeLine } from "@/domain/shopping";
@@ -88,7 +89,7 @@ export async function cookAction(_prev: CookState, formData: FormData): Promise<
   if (variants.error) return { status: "error", message: toActionError(variants.error).message };
   const parentOf = new Map(variants.data.map((v) => [v.id, v.parent_id!]));
   const ingredientIds = [...info.keys(), ...parentOf.keys()];
-  const [pantry, staples] = await Promise.all([
+  const [pantry, staples, free] = await Promise.all([
     supabase
       .from("pantry_items")
       .select(
@@ -98,6 +99,7 @@ export async function cookAction(_prev: CookState, formData: FormData): Promise<
       .eq("status", "active")
       .in("ingredient_id", ingredientIds),
     supabase.from("household_staples").select("ingredient_id").eq("household_id", household.id),
+    loadFreeIngredientIds(supabase),
   ]);
   if (pantry.error) return { status: "error", message: toActionError(pantry.error).message };
   if (staples.error) return { status: "error", message: toActionError(staples.error).message };
@@ -118,7 +120,8 @@ export async function cookAction(_prev: CookState, formData: FormData): Promise<
     baseServings: recipe.data.servings,
     ingredients: info,
     lots: remapVariantLots(lots, parentOf, required),
-    cupboard: new Set(staples.data.map((s) => s.ingredient_id)),
+    // Ingrédients du placard et eau du robinet : toujours disponibles, jamais décomptés.
+    cupboard: new Set([...staples.data.map((s) => s.ingredient_id), ...free]),
     today: todayIn(household.timezone),
   });
 
