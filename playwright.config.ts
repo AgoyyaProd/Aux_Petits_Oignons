@@ -13,7 +13,13 @@ export default defineConfig({
   testDir: "tests/e2e",
   timeout: 60_000,
   retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "list",
+  reporter: process.env.CI
+    ? [
+        ["list"],
+        ["html", { open: "never" }],
+        ["json", { outputFile: "test-results/resultats.json" }],
+      ]
+    : "list",
   use: {
     baseURL: process.env.E2E_BASE_URL || "https://aux-petits-oignons-azure.vercel.app",
     locale: "fr-FR",

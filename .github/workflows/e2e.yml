@@ -54,6 +54,15 @@ jobs:
         run: npx playwright install --with-deps chromium
       - if: steps.check.outputs.ok == 'true'
         run: npx playwright test
+      - name: Bilan lisible dans le résumé du run
+        if: always() && steps.check.outputs.ok == 'true'
+        run: |
+          node -e '
+            const r = require("./test-results/resultats.json");
+            const s = r.stats;
+            const msg = `${s.expected} réussis, ${s.unexpected} en échec, ${s.flaky} instables, ${s.skipped} ignorés`;
+            console.log(`::notice title=Tests de bout en bout::${msg}`);
+          ' || echo "::warning title=Tests de bout en bout::Rapport JSON absent"
       - uses: actions/upload-artifact@v4
         if: always() && steps.check.outputs.ok == 'true'
         with:
