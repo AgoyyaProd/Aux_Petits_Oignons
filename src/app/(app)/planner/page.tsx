@@ -73,6 +73,14 @@ async function PlannerContent({ searchParams }: Pick<PageProps<"/planner">, "sea
         <div className="flex w-full flex-col gap-3 sm:w-auto">
           <h1 className="type-page">Mon menu de la semaine</h1>
           <WeekNav page={page} />
+          {base ? (
+            <Link
+              href={`/planner/imprimer?semaine=${page.weekStart}`}
+              className="text-muted hover:text-foreground self-center text-sm underline underline-offset-2 sm:self-start"
+            >
+              Imprimer ou partager la semaine
+            </Link>
+          ) : null}
         </div>
         {base ? (
           <div className={ACTIONS_ROW}>

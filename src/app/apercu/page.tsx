@@ -1,6 +1,7 @@
 import { RecipeFacts } from "@/components/recipes/recipe-facts";
 import { WeekBalancePanel } from "@/components/planner/week-balance";
 import { AisleOrderForm } from "@/components/settings/aisle-order-form";
+import { WeekSheet } from "@/components/planner/week-sheet";
 import { NutritionPanel } from "@/components/recipes/nutrition-panel";
 import { computeRecipeNutrition, weekBalance, type Per100g } from "@/domain/nutrition";
 import { quantity } from "@/domain/units";
@@ -257,6 +258,73 @@ export default function DesignPreview() {
           householdId="00000000-0000-0000-0000-000000000000"
           order={["oeufs_laitiers", "fruits", "legumes"]}
           isOwner
+        />
+      </section>
+      <section id="feuille" className="flex flex-col gap-4">
+        <h2 className="type-section print:hidden">Feuille de la semaine</h2>
+        <WeekSheet
+          weekStart="2026-10-12"
+          days={[
+            "2026-10-12",
+            "2026-10-13",
+            "2026-10-14",
+            "2026-10-15",
+            "2026-10-16",
+            "2026-10-17",
+            "2026-10-18",
+          ]}
+          people={4}
+          hasPlan
+          entries={[
+            {
+              position: 1,
+              title: "Curry de pois chiches aux épinards",
+              servings: 4,
+              day: "2026-10-12",
+              slot: "dinner",
+            },
+            {
+              position: 2,
+              title: "Bœuf bourguignon",
+              servings: 6,
+              day: "2026-10-14",
+              slot: "dinner",
+            },
+            { position: 3, title: "Salade niçoise", servings: 4, day: "2026-10-15", slot: "lunch" },
+            {
+              position: 4,
+              title: "Fajitas de poulet",
+              servings: 4,
+              day: "2026-10-17",
+              slot: "dinner",
+            },
+            { position: 5, title: "Crumble aux pommes", servings: 6, day: null, slot: null },
+          ]}
+          aisles={[
+            {
+              category: "legumes",
+              label: "Légumes",
+              lines: [
+                { key: "a", name: "Carotte", toBuy: quantity("6", "piece") },
+                { key: "b", name: "Épinards", toBuy: quantity("400", "g") },
+                { key: "c", name: "Poivron", toBuy: quantity("3", "piece") },
+              ],
+            },
+            {
+              category: "viandes",
+              label: "Boucherie",
+              lines: [
+                { key: "d", name: "Bœuf à mijoter", toBuy: quantity("1.2", "kg") },
+                { key: "e", name: "Filet de poulet", toBuy: quantity("600", "g") },
+              ],
+            },
+            {
+              category: "oeufs_laitiers",
+              label: "Crèmerie",
+              lines: [{ key: "f", name: "Crème fraîche épaisse", toBuy: quantity("20", "cl") }],
+            },
+          ]}
+          extras={[{ id: "x", label: "Papier cuisson", quantity: null }]}
         />
       </section>
       <section className="flex flex-col gap-4">

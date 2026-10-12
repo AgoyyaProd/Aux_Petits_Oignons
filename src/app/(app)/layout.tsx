@@ -16,7 +16,7 @@ import { getCurrentContext } from "@/server/modules/auth/session";
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-full flex-1">
-      <aside className="border-border bg-surface sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-8 border-r px-4 py-6 lg:flex">
+      <aside className="border-border bg-surface sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-8 border-r px-4 py-6 lg:flex print:hidden">
         <Link
           href="/dashboard"
           aria-label="Aux Petits Oignons, accueil"
@@ -40,7 +40,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="border-border bg-background/95 sticky top-0 z-20 border-b backdrop-blur lg:hidden">
+        <header className="border-border bg-background/95 sticky top-0 z-20 border-b backdrop-blur lg:hidden print:hidden">
           <div className="flex w-full items-center justify-between gap-4 px-4 py-2.5 sm:px-6">
             <Link href="/dashboard" aria-label="Aux Petits Oignons, accueil" className="shrink-0">
               <Logo size={36} />
@@ -54,14 +54,16 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             </Link>
           </div>
         </header>
-        <main className="mx-auto w-full max-w-[120rem] flex-1 px-4 pt-6 pb-28 sm:px-6 lg:px-12 lg:pt-12 lg:pb-20 xl:px-16">
+        <main className="mx-auto w-full max-w-[120rem] flex-1 px-4 pt-6 pb-28 sm:px-6 lg:px-12 lg:pt-12 lg:pb-20 xl:px-16 print:p-0">
           {children}
         </main>
       </div>
 
-      <Suspense fallback={<TabBarShell pathname={null} />}>
-        <TabBar />
-      </Suspense>
+      <div className="print:hidden">
+        <Suspense fallback={<TabBarShell pathname={null} />}>
+          <TabBar />
+        </Suspense>
+      </div>
     </div>
   );
 }

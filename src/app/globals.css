@@ -295,3 +295,26 @@ select:not([multiple]) {
     transition-duration: 0.01ms !important;
   }
 }
+
+/*
+ * Impression : toujours sur fond blanc, encre foncée, quel que soit le thème choisi
+ * (le navigateur n'imprime pas les fonds, un texte clair deviendrait illisible).
+ */
+@media print {
+  :root,
+  :root[data-theme="dark"],
+  :root:not([data-theme]) {
+    color-scheme: light;
+    --background: #ffffff;
+    --surface: #ffffff;
+    --surface-muted: #ffffff;
+    --foreground: #13261f;
+    --muted: #4a443c;
+    --border: #cfc4b2;
+    --border-strong: #8f8676;
+  }
+}
+
+@page {
+  margin: 14mm;
+}

@@ -12,6 +12,7 @@ const SCREENS = [
   { path: "/pantry", name: "garde-manger", heading: "Mon garde-manger" },
   { path: "/budget", name: "budget" },
   { path: "/settings", name: "preferences", heading: "Profil et préférences" },
+  { path: "/planner/imprimer", name: "feuille-semaine" },
 ];
 
 for (const screen of SCREENS) {
