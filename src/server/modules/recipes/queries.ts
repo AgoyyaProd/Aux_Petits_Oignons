@@ -376,6 +376,8 @@ export interface RecipeDetail {
   slug: string;
   title: string;
   description: string | null;
+  /** Conseils de conservation (réfrigérateur, congélation, réchauffage). */
+  storageNote: string | null;
   servings: number;
   prepMinutes: number;
   cookMinutes: number;
@@ -416,7 +418,7 @@ export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
   const { data: r, error } = await supabase
     .from("recipes")
     .select(
-      "id, slug, title, description, servings, prep_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, quantity, unit_code, quantity_base, dimension, is_optional, preparation_note, position, ingredients (name, density_g_per_ml, piece_weight_g)), recipe_steps (position, instruction), recipe_equipment (equipment_code)",
+      "id, slug, title, description, storage_note, servings, prep_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, quantity, unit_code, quantity_base, dimension, is_optional, preparation_note, position, ingredients (name, density_g_per_ml, piece_weight_g)), recipe_steps (position, instruction), recipe_equipment (equipment_code)",
     )
     .eq("slug", slug)
     .maybeSingle();
@@ -461,6 +463,7 @@ export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
     slug: r.slug,
     title: r.title,
     description: r.description,
+    storageNote: r.storage_note,
     servings: r.servings,
     prepMinutes: r.prep_minutes,
     cookMinutes: r.cook_minutes,

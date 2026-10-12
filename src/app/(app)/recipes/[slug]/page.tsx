@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   ChevronLeftIcon,
   ClockIcon,
+  FridgeIcon,
   GaugeIcon,
   PotIcon,
   UsersIcon,
@@ -230,6 +231,26 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
         baseServings={recipe.servings}
         inMenu={inMenu}
       />
+
+      {recipe.storageNote ? (
+        <section
+          aria-labelledby="conservation"
+          className="bg-leaf-soft flex gap-4 rounded-2xl p-5 sm:p-6"
+        >
+          <span
+            aria-hidden="true"
+            className="bg-surface text-forest dark:text-brand flex size-11 shrink-0 items-center justify-center rounded-full"
+          >
+            <FridgeIcon size={22} />
+          </span>
+          <div className="flex flex-col gap-1.5">
+            <h2 id="conservation" className="type-section text-[1.1875rem]">
+              Conservation
+            </h2>
+            <p className="leading-relaxed">{recipe.storageNote}</p>
+          </div>
+        </section>
+      ) : null}
 
       <footer className="text-muted border-border border-t pt-5 text-sm leading-relaxed">
         Allergènes :{" "}
