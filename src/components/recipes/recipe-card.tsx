@@ -20,7 +20,7 @@ export function RecipeCard({ recipe }: { recipe: RecipeCardData }) {
 
   return (
     <li
-      className={`bg-surface border-border relative flex gap-3 overflow-hidden rounded-2xl border p-2.5 sm:flex-col sm:gap-0 sm:p-0 ${dimmed ? "opacity-70" : ""}`}
+      className={`bg-surface border-border relative flex gap-3 overflow-hidden rounded-2xl border p-2.5 max-sm:h-[7.75rem] sm:flex-col sm:gap-0 sm:p-0 ${dimmed ? "opacity-70" : ""}`}
     >
       <div className="relative size-24 shrink-0 overflow-hidden rounded-xl sm:aspect-[4/3] sm:size-auto sm:rounded-none">
         <RecipeVisual slug={recipe.slug} title={recipe.title} tags={recipe.tags} />
@@ -35,9 +35,11 @@ export function RecipeCard({ recipe }: { recipe: RecipeCardData }) {
 
       <div className="flex min-w-0 flex-1 flex-col gap-1.5 sm:p-4">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="leading-snug font-semibold">
+          {/* Titre sur deux lignes au plus : toutes les cartes ont la même hauteur. */}
+          <h3 className="line-clamp-2 leading-snug font-semibold max-sm:text-[0.9375rem]">
             <Link
               href={`/recipes/${recipe.slug}`}
+              title={recipe.title}
               className="after:absolute after:inset-0 after:content-[''] hover:underline"
             >
               {recipe.title}
@@ -51,7 +53,7 @@ export function RecipeCard({ recipe }: { recipe: RecipeCardData }) {
             />
           </div>
         </div>
-        <p className="text-muted flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+        <p className="text-muted flex flex-wrap items-center gap-x-4 gap-y-1 text-sm max-sm:flex-nowrap max-sm:gap-x-3 max-sm:text-[0.8125rem]">
           <span className="inline-flex items-center gap-1.5">
             <ClockIcon size={16} /> {recipe.totalMinutes} min
           </span>
@@ -65,7 +67,7 @@ export function RecipeCard({ recipe }: { recipe: RecipeCardData }) {
             </span>
           ) : null}
         </p>
-        <div className="flex flex-wrap items-center gap-1.5 sm:mt-auto sm:pt-2">
+        <div className="flex flex-wrap items-center gap-1.5 max-sm:mt-auto max-sm:h-6 max-sm:overflow-hidden sm:mt-auto sm:pt-2">
           {recipe.exclusionLabel ? (
             <Badge tone="danger">{recipe.exclusionLabel}</Badge>
           ) : coverage.total > 0 && ratio > 0 ? (

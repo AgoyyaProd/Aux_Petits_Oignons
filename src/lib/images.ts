@@ -255,6 +255,7 @@ const INGREDIENT_PHOTO_VERSIONS: Readonly<Record<string, string>> = {
   beurre: "7fc19dc9",
   carotte: "67b4f2a4",
   compote: "4ad42fb0",
+  "confiture-fraise": "663b3855",
   confiture: "663b3855",
   "creme-fraiche": "19869eb6",
   "fromage-blanc": "f949644f",

@@ -132,6 +132,16 @@ export default function DesignPreview() {
           <RecipeCard recipe={card({})} />
           <RecipeCard
             recipe={card({
+              slug: "galettes-pommes-de-terre",
+              title: "Galettes de pommes de terre, sauce fromage blanc aux herbes fraîches",
+              vegetarian: true,
+              season: "in",
+              usesPriority: true,
+              coverage: { inStock: 6, total: 7 },
+            })}
+          />
+          <RecipeCard
+            recipe={card({
               slug: "risotto-butternut",
               title: "Risotto à la courge butternut",
               rating: 1,
