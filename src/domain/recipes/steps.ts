@@ -40,6 +40,7 @@ const STOPWORDS = new Set([
 const EXTRA_ALIASES: Readonly<Record<string, readonly string[]>> = {
   "bouillon cube de legumes": ["cubes?", "bouillon"],
   "bouillon cube de volaille": ["cubes?", "bouillon"],
+  "bouillon cube de boeuf": ["cubes?", "bouillon"],
   "boeuf hache": ["viande", "steaks?"],
   "boeuf a mijoter": ["boeuf", "viande"],
   "steak de boeuf": ["steaks?", "boeuf"],

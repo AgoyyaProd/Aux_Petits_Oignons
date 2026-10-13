@@ -132,6 +132,7 @@ huile-sesame product en:sesame-oils
 sel product en:fine-grained-salts en:table-salts en:coarse-grained-salts
 bouillon-legumes product en:vegetable-bouillon-cubes
 bouillon-volaille product en:dehydrated-poultry-broth-stock en:bouillon-cubes ~
+bouillon-boeuf product en:bouillon-cubes ~
 tomate-concassee product en:peeled-tomatoes en:canned-tomatoes ~
 coulis-tomate product en:strained-tomatoes
 concentre-tomate product en:tomato-pastes
@@ -142,6 +143,7 @@ pesto product en:pestos
 noix product en:walnuts
 amande product en:almonds
 cacahuete product en:peanuts
+cacahuete-grillee product en:peanuts ~
 graine-sesame product en:sesame
 moutarde product en:mustards
 mayonnaise product en:mayonnaises
@@ -184,3 +186,5 @@ confiture product en:jams
 compote product en:apple-compotes
 eau free
 jus-orange product en:orange-juices
+fromage-frais none
+fromage-frais-ail-fines-herbes none

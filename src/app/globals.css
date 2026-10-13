@@ -320,3 +320,19 @@ select:not([multiple]) {
 @page {
   margin: 14mm;
 }
+
+/* Fondu d'entrée (décor de fond lors d'un changement de rubrique). */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-\[fade-in_600ms_ease-out\] {
+    animation: none;
+  }
+}
