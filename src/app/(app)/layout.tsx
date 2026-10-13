@@ -23,7 +23,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           aria-label="Aux Petits Oignons, accueil"
           className="self-start px-2"
         >
-          <Logo size={40} />
+          <Logo size={52} />
         </Link>
         <div className="flex-1 overflow-y-auto">
           <Suspense fallback={<SideNavShell pathname={null} />}>
@@ -45,7 +45,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         <header className="border-border bg-background/95 sticky top-0 z-20 border-b backdrop-blur lg:hidden print:hidden">
           <div className="flex w-full items-center justify-between gap-4 px-4 py-2.5 sm:px-6">
             <Link href="/dashboard" aria-label="Aux Petits Oignons, accueil" className="shrink-0">
-              <Logo size={36} />
+              <Logo size={40} />
             </Link>
             <Link
               href="/recipes"

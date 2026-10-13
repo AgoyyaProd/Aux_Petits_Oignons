@@ -77,7 +77,7 @@ export default function DesignPreview() {
         <span className="bg-forest rounded-xl p-3">
           <Logo tone="inverse" size={40} />
         </span>
-        <Logo size={30} stacked={false} />
+        <Logo size={30} />
         <span className="text-forest">
           <LogoMark tone="mono" size={40} />
         </span>

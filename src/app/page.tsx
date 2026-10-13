@@ -61,7 +61,7 @@ export default function HomePage() {
     <div className="flex flex-1 flex-col">
       <header className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
         <Link href="/" aria-label="Aux Petits Oignons, accueil">
-          <Logo size={44} />
+          <Logo size={54} />
         </Link>
         <nav aria-label="Rubriques" className="hidden items-center gap-1 text-[0.9375rem] lg:flex">
           {[
@@ -280,7 +280,7 @@ export default function HomePage() {
 
       <footer className="border-border border-t">
         <div className="text-muted mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-8 text-sm sm:px-6">
-          <Logo size={36} />
+          <Logo size={44} />
           <p>
             Prix indicatifs :{" "}
             <a

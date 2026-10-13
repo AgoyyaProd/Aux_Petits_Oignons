@@ -8,7 +8,7 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
     <div className="flex flex-1 flex-col">
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-5 sm:px-6">
         <Link href="/" aria-label="Aux Petits Oignons, accueil">
-          <Logo size={30} />
+          <Logo size={40} />
         </Link>
         <ThemeToggle />
       </header>
