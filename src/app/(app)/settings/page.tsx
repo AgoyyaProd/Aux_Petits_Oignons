@@ -36,6 +36,11 @@ export default function SettingsPage() {
       <PageHeader
         title="Profil et préférences"
         description="Ton foyer, ses membres et ce que vous mangez : ces réglages décident des recettes et des menus proposés."
+        actions={
+          <Link href="/bienvenue" className={buttonClasses("secondary")}>
+            Refaire le questionnaire
+          </Link>
+        }
       />
       <Suspense fallback={<PageSkeleton />}>
         <SettingsContent />

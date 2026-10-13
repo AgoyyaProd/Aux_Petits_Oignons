@@ -1,6 +1,7 @@
 "use server";
 
 import { refresh } from "next/cache";
+import { redirect } from "next/navigation";
 import { toActionError } from "@/server/errors";
 import { requireUser } from "@/server/modules/auth/session";
 import { createSupabaseServerClient } from "@/server/supabase/server";
@@ -12,6 +13,8 @@ import {
   foodProfileSchema,
   firstErrors,
   householdSettingsSchema,
+  onboardingSchema,
+  type OnboardingInput,
   preferencesSchema,
   removeAvoidedFoodSchema,
   type FormState,
@@ -233,4 +236,55 @@ export async function saveMealPatternAction(
   }
   refresh();
   return { ok: true, message: "Semaine type enregistrée. Elle s'applique aux prochains menus." };
+}
+
+/**
+ * Questionnaire de bienvenue : tout est enregistré en une transaction (complete_onboarding).
+ * La partie foyer n'est envoyée que par le propriétaire ; la base le vérifie aussi.
+ */
+export async function completeOnboardingAction(
+  input: OnboardingInput,
+): Promise<{ ok: boolean; message: string }> {
+  await requireUser();
+  const parsed = onboardingSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: "Certaines réponses sont invalides." };
+  const d = parsed.data;
+  const h = d.household;
+  if (h) {
+    const unique = [...new Set(h.mealSlots)];
+    if (unique.length !== h.mealSlots.length || !unique.every(isPatternSlot)) {
+      return { ok: false, message: "Choisis au moins un repas de la semaine." };
+    }
+  }
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.rpc("complete_onboarding", {
+    p_household_id: d.householdId,
+    p_display_name: d.displayName,
+    p_people_count: (h?.peopleCount ?? null) as number,
+    p_weekly_budget_cents: (h?.weeklyBudgetCents ?? null) as number,
+    p_max_prep_minutes: (h?.maxPrepMinutes ?? null) as number,
+    p_meal_slots: (h ? ALL_PATTERN_SLOTS.filter((s) => h.mealSlots.includes(s)) : null) as string[],
+    p_meals_per_cook: (h?.mealsPerCook ?? null) as number,
+    p_eating_style: d.style,
+    p_no_pork: d.noPork,
+    p_allergens: d.allergens,
+    p_objectives: d.objectives,
+    p_equipment: d.equipment,
+  });
+  if (error) return { ok: false, message: toActionError(error).message };
+  refresh();
+  return { ok: true, message: "C'est noté !" };
+}
+
+/** « Plus tard » : le questionnaire n'est plus proposé ; tout reste modifiable dans Paramètres. */
+export async function skipOnboardingAction(): Promise<void> {
+  const user = await requireUser();
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase
+    .from("profiles")
+    .update({ onboarded_at: new Date().toISOString() })
+    .eq("id", user.id)
+    .is("onboarded_at", null);
+  if (error) throw new Error(toActionError(error).message);
+  redirect("/dashboard");
 }

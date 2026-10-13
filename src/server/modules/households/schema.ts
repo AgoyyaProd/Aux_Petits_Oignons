@@ -194,3 +194,23 @@ export const foodProfileSchema = z.object({
     .max(6),
   equipment: z.array(z.enum(EQUIPMENT_CODES)).max(EQUIPMENT_CODES.length),
 });
+
+// ---------------------------------------------------------------------------
+// Questionnaire de bienvenue (migration 0039)
+// ---------------------------------------------------------------------------
+
+/** Partie « foyer » du questionnaire : absente pour un membre invité (non propriétaire). */
+export const onboardingHouseholdSchema = z.object({
+  peopleCount: z.number().int().min(1).max(20),
+  weeklyBudgetCents: z.number().int().min(0).max(10_000_000).nullable(),
+  maxPrepMinutes: z.number().int().min(5).max(600).nullable(),
+  mealSlots: z.array(z.string()).min(1).max(14),
+  mealsPerCook: z.number().int().min(1).max(3),
+});
+
+export const onboardingSchema = foodProfileSchema.extend({
+  displayName: z.string().trim().max(80),
+  household: onboardingHouseholdSchema.nullable(),
+});
+
+export type OnboardingInput = z.input<typeof onboardingSchema>;

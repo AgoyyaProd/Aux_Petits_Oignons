@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 import { RecipeVisual } from "@/components/recipes/recipe-visual";
 import { Badge, type BadgeTone } from "@/components/ui/badge";
@@ -138,6 +139,8 @@ function SectionTitle({
 
 async function Greeting() {
   const { profile, household } = await getCurrentContext();
+  // Première connexion : le questionnaire de bienvenue avant tout le reste.
+  if (!profile.onboardedAt) redirect("/bienvenue");
   const tz = household?.timezone ?? "Europe/Paris";
   const hour = hourIn(tz);
   const hello = hour >= 18 || hour < 5 ? "Bonsoir" : "Bonjour";

@@ -32,7 +32,7 @@ export const getCurrentContext = cache(async () => {
   const { data: profile, error } = await supabase
     .from("profiles")
     .select(
-      "id, display_name, active_household_id, households:active_household_id (id, name, people_count, weekly_budget_cents, currency, timezone)",
+      "id, display_name, onboarded_at, active_household_id, households:active_household_id (id, name, people_count, weekly_budget_cents, currency, timezone)",
     )
     .eq("id", user.id)
     .single();
@@ -44,7 +44,12 @@ export const getCurrentContext = cache(async () => {
 
   return {
     user,
-    profile: { id: profile.id, displayName: profile.display_name },
+    profile: {
+      id: profile.id,
+      displayName: profile.display_name,
+      /** null : questionnaire de bienvenue ni rempli ni passé. */
+      onboardedAt: profile.onboarded_at,
+    },
     household,
   };
 });

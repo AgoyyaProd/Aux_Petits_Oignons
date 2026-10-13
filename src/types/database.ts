@@ -537,14 +537,14 @@ isOneToOne: false
                   ]
                 },"profiles": {
                   Row: {
-                    "active_household_id": string | null,"created_at": string,"display_name": string | null,"id": string,"updated_at": string
+                    "active_household_id": string | null,"created_at": string,"display_name": string | null,"id": string,"onboarded_at": string | null,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "active_household_id"?: string | null,"created_at"?: string,"display_name"?: string | null,"id": string,"updated_at"?: string
+                    "active_household_id"?: string | null,"created_at"?: string,"display_name"?: string | null,"id": string,"onboarded_at"?: string | null,"updated_at"?: string
                   }
                   Update: {
-                    "active_household_id"?: string | null,"created_at"?: string,"display_name"?: string | null,"id"?: string,"updated_at"?: string
+                    "active_household_id"?: string | null,"created_at"?: string,"display_name"?: string | null,"id"?: string,"onboarded_at"?: string | null,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -892,6 +892,9 @@ isOneToOne: false
                            },
 "accept_household_invitation":
 { Args: { "p_token": string }; Returns: string
+                           },
+"complete_onboarding":
+{ Args: { "p_allergens": (string)[],"p_display_name": string,"p_eating_style": string,"p_equipment": (string)[],"p_household_id": string,"p_max_prep_minutes": number,"p_meal_slots": (string)[],"p_meals_per_cook": number,"p_no_pork": boolean,"p_objectives": (string)[],"p_people_count": number,"p_weekly_budget_cents": number }; Returns: undefined
                            },
 "create_household_invitation":
 { Args: { "p_email": string,"p_household_id": string }; Returns: string

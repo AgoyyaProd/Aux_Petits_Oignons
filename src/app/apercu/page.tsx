@@ -2,6 +2,7 @@ import { RecipeFacts } from "@/components/recipes/recipe-facts";
 import { WeekBalancePanel } from "@/components/planner/week-balance";
 import { AisleOrderForm } from "@/components/settings/aisle-order-form";
 import { MealPatternForm } from "@/components/settings/meal-pattern-form";
+import { OnboardingWizard } from "@/components/onboarding/onboarding-wizard";
 import { WeekGrid } from "@/components/planner/week-grid";
 import type { PlannerEntryView, PlannerPage } from "@/server/modules/planning/queries";
 import { WeekSheet } from "@/components/planner/week-sheet";
@@ -267,6 +268,52 @@ export default function DesignPreview() {
       <section id="menu" className="flex flex-col gap-4">
         <h2 className="type-section">Menu de la semaine</h2>
         <WeekGrid page={DEMO_PLANNER} base={{ week: "2026-10-12", version: 1 }} />
+      </section>
+      <section id="bienvenue" className="flex max-w-4xl flex-col gap-4">
+        <h2 className="type-section">Questionnaire de bienvenue</h2>
+        <div className="bg-surface border-border rounded-2xl border p-5 sm:p-8 lg:p-10">
+          <OnboardingWizard
+            householdId="00000000-0000-0000-0000-000000000000"
+            householdName="Mon foyer"
+            isOwner
+            replay={false}
+            displayName="Agathe"
+            peopleCount={2}
+            weeklyBudgetCents={null}
+            maxPrepMinutes={null}
+            mealSlots={[
+              "mon:dinner",
+              "tue:dinner",
+              "wed:dinner",
+              "thu:dinner",
+              "fri:dinner",
+              "sat:dinner",
+              "sun:dinner",
+            ]}
+            mealsPerCook={2}
+            style="omnivore"
+            noPork={false}
+            allergens={[]}
+            objectives={[]}
+            equipment={null}
+            allergenOptions={[
+              { code: "gluten", label: "Gluten" },
+              { code: "lait", label: "Lait" },
+              { code: "oeufs", label: "Œufs" },
+              { code: "arachides", label: "Arachides" },
+              { code: "fruits_a_coque", label: "Fruits à coque" },
+            ]}
+            equipmentOptions={[
+              { code: "plaques", label: "Plaques de cuisson" },
+              { code: "four", label: "Four" },
+              { code: "poele", label: "Poêle" },
+              { code: "casserole", label: "Casserole" },
+              { code: "mixeur", label: "Mixeur" },
+              { code: "micro_ondes", label: "Micro-ondes" },
+            ]}
+            skip={<span className="text-accent-strong text-sm font-semibold">Plus tard</span>}
+          />
+        </div>
       </section>
       <section id="semaine" className="flex max-w-xl flex-col gap-4">
         <h2 className="type-section">Ma semaine de repas</h2>
