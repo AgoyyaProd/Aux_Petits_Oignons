@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 import { Logo } from "@/components/brand/logo";
+import { BrandElement } from "@/components/brand/shapes";
 import { SideNav, SideNavShell, TabBar, TabBarShell } from "@/components/layout/app-nav";
 import { iconButtonClasses } from "@/components/ui/button";
 import { SearchIcon } from "@/components/ui/icons";
@@ -16,7 +17,8 @@ import { OfflineBanner } from "@/components/pwa/offline-banner";
  */
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-full flex-1">
+    <div className="relative isolate flex min-h-full flex-1">
+      <BackgroundShapes />
       <aside className="border-border bg-surface sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-8 border-r px-4 py-6 lg:flex print:hidden">
         <Link
           href="/dashboard"
@@ -66,6 +68,35 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           <TabBar />
         </Suspense>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Décor de fond : les trois formes texturées du logo, fixes, au bord de l'écran, derrière les
+ * cartes (qui restent opaques et lisibles). La barre latérale en masque une partie.
+ */
+function BackgroundShapes() {
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden print:hidden"
+    >
+      <BrandElement
+        name="leaf"
+        sizes="288px"
+        className="absolute top-[38%] -right-20 w-56 rotate-[24deg] sm:w-72"
+      />
+      <BrandElement
+        name="slice"
+        sizes="(min-width: 640px) 448px, 256px"
+        className="absolute -right-24 -bottom-20 w-64 -rotate-12 sm:w-[28rem]"
+      />
+      <BrandElement
+        name="dot"
+        sizes="176px"
+        className="absolute bottom-[18%] -left-14 w-36 sm:w-44 lg:left-52"
+      />
     </div>
   );
 }
