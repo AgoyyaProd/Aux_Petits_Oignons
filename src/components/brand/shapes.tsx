@@ -12,9 +12,9 @@ import { LOGO_MARK_PATHS, MarkGradients, type MarkPiece } from "./logo";
 
 /** Cadre de chaque forme dans le repère du logo (2095,9 × 709,5). */
 const BOX: Record<MarkPiece, { x: number; y: number; w: number; h: number }> = {
-  leaf: { x: -2, y: 62, w: 425, h: 293 },
-  dot: { x: 474, y: 12, w: 278, h: 278 },
-  slice: { x: 158, y: 354, w: 637, h: 334 },
+  leaf: { x: -2, y: 158, w: 463, h: 318 },
+  dot: { x: 518, y: 102, w: 303, h: 303 },
+  slice: { x: 158, y: 429, w: 710, h: 409 },
 };
 
 const viewBox = (k: MarkPiece) => `${BOX[k].x} ${BOX[k].y} ${BOX[k].w} ${BOX[k].h}`;
@@ -136,7 +136,7 @@ export function BrandElement({
 
 /**
  * Le symbole du logo recomposé avec les trois formes texturées (grain d'origine), pour les
- * grands formats. Les positions reprennent celles du logo (cadre 793 × 671).
+ * grands formats. Les positions reprennent celles du logo (cadre 865 × 732).
  */
 export function TexturedMark({
   className = "",
@@ -147,14 +147,14 @@ export function TexturedMark({
 }) {
   return (
     <div aria-hidden="true" className={className}>
-      <div className="relative aspect-[793/671]">
+      <div className="relative aspect-[865/732]">
         <BrandElement
           name="slice"
           sizes={sizes}
-          className="absolute top-[51%] left-[20.2%] w-[79.8%]"
+          className="absolute top-[44.7%] left-[18.6%] w-[81.4%]"
         />
-        <BrandElement name="leaf" sizes={sizes} className="absolute top-[7.4%] left-0 w-[53.3%]" />
-        <BrandElement name="dot" sizes={sizes} className="absolute top-0 left-[60%] w-[34.6%]" />
+        <BrandElement name="leaf" sizes={sizes} className="absolute top-[7.7%] left-0 w-[53.1%]" />
+        <BrandElement name="dot" sizes={sizes} className="absolute top-0 left-[60.1%] w-[34.5%]" />
       </div>
     </div>
   );
