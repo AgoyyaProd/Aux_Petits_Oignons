@@ -150,6 +150,36 @@
     ]
   },
   {
+    "slug": "boeuf-carottes",
+    "ingredients": [
+      { "id": "boeuf-bourguignon", "name": "Bœuf à mijoter", "optional": false },
+      { "id": "carotte", "name": "Carotte", "optional": false },
+      { "id": "oignon", "name": "Oignon", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "vin-blanc", "name": "Vin blanc", "optional": false },
+      { "id": "bouillon-volaille", "name": "Bouillon cube de volaille", "optional": false },
+      { "id": "farine", "name": "Farine de blé", "optional": false },
+      { "id": "thym", "name": "Thym", "optional": false },
+      { "id": "laurier", "name": "Laurier", "optional": false },
+      { "id": "huile-tournesol", "name": "Huile de tournesol", "optional": false },
+      { "id": "persil", "name": "Persil frais", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true },
+      { "id": "poivre", "name": "Poivre noir", "optional": true }
+    ],
+    "steps": [
+      "Couper la viande en gros cubes si elle ne l'est pas déjà, et l'éponger avec du papier absorbant.",
+      "Éplucher les carottes et les couper en rondelles épaisses. Éplucher et émincer les oignons et l'ail.",
+      "Faire chauffer l'huile dans une cocotte à feu vif et y dorer la viande en plusieurs fois, 5 minutes par fournée, jusqu'à ce qu'elle soit bien colorée. La réserver.",
+      "Baisser le feu à moyen et faire revenir les oignons 5 minutes dans la cocotte.",
+      "Remettre la viande, saupoudrer de farine et remuer 1 minute pour la faire légèrement roussir.",
+      "Verser le vin blanc en grattant le fond de la cocotte, puis ajouter de l'eau à hauteur et émietter le cube de bouillon.",
+      "Ajouter l'ail, le thym et le laurier. Saler, poivrer et porter à frémissement.",
+      "Couvrir et laisser mijoter 1 heure à feu très doux.",
+      "Ajouter les carottes et poursuivre 1 heure à 1 heure 30, jusqu'à ce que la viande se défasse à la fourchette.",
+      "Retirer le laurier et servir parsemé de persil ciselé."
+    ]
+  },
+  {
     "slug": "bolognaise",
     "ingredients": [
       { "id": "pates", "name": "Pâtes", "optional": false },
@@ -203,6 +233,37 @@
       "Verser le coulis, couvrir et laisser mijoter 20 minutes à feu doux : les boulettes doivent être cuites à cœur.",
       "Pendant ce temps, cuire les spaghetti dans une grande casserole d'eau bouillante 9 à 11 minutes (voir le paquet), puis les égoutter.",
       "Servir les spaghetti nappés de sauce et de boulettes, avec le parmesan râpé."
+    ]
+  },
+  {
+    "slug": "boulettes-lentilles-sauce-tomate",
+    "ingredients": [
+      { "id": "lentille-verte", "name": "Lentilles vertes", "optional": false },
+      { "id": "oeuf", "name": "Œuf", "optional": false },
+      { "id": "chapelure", "name": "Chapelure", "optional": false },
+      { "id": "oignon", "name": "Oignon", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "persil", "name": "Persil frais", "optional": false },
+      { "id": "cumin", "name": "Cumin", "optional": false },
+      { "id": "coulis-tomate", "name": "Coulis de tomate", "optional": false },
+      { "id": "huile-olive", "name": "Huile d'olive", "optional": false },
+      { "id": "spaghetti", "name": "Spaghetti", "optional": false },
+      { "id": "parmesan", "name": "Parmesan", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true },
+      { "id": "poivre", "name": "Poivre noir", "optional": true }
+    ],
+    "steps": [
+      "Rincer les lentilles, les couvrir largement d'eau froide et les cuire 25 minutes à petits frémissements, jusqu'à ce qu'elles soient bien tendres. Les égoutter soigneusement et les laisser tiédir.",
+      "Éplucher l'oignon et l'ail. Émincer finement la moitié de l'oignon et un ail pour la sauce, et hacher très finement le reste.",
+      "Ciseler le persil.",
+      "Écraser grossièrement les lentilles à la fourchette dans un saladier : il doit rester quelques lentilles entières.",
+      "Ajouter l'œuf, la chapelure, l'oignon et l'ail hachés, le persil et le cumin. Saler, poivrer et mélanger : la pâte doit se tenir quand on la presse.",
+      "Façonner des boulettes de la taille d'une noix, les mains légèrement mouillées.",
+      "Faire chauffer deux cuillerées d'huile dans une grande poêle à feu moyen et dorer les boulettes 6 à 8 minutes en les retournant délicatement. Les réserver sur une assiette.",
+      "Dans la même poêle, faire revenir l'oignon et l'ail émincés avec le reste de l'huile 3 minutes, puis verser le coulis de tomate. Saler et laisser frémir 10 minutes.",
+      "Remettre les boulettes dans la sauce et laisser mijoter 5 minutes à feu doux, sans remuer pour ne pas les casser.",
+      "Pendant ce temps, cuire les spaghetti dans une grande casserole d'eau salée bouillante le temps indiqué sur le paquet, puis les égoutter.",
+      "Servir les spaghetti avec les boulettes et la sauce, parsemés de parmesan."
     ]
   },
   {
@@ -306,6 +367,31 @@
     ]
   },
   {
+    "slug": "cabillaud-sauce-vierge-quinoa",
+    "ingredients": [
+      { "id": "cabillaud", "name": "Cabillaud", "optional": false },
+      { "id": "quinoa", "name": "Quinoa", "optional": false },
+      { "id": "tomate", "name": "Tomate", "optional": false },
+      { "id": "olive", "name": "Olives", "optional": false },
+      { "id": "basilic", "name": "Basilic frais", "optional": false },
+      { "id": "citron", "name": "Citron", "optional": false },
+      { "id": "echalote", "name": "Échalote", "optional": false },
+      { "id": "huile-olive", "name": "Huile d'olive", "optional": false },
+      { "id": "sel", "name": "Sel", "optional": true },
+      { "id": "poivre", "name": "Poivre noir", "optional": true }
+    ],
+    "steps": [
+      "Rincer le quinoa et le cuire dans deux fois son volume d'eau salée 12 à 15 minutes à feu doux, à couvert, jusqu'à ce que l'eau soit absorbée.",
+      "Pendant ce temps, couper les tomates en petits dés et les olives en rondelles. Éplucher et ciseler finement l'échalote.",
+      "Ciseler le basilic et presser le citron.",
+      "Dans un bol, mélanger les tomates, les olives, l'échalote, le basilic, le jus de citron et quatre cuillerées d'huile. Saler, poivrer : c'est la sauce vierge.",
+      "Éponger les dos de cabillaud avec du papier absorbant, puis les saler.",
+      "Faire chauffer le reste de l'huile dans une poêle antiadhésive à feu moyen et y cuire le cabillaud 3 à 4 minutes par face, jusqu'à ce que la chair soit nacrée et se détache en lamelles.",
+      "Égrainer le quinoa à la fourchette.",
+      "Servir le cabillaud sur le quinoa, nappé de sauce vierge."
+    ]
+  },
+  {
     "slug": "cake-banane",
     "ingredients": [
       { "id": "banane", "name": "Banane", "optional": false },
@@ -327,6 +413,64 @@
       "Verser la pâte dans le moule et lisser le dessus.",
       "Enfourner 45 minutes. Une lame plantée au centre doit ressortir sèche ; si le dessus brunit trop vite, le couvrir d'une feuille de papier.",
       "Laisser tiédir 10 minutes dans le moule, puis démouler sur une grille."
+    ]
+  },
+  {
+    "slug": "cake-sale-jambon-olives",
+    "ingredients": [
+      { "id": "farine", "name": "Farine de blé", "optional": false },
+      { "id": "levure-chimique", "name": "Levure chimique", "optional": false },
+      { "id": "oeuf", "name": "Œuf", "optional": false },
+      { "id": "lait", "name": "Lait", "optional": false },
+      { "id": "huile-olive", "name": "Huile d'olive", "optional": false },
+      { "id": "jambon", "name": "Jambon blanc", "optional": false },
+      { "id": "olive", "name": "Olives", "optional": false },
+      { "id": "emmental", "name": "Emmental râpé", "optional": false },
+      { "id": "herbes-provence", "name": "Herbes de Provence", "optional": false },
+      { "id": "beurre", "name": "Beurre", "optional": false },
+      { "id": "salade", "name": "Salade verte", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true },
+      { "id": "poivre", "name": "Poivre noir", "optional": true }
+    ],
+    "steps": [
+      "Préchauffer le four à 180 °C. Beurrer un moule à cake.",
+      "Couper le jambon en dés et les olives en rondelles.",
+      "Dans un saladier, mélanger la farine, la levure et une pincée de sel.",
+      "Dans un autre bol, battre les œufs avec le lait et l'huile.",
+      "Verser le mélange liquide sur la farine et mélanger juste ce qu'il faut pour obtenir une pâte lisse, sans trop travailler.",
+      "Ajouter le jambon, les olives, l'emmental et les herbes, poivrer et mélanger.",
+      "Verser la pâte dans le moule et enfourner 45 minutes : la lame d'un couteau doit ressortir sèche.",
+      "Laisser tiédir 10 minutes avant de démouler, puis servir en tranches avec une salade verte."
+    ]
+  },
+  {
+    "slug": "cassoulet-express",
+    "ingredients": [
+      { "id": "saucisse", "name": "Saucisse", "optional": false },
+      { "id": "haricot-blanc", "name": "Haricots blancs (conserve)", "optional": false },
+      { "id": "lardon", "name": "Lardons", "optional": false },
+      { "id": "tomate-concassee", "name": "Tomates concassées en boîte", "optional": false },
+      { "id": "oignon", "name": "Oignon", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "carotte", "name": "Carotte", "optional": false },
+      { "id": "thym", "name": "Thym", "optional": false },
+      { "id": "laurier", "name": "Laurier", "optional": false },
+      { "id": "bouillon-volaille", "name": "Bouillon cube de volaille", "optional": false },
+      { "id": "chapelure", "name": "Chapelure", "optional": false },
+      { "id": "huile-olive", "name": "Huile d'olive", "optional": false },
+      { "id": "sel", "name": "Sel", "optional": true },
+      { "id": "poivre", "name": "Poivre noir", "optional": true }
+    ],
+    "steps": [
+      "Éplucher et émincer l'oignon et l'ail. Éplucher la carotte et la couper en petits dés.",
+      "Égoutter et rincer les haricots blancs.",
+      "Faire chauffer l'huile dans une cocotte allant au four à feu moyen et y dorer les saucisses 5 minutes sur toutes les faces. Les réserver sur une assiette.",
+      "Dans la même cocotte, faire revenir les lardons, l'oignon et la carotte 5 minutes, jusqu'à ce que l'oignon soit tendre.",
+      "Ajouter l'ail, le thym et le laurier, et remuer 1 minute.",
+      "Verser la tomate concassée et un verre d'eau, émietter le cube de bouillon, puis ajouter les haricots. Saler légèrement et poivrer.",
+      "Couper les saucisses en tronçons et les enfoncer dans les haricots. Laisser mijoter 20 minutes à feu doux, à couvert.",
+      "Préchauffer le four à 200 °C.",
+      "Retirer le laurier, parsemer de chapelure et enfourner 20 minutes à découvert, jusqu'à ce que le dessus soit doré et croustillant."
     ]
   },
   {
@@ -458,6 +602,23 @@
     ]
   },
   {
+    "slug": "compote-pommes-poires",
+    "ingredients": [
+      { "id": "pomme", "name": "Pomme", "optional": false },
+      { "id": "poire", "name": "Poire", "optional": false },
+      { "id": "citron", "name": "Citron", "optional": false },
+      { "id": "cannelle", "name": "Cannelle", "optional": false },
+      { "id": "extrait-vanille", "name": "Extrait de vanille", "optional": true }
+    ],
+    "steps": [
+      "Éplucher les pommes et les poires, retirer le cœur et les couper en morceaux.",
+      "Mettre les fruits dans une casserole avec le jus du demi-citron, la cannelle, la vanille et un fond d'eau.",
+      "Porter à frémissement, puis couvrir et cuire 20 minutes à feu doux en remuant de temps en temps, jusqu'à ce que les fruits soient très tendres.",
+      "Écraser à la fourchette pour une compote rustique, ou mixer pour une compote lisse.",
+      "Laisser refroidir et servir tiède ou froide."
+    ]
+  },
+  {
     "slug": "cookies-chocolat",
     "ingredients": [
       { "id": "farine", "name": "Farine de blé", "optional": false },
@@ -573,7 +734,7 @@
       "Faire revenir l'oignon avec le cumin 3 minutes.",
       "Ajouter les carottes, le navet, les tomates, le cube émietté et l'eau.",
       "Porter à ébullition, puis couvrir et cuire 20 minutes à feu moyen-doux.",
-      "Rincer les pois chiches. Les ajouter avec les courgettes et cuire encore 15 minutes, jusqu'à ce que tous les légumes soient tendres.",
+      "Égoutter et rincer les pois chiches. Les ajouter avec les courgettes et cuire encore 15 minutes, jusqu'à ce que tous les légumes soient tendres.",
       "Préparer la semoule : la verser dans un saladier et la couvrir du même volume d'eau bouillante.",
       "Couvrir et laisser gonfler 5 minutes, puis l'égrener à la fourchette.",
       "Servir la semoule avec les légumes et leur bouillon, et la harissa à part pour que chacun dose."
@@ -736,6 +897,62 @@
     ]
   },
   {
+    "slug": "curry-cabillaud-coco-epinards",
+    "ingredients": [
+      { "id": "cabillaud", "name": "Cabillaud", "optional": false },
+      { "id": "lait-coco", "name": "Lait de coco", "optional": false },
+      { "id": "tomate-concassee", "name": "Tomates concassées en boîte", "optional": false },
+      { "id": "epinard", "name": "Épinards", "optional": false },
+      { "id": "oignon", "name": "Oignon", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "gingembre", "name": "Gingembre frais", "optional": false },
+      { "id": "curry", "name": "Curry en poudre", "optional": false },
+      { "id": "huile-tournesol", "name": "Huile de tournesol", "optional": false },
+      { "id": "riz-basmati", "name": "Riz basmati", "optional": false },
+      { "id": "citron-vert", "name": "Citron vert", "optional": true },
+      { "id": "coriandre", "name": "Coriandre fraîche", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true }
+    ],
+    "steps": [
+      "Rincer le riz et le cuire dans une grande casserole d'eau salée bouillante le temps indiqué sur le paquet, puis l'égoutter.",
+      "Éplucher et émincer l'oignon et l'ail.",
+      "Faire chauffer l'huile dans une grande poêle à feu moyen et y faire revenir l'oignon 5 minutes, jusqu'à ce qu'il soit tendre.",
+      "Ajouter l'ail, le gingembre et le curry, et remuer 1 minute jusqu'à ce que les épices sentent bon.",
+      "Verser le lait de coco et la tomate concassée, saler et laisser frémir 5 minutes à feu doux.",
+      "Déposer les morceaux de cabillaud dans la sauce, couvrir et cuire 6 à 8 minutes à feu doux, sans remuer : le poisson doit s'effeuiller facilement.",
+      "Ajouter les épinards et les laisser fondre 1 à 2 minutes en les enfonçant délicatement dans la sauce.",
+      "Servir sur le riz, avec un filet de jus de citron vert et la coriandre ciselée."
+    ]
+  },
+  {
+    "slug": "curry-haricots-rouges-patate-douce",
+    "ingredients": [
+      { "id": "haricot-rouge", "name": "Haricots rouges (conserve)", "optional": false },
+      { "id": "patate-douce", "name": "Patate douce", "optional": false },
+      { "id": "lait-coco", "name": "Lait de coco", "optional": false },
+      { "id": "tomate-concassee", "name": "Tomates concassées en boîte", "optional": false },
+      { "id": "oignon", "name": "Oignon", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "curry", "name": "Curry en poudre", "optional": false },
+      { "id": "cumin", "name": "Cumin", "optional": false },
+      { "id": "huile-tournesol", "name": "Huile de tournesol", "optional": false },
+      { "id": "riz", "name": "Riz", "optional": false },
+      { "id": "coriandre", "name": "Coriandre fraîche", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true }
+    ],
+    "steps": [
+      "Éplucher et émincer l'oignon et l'ail. Éplucher la patate douce et la couper en cubes d'environ 2 cm.",
+      "Égoutter et rincer les haricots rouges.",
+      "Faire chauffer l'huile dans une cocotte à feu moyen et y faire revenir l'oignon 5 minutes, jusqu'à ce qu'il soit tendre.",
+      "Ajouter l'ail, le curry et le cumin, et remuer 1 minute.",
+      "Ajouter la patate douce, la tomate concassée et le lait de coco. Saler et porter à frémissement.",
+      "Couvrir et laisser mijoter 15 minutes à feu doux, jusqu'à ce que la patate douce soit presque tendre.",
+      "Ajouter les haricots rouges et poursuivre 10 minutes à découvert, jusqu'à ce que la sauce épaississe.",
+      "Pendant ce temps, cuire le riz dans une casserole d'eau salée bouillante le temps indiqué sur le paquet, puis l'égoutter.",
+      "Servir le curry sur le riz, parsemé de coriandre ciselée."
+    ]
+  },
+  {
     "slug": "curry-pois-chiches-epinards",
     "ingredients": [
       { "id": "pois-chiche", "name": "Pois chiches (conserve)", "optional": false },
@@ -787,6 +1004,34 @@
       "Verser la crème et laisser réduire 3 minutes à feu moyen, jusqu'à ce que la sauce nappe la cuillère.",
       "Remettre la dinde et son jus dans la sauce 2 minutes pour la réchauffer, sans la faire bouillir.",
       "Parsemer de persil ciselé et servir avec le riz."
+    ]
+  },
+  {
+    "slug": "dinde-poivrons-paprika",
+    "ingredients": [
+      { "id": "dinde-escalope", "name": "Escalope de dinde", "optional": false },
+      { "id": "poivron", "name": "Poivron", "optional": false },
+      { "id": "oignon", "name": "Oignon", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "tomate-concassee", "name": "Tomates concassées en boîte", "optional": false },
+      { "id": "paprika", "name": "Paprika", "optional": false },
+      { "id": "creme-fraiche", "name": "Crème fraîche épaisse", "optional": false },
+      { "id": "huile-olive", "name": "Huile d'olive", "optional": false },
+      { "id": "riz", "name": "Riz", "optional": false },
+      { "id": "persil", "name": "Persil frais", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true },
+      { "id": "poivre", "name": "Poivre noir", "optional": true }
+    ],
+    "steps": [
+      "Couper les escalopes de dinde en lanières. Épépiner les poivrons et les couper en lanières. Éplucher et émincer l'oignon et l'ail.",
+      "Faire chauffer une cuillerée d'huile dans une sauteuse à feu vif et y saisir la dinde 3 à 4 minutes, jusqu'à ce qu'elle soit dorée. La réserver sur une assiette.",
+      "Baisser le feu à moyen, ajouter le reste de l'huile et faire revenir l'oignon et les poivrons 8 minutes, jusqu'à ce qu'ils soient tendres.",
+      "Ajouter l'ail et le paprika, et remuer 1 minute.",
+      "Verser la tomate concassée, saler, poivrer et laisser frémir 5 minutes.",
+      "Remettre la dinde avec son jus et cuire encore 5 minutes à feu doux.",
+      "Pendant ce temps, cuire le riz dans une casserole d'eau salée bouillante le temps indiqué sur le paquet, puis l'égoutter.",
+      "Hors du feu, incorporer la crème fraîche.",
+      "Servir sur le riz, parsemé de persil ciselé."
     ]
   },
   {
@@ -916,6 +1161,28 @@
       "Enfourner 35 minutes en arrosant le filet de son jus à mi-cuisson : la viande doit être juste rosée au centre et les carottes tendres.",
       "Couvrir et laisser reposer 5 minutes hors du four : le jus se répartit dans la viande.",
       "Trancher en médaillons et servir avec les carottes et le jus du plat."
+    ]
+  },
+  {
+    "slug": "flan-patissier",
+    "ingredients": [
+      { "id": "pate-brisee", "name": "Pâte brisée", "optional": false },
+      { "id": "lait", "name": "Lait", "optional": false },
+      { "id": "oeuf", "name": "Œuf", "optional": false },
+      { "id": "sucre", "name": "Sucre", "optional": false },
+      { "id": "fecule-mais", "name": "Fécule de maïs", "optional": false },
+      { "id": "extrait-vanille", "name": "Extrait de vanille", "optional": false },
+      { "id": "beurre", "name": "Beurre", "optional": false }
+    ],
+    "steps": [
+      "Préchauffer le four à 180 °C. Beurrer un moule à bord haut et y étaler la pâte en gardant le papier de cuisson.",
+      "Faire chauffer le lait avec la vanille dans une casserole à feu moyen, jusqu'à frémissement.",
+      "Dans un saladier, fouetter les œufs avec le sucre, puis ajouter la fécule et fouetter jusqu'à obtenir un mélange lisse.",
+      "Verser le lait chaud petit à petit sur le mélange en fouettant sans arrêt.",
+      "Reverser le tout dans la casserole et cuire à feu moyen en fouettant 2 à 3 minutes, jusqu'à ce que la crème épaississe nettement.",
+      "Verser la crème chaude sur la pâte et lisser la surface.",
+      "Enfourner 45 à 50 minutes, jusqu'à ce que le dessus soit bien doré par endroits.",
+      "Laisser refroidir complètement, puis réfrigérer au moins 4 heures avant de couper : le flan doit être bien pris."
     ]
   },
   {
@@ -1074,6 +1341,32 @@
       "Ajouter les tomates cerises et cuire 2 minutes, juste pour qu'elles s'attendrissent.",
       "Hors du feu, mélanger avec le pesto.",
       "Servir avec le parmesan râpé."
+    ]
+  },
+  {
+    "slug": "gnocchis-tomate-mozzarella",
+    "ingredients": [
+      { "id": "gnocchi", "name": "Gnocchis", "optional": false },
+      { "id": "coulis-tomate", "name": "Coulis de tomate", "optional": false },
+      { "id": "mozzarella", "name": "Mozzarella", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "basilic", "name": "Basilic frais", "optional": false },
+      { "id": "huile-olive", "name": "Huile d'olive", "optional": false },
+      { "id": "herbes-provence", "name": "Herbes de Provence", "optional": false },
+      { "id": "parmesan", "name": "Parmesan", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true },
+      { "id": "poivre", "name": "Poivre noir", "optional": true }
+    ],
+    "steps": [
+      "Préchauffer le four à 220 °C.",
+      "Éplucher et émincer l'ail.",
+      "Faire chauffer l'huile dans une grande poêle allant au four à feu moyen-vif et y faire dorer les gnocchis 5 minutes en remuant, jusqu'à ce qu'ils soient légèrement croustillants.",
+      "Ajouter l'ail et remuer 30 secondes.",
+      "Verser le coulis de tomate, ajouter les herbes de Provence, saler, poivrer et laisser frémir 3 minutes.",
+      "Ciseler la moitié du basilic et l'incorporer à la sauce.",
+      "Égoutter la mozzarella, la couper en tranches et la répartir sur les gnocchis. Parsemer de parmesan.",
+      "Enfourner 10 minutes, jusqu'à ce que la mozzarella soit fondue et commence à dorer.",
+      "Servir aussitôt, parsemé du reste de basilic."
     ]
   },
   {
@@ -1273,6 +1566,38 @@
     ]
   },
   {
+    "slug": "harira",
+    "ingredients": [
+      { "id": "lentille-verte", "name": "Lentilles vertes", "optional": false },
+      { "id": "pois-chiche", "name": "Pois chiches (conserve)", "optional": false },
+      { "id": "tomate-concassee", "name": "Tomates concassées en boîte", "optional": false },
+      { "id": "oignon", "name": "Oignon", "optional": false },
+      { "id": "celeri-branche", "name": "Céleri branche", "optional": false },
+      { "id": "concentre-tomate", "name": "Concentré de tomate", "optional": false },
+      { "id": "cumin", "name": "Cumin", "optional": false },
+      { "id": "cannelle", "name": "Cannelle", "optional": false },
+      { "id": "curcuma", "name": "Curcuma", "optional": false },
+      { "id": "gingembre", "name": "Gingembre frais", "optional": false },
+      { "id": "coriandre", "name": "Coriandre fraîche", "optional": false },
+      { "id": "persil", "name": "Persil frais", "optional": false },
+      { "id": "citron", "name": "Citron", "optional": false },
+      { "id": "huile-olive", "name": "Huile d'olive", "optional": false },
+      { "id": "sel", "name": "Sel", "optional": true },
+      { "id": "poivre", "name": "Poivre noir", "optional": true }
+    ],
+    "steps": [
+      "Éplucher et émincer l'oignon. Émincer le céleri.",
+      "Rincer les lentilles. Égoutter et rincer les pois chiches.",
+      "Faire chauffer l'huile dans une grande cocotte à feu moyen et y faire revenir l'oignon et le céleri 5 minutes, jusqu'à ce qu'ils soient tendres.",
+      "Ajouter le cumin, la cannelle, le curcuma et le gingembre, et remuer 1 minute.",
+      "Ajouter le concentré de tomate et la tomate concassée, puis les lentilles. Couvrir largement d'eau et porter à ébullition.",
+      "Laisser mijoter 30 minutes à feu doux, à couvert, jusqu'à ce que les lentilles soient tendres.",
+      "Ajouter les pois chiches et poursuivre 10 minutes. Ajouter un peu d'eau si la soupe est trop épaisse.",
+      "Ciseler la coriandre et le persil et les ajouter hors du feu. Saler et poivrer.",
+      "Servir bien chaud, avec des quartiers de citron à presser dans chaque bol."
+    ]
+  },
+  {
     "slug": "lasagnes-bolognaise",
     "ingredients": [
       { "id": "pates-lasagne", "name": "Pâtes à lasagne", "optional": false },
@@ -1457,7 +1782,7 @@
       "Dans une casserole, mettre les carottes, l'oignon, les tomates, le cumin, l'eau et le cube émietté.",
       "Porter à ébullition, puis couvrir et cuire 10 minutes à feu moyen.",
       "Ajouter les courgettes et cuire encore 10 minutes.",
-      "Rincer les pois chiches et les ajouter pendant les 5 dernières minutes.",
+      "Égoutter et rincer les pois chiches et les ajouter pendant les 5 dernières minutes.",
       "Pendant ce temps, chauffer une poêle à feu moyen et cuire les merguez 10 à 12 minutes en les retournant régulièrement, jusqu'à ce qu'elles soient bien dorées.",
       "Préparer la semoule : la verser dans un saladier et la couvrir du même volume d'eau bouillante.",
       "Couvrir et laisser gonfler 5 minutes, puis l'égrener à la fourchette.",
@@ -1486,7 +1811,7 @@
       "Faire revenir l'oignon, les carottes et le céleri 5 minutes, jusqu'à ce qu'ils soient tendres.",
       "Ajouter la courgette, les tomates, l'eau et les cubes émiettés.",
       "Porter à ébullition, puis cuire 20 minutes à frémissement.",
-      "Rincer les haricots et les ajouter avec les coquillettes.",
+      "Égoutter et rincer les haricots et les ajouter avec les coquillettes.",
       "Cuire encore 10 minutes, jusqu'à ce que les pâtes soient tendres. Remuer de temps en temps pour qu'elles n'attachent pas.",
       "Goûter et rectifier l'assaisonnement.",
       "Servir avec le parmesan râpé et le basilic ciselé."
@@ -1538,6 +1863,40 @@
     ]
   },
   {
+    "slug": "moussaka",
+    "ingredients": [
+      { "id": "aubergine", "name": "Aubergine", "optional": false },
+      { "id": "boeuf-hache", "name": "Bœuf haché", "optional": false },
+      { "id": "oignon", "name": "Oignon", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "tomate-concassee", "name": "Tomates concassées en boîte", "optional": false },
+      { "id": "concentre-tomate", "name": "Concentré de tomate", "optional": false },
+      { "id": "cannelle", "name": "Cannelle", "optional": false },
+      { "id": "huile-olive", "name": "Huile d'olive", "optional": false },
+      { "id": "lait", "name": "Lait", "optional": false },
+      { "id": "beurre", "name": "Beurre", "optional": false },
+      { "id": "farine", "name": "Farine de blé", "optional": false },
+      { "id": "parmesan", "name": "Parmesan", "optional": false },
+      { "id": "muscade", "name": "Noix de muscade", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true },
+      { "id": "poivre", "name": "Poivre noir", "optional": true }
+    ],
+    "steps": [
+      "Préchauffer le four à 220 °C.",
+      "Couper les aubergines en tranches d'environ 1 cm, les badigeonner d'huile sur les deux faces et les étaler sur deux plaques. Saler.",
+      "Rôtir les aubergines 20 minutes en les retournant à mi-cuisson, jusqu'à ce qu'elles soient tendres et dorées.",
+      "Pendant ce temps, éplucher et émincer l'oignon et l'ail.",
+      "Faire revenir l'oignon dans une sauteuse avec un filet d'huile à feu moyen 5 minutes, puis ajouter la viande et l'ail. Cuire 5 minutes en émiettant la viande à la spatule.",
+      "Ajouter la tomate concassée, le concentré et la cannelle. Saler, poivrer et laisser mijoter 15 minutes à feu doux, jusqu'à ce que la sauce soit épaisse.",
+      "Pour la béchamel, faire fondre le beurre dans une casserole à feu moyen, ajouter la farine et remuer 1 minute.",
+      "Verser le lait petit à petit en fouettant, et cuire 5 minutes en fouettant jusqu'à ce que la sauce épaississe. Saler, ajouter de la muscade et la moitié du parmesan.",
+      "Baisser le four à 180 °C.",
+      "Dans un plat à gratin, alterner une couche d'aubergines, la sauce à la viande, puis le reste des aubergines.",
+      "Napper de béchamel et parsemer du reste de parmesan.",
+      "Enfourner 35 minutes, jusqu'à ce que le dessus soit bien doré, puis laisser reposer 15 minutes avant de couper."
+    ]
+  },
+  {
     "slug": "mousse-chocolat",
     "ingredients": [
       { "id": "chocolat-noir", "name": "Chocolat noir", "optional": false },
@@ -1579,6 +1938,38 @@
       "Remplir les empreintes aux trois quarts.",
       "Enfourner 20 à 22 minutes : les muffins doivent être dorés et une lame plantée au centre doit ressortir sèche.",
       "Laisser tiédir 5 minutes avant de démouler."
+    ]
+  },
+  {
+    "slug": "navarin-agneau",
+    "ingredients": [
+      { "id": "agneau", "name": "Agneau", "optional": false },
+      { "id": "carotte", "name": "Carotte", "optional": false },
+      { "id": "navet", "name": "Navet", "optional": false },
+      { "id": "pomme-de-terre-grenaille", "name": "Pomme de terre grenaille", "optional": false },
+      { "id": "petit-pois", "name": "Petits pois", "optional": false },
+      { "id": "oignon", "name": "Oignon", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "concentre-tomate", "name": "Concentré de tomate", "optional": false },
+      { "id": "farine", "name": "Farine de blé", "optional": false },
+      { "id": "bouillon-volaille", "name": "Bouillon cube de volaille", "optional": false },
+      { "id": "thym", "name": "Thym", "optional": false },
+      { "id": "laurier", "name": "Laurier", "optional": false },
+      { "id": "huile-olive", "name": "Huile d'olive", "optional": false },
+      { "id": "sel", "name": "Sel", "optional": true },
+      { "id": "poivre", "name": "Poivre noir", "optional": true }
+    ],
+    "steps": [
+      "Éponger les morceaux d'agneau avec du papier absorbant. Éplucher et émincer l'oignon et l'ail.",
+      "Faire chauffer l'huile dans une cocotte à feu vif et y dorer l'agneau en plusieurs fois, 5 minutes par fournée. Le réserver.",
+      "Baisser le feu à moyen et faire revenir l'oignon 5 minutes dans la cocotte.",
+      "Remettre la viande, saupoudrer de farine et remuer 1 minute, puis ajouter le concentré de tomate et l'ail.",
+      "Couvrir d'eau à hauteur, émietter le cube de bouillon, ajouter le thym et le laurier. Saler, poivrer et porter à frémissement.",
+      "Couvrir et laisser mijoter 1 heure à feu doux.",
+      "Pendant ce temps, éplucher les carottes et les navets et les couper en gros morceaux. Laver les pommes de terre grenaille.",
+      "Ajouter les carottes, les navets et les pommes de terre dans la cocotte et poursuivre 30 minutes, jusqu'à ce qu'ils soient tendres.",
+      "Ajouter les petits pois et cuire encore 10 minutes à découvert.",
+      "Retirer le laurier, goûter et rectifier l'assaisonnement avant de servir."
     ]
   },
   {
@@ -1739,6 +2130,35 @@
     ]
   },
   {
+    "slug": "pad-thai-crevettes",
+    "ingredients": [
+      { "id": "nouilles-riz", "name": "Nouilles de riz", "optional": false },
+      { "id": "crevette", "name": "Crevettes", "optional": false },
+      { "id": "oeuf", "name": "Œuf", "optional": false },
+      { "id": "carotte", "name": "Carotte", "optional": false },
+      { "id": "oignon", "name": "Oignon", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "cacahuete", "name": "Cacahuètes", "optional": false },
+      { "id": "sauce-soja", "name": "Sauce soja", "optional": false },
+      { "id": "sucre-roux", "name": "Sucre roux", "optional": false },
+      { "id": "citron-vert", "name": "Citron vert", "optional": false },
+      { "id": "huile-tournesol", "name": "Huile de tournesol", "optional": false },
+      { "id": "coriandre", "name": "Coriandre fraîche", "optional": true },
+      { "id": "piment", "name": "Piment", "optional": true }
+    ],
+    "steps": [
+      "Faire tremper les nouilles dans un grand saladier d'eau très chaude le temps indiqué sur le paquet, jusqu'à ce qu'elles soient souples, puis les égoutter.",
+      "Éplucher les carottes et les râper. Éplucher et émincer l'oignon et l'ail.",
+      "Concasser grossièrement les cacahuètes.",
+      "Presser un citron vert et le mélanger dans un bol avec la sauce soja et le sucre roux, jusqu'à ce que le sucre soit dissous.",
+      "Faire chauffer l'huile dans un wok ou une grande poêle à feu vif. Y faire sauter l'oignon et l'ail 2 minutes.",
+      "Ajouter les crevettes et les faire sauter 2 à 3 minutes, jusqu'à ce qu'elles soient roses.",
+      "Pousser les crevettes sur le côté, casser les œufs dans le wok et les brouiller 1 minute à la spatule.",
+      "Ajouter les nouilles, les carottes et la sauce, et faire sauter 2 à 3 minutes en mélangeant, jusqu'à ce que les nouilles soient bien enrobées.",
+      "Servir parsemé de cacahuètes, de coriandre ciselée et de piment, avec le second citron vert en quartiers."
+    ]
+  },
+  {
     "slug": "paella-poulet-chorizo",
     "ingredients": [
       { "id": "riz-rond", "name": "Riz rond (risotto)", "optional": false },
@@ -1816,6 +2236,28 @@
     ]
   },
   {
+    "slug": "pancakes-banane-avoine",
+    "ingredients": [
+      { "id": "banane", "name": "Banane", "optional": false },
+      { "id": "oeuf", "name": "Œuf", "optional": false },
+      { "id": "flocon-avoine", "name": "Flocons d'avoine", "optional": false },
+      { "id": "lait", "name": "Lait", "optional": false },
+      { "id": "cannelle", "name": "Cannelle", "optional": true },
+      { "id": "huile-tournesol", "name": "Huile de tournesol", "optional": false },
+      { "id": "sirop-erable", "name": "Sirop d'érable", "optional": true },
+      { "id": "myrtille", "name": "Myrtilles", "optional": true }
+    ],
+    "steps": [
+      "Écraser les bananes à la fourchette dans un saladier, jusqu'à obtenir une purée.",
+      "Ajouter les œufs, les flocons d'avoine, le lait et la cannelle, et mélanger : la pâte est épaisse.",
+      "Laisser reposer 5 minutes pour que les flocons gonflent.",
+      "Faire chauffer une poêle antiadhésive à feu moyen-doux et la graisser avec un peu d'huile étalée au papier absorbant.",
+      "Verser de petites louches de pâte et cuire 2 à 3 minutes, jusqu'à ce que des bulles apparaissent et que le dessous soit doré.",
+      "Retourner délicatement et cuire encore 1 à 2 minutes.",
+      "Servir chaud avec les myrtilles et un filet de sirop d'érable."
+    ]
+  },
+  {
     "slug": "papillotes-saumon-legumes",
     "ingredients": [
       { "id": "saumon", "name": "Pavé de saumon", "optional": false },
@@ -1839,6 +2281,32 @@
       "Refermer les papillotes en repliant les bords plusieurs fois pour qu'elles soient bien étanches : la vapeur cuit le poisson.",
       "Poser les papillotes sur la plaque du four et enfourner 18 minutes.",
       "Ouvrir les papillotes à table : la chair doit être rosée et s'effeuiller facilement. Servir avec le riz."
+    ]
+  },
+  {
+    "slug": "parmentier-cabillaud",
+    "ingredients": [
+      { "id": "cabillaud", "name": "Cabillaud", "optional": false },
+      { "id": "pomme-de-terre", "name": "Pomme de terre", "optional": false },
+      { "id": "lait", "name": "Lait", "optional": false },
+      { "id": "beurre", "name": "Beurre", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "persil", "name": "Persil frais", "optional": false },
+      { "id": "emmental", "name": "Emmental râpé", "optional": false },
+      { "id": "muscade", "name": "Noix de muscade", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true },
+      { "id": "poivre", "name": "Poivre noir", "optional": true }
+    ],
+    "steps": [
+      "Éplucher les pommes de terre, les couper en morceaux et les cuire 20 minutes dans une casserole d'eau salée, jusqu'à ce que la pointe d'un couteau s'y enfonce sans résistance.",
+      "Pendant ce temps, verser le lait dans une sauteuse avec l'ail écrasé et porter à frémissement à feu moyen.",
+      "Déposer le cabillaud dans le lait et le pocher 6 minutes à feu doux, sans faire bouillir.",
+      "Sortir le poisson à l'écumoire, l'effeuiller à la fourchette en retirant les arêtes éventuelles, et garder le lait.",
+      "Préchauffer le four à 200 °C.",
+      "Égoutter les pommes de terre et les écraser au presse-purée avec le beurre et une partie du lait de cuisson du poisson, jusqu'à obtenir une purée souple. Saler, poivrer et ajouter un peu de muscade.",
+      "Ciseler le persil et le mélanger au cabillaud effeuillé.",
+      "Étaler le poisson dans un plat à gratin, puis le recouvrir de purée en lissant à la fourchette.",
+      "Parsemer d'emmental et enfourner 20 minutes, jusqu'à ce que le dessus soit bien doré."
     ]
   },
   {
@@ -1889,6 +2357,34 @@
       "Rôtir 35 minutes en remuant à mi-cuisson, jusqu'à ce que les patates douces soient tendres et caramélisées sur les bords.",
       "Émietter la feta et ciseler le persil.",
       "Parsemer de feta, arroser de jus de citron et ajouter le persil au moment de servir."
+    ]
+  },
+  {
+    "slug": "pates-pois-chiches",
+    "ingredients": [
+      { "id": "coquillettes", "name": "Coquillettes", "optional": false },
+      { "id": "pois-chiche", "name": "Pois chiches (conserve)", "optional": false },
+      { "id": "tomate-concassee", "name": "Tomates concassées en boîte", "optional": false },
+      { "id": "oignon", "name": "Oignon", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "thym", "name": "Thym", "optional": false },
+      { "id": "bouillon-legumes", "name": "Bouillon cube de légumes", "optional": false },
+      { "id": "huile-olive", "name": "Huile d'olive", "optional": false },
+      { "id": "parmesan", "name": "Parmesan", "optional": false },
+      { "id": "piment", "name": "Piment", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true },
+      { "id": "poivre", "name": "Poivre noir", "optional": true }
+    ],
+    "steps": [
+      "Éplucher et émincer l'oignon et l'ail.",
+      "Égoutter et rincer les pois chiches.",
+      "Faire chauffer deux cuillerées d'huile dans une cocotte à feu moyen et y faire revenir l'oignon 5 minutes, jusqu'à ce qu'il soit tendre.",
+      "Ajouter l'ail, le thym et le piment, et remuer 1 minute.",
+      "Ajouter les pois chiches et la tomate concassée, puis couvrir d'eau à hauteur et émietter le cube de bouillon. Porter à ébullition.",
+      "Laisser frémir 10 minutes, puis prélever une louche de pois chiches et les écraser à la fourchette avant de les remettre dans la cocotte.",
+      "Ajouter les coquillettes et les cuire dans la cocotte le temps indiqué sur le paquet, en remuant souvent et en ajoutant un peu d'eau chaude si le mélange attache : il doit rester crémeux.",
+      "Goûter, saler et poivrer.",
+      "Servir avec un filet du reste d'huile et le parmesan râpé."
     ]
   },
   {
@@ -1983,6 +2479,32 @@
       "Égoutter les pâtes et les mélanger aux courgettes avec le zeste et le jus de citron.",
       "Émietter la feta et ciseler la menthe.",
       "Les ajouter au moment de servir."
+    ]
+  },
+  {
+    "slug": "pizzas-tortilla-jambon-champignons",
+    "ingredients": [
+      { "id": "tortilla", "name": "Tortillas de blé", "optional": false },
+      { "id": "coulis-tomate", "name": "Coulis de tomate", "optional": false },
+      { "id": "jambon", "name": "Jambon blanc", "optional": false },
+      { "id": "champignon", "name": "Champignons de Paris", "optional": false },
+      { "id": "mozzarella", "name": "Mozzarella", "optional": false },
+      { "id": "herbes-provence", "name": "Herbes de Provence", "optional": false },
+      { "id": "huile-olive", "name": "Huile d'olive", "optional": false },
+      { "id": "olive", "name": "Olives", "optional": true },
+      { "id": "salade", "name": "Salade verte", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true },
+      { "id": "poivre", "name": "Poivre noir", "optional": true }
+    ],
+    "steps": [
+      "Préchauffer le four à 220 °C.",
+      "Nettoyer les champignons et les couper en fines lamelles. Couper le jambon en morceaux et la mozzarella en dés après l'avoir égouttée.",
+      "Poser les tortillas sur deux plaques recouvertes de papier de cuisson.",
+      "Étaler une fine couche de coulis de tomate sur chaque tortilla, sans aller jusqu'au bord.",
+      "Répartir le jambon, les champignons, les olives et la mozzarella.",
+      "Parsemer d'herbes de Provence, saler légèrement, poivrer et arroser d'un filet d'huile.",
+      "Enfourner 8 à 10 minutes, jusqu'à ce que les bords soient croustillants et la mozzarella fondue.",
+      "Servir aussitôt, avec une salade verte."
     ]
   },
   {
@@ -2093,6 +2615,35 @@
       "Chauffer le reste d'huile dans une autre poêle à feu moyen.",
       "Y casser les œufs et les cuire 3 à 4 minutes, jusqu'à ce que le blanc soit pris et le jaune encore coulant.",
       "Servir les pommes de terre surmontées des œufs, parsemées de persil, avec la salade."
+    ]
+  },
+  {
+    "slug": "porc-aigre-doux-ananas",
+    "ingredients": [
+      { "id": "porc-filet", "name": "Filet mignon de porc", "optional": false },
+      { "id": "ananas", "name": "Ananas", "optional": false },
+      { "id": "poivron", "name": "Poivron", "optional": false },
+      { "id": "oignon", "name": "Oignon", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "ketchup", "name": "Ketchup", "optional": false },
+      { "id": "vinaigre", "name": "Vinaigre de vin", "optional": false },
+      { "id": "sauce-soja", "name": "Sauce soja", "optional": false },
+      { "id": "sucre-roux", "name": "Sucre roux", "optional": false },
+      { "id": "fecule-mais", "name": "Fécule de maïs", "optional": false },
+      { "id": "huile-tournesol", "name": "Huile de tournesol", "optional": false },
+      { "id": "riz-thai", "name": "Riz thaï (jasmin)", "optional": false },
+      { "id": "sel", "name": "Sel", "optional": true }
+    ],
+    "steps": [
+      "Couper le porc en cubes d'environ 2 cm et les rouler dans la moitié de la fécule.",
+      "Éplucher l'ananas et le couper en morceaux. Épépiner les poivrons et les couper en carrés. Éplucher l'oignon et le couper en quartiers ; émincer l'ail.",
+      "Dans un bol, mélanger le ketchup, le vinaigre, la sauce soja, le sucre roux, le reste de la fécule et un demi-verre d'eau : c'est la sauce.",
+      "Cuire le riz dans une casserole d'eau salée bouillante le temps indiqué sur le paquet, puis l'égoutter.",
+      "Faire chauffer l'huile dans un wok ou une grande poêle à feu vif et y dorer le porc 5 à 6 minutes, jusqu'à ce qu'il soit cuit et doré. Le réserver.",
+      "Dans le même wok, faire sauter l'oignon et les poivrons 4 minutes : ils doivent rester un peu croquants.",
+      "Ajouter l'ail et l'ananas et faire sauter 1 minute.",
+      "Remettre le porc, verser la sauce et remuer 1 à 2 minutes, jusqu'à ce qu'elle épaississe et nappe la viande.",
+      "Servir aussitôt avec le riz."
     ]
   },
   {
@@ -2473,6 +3024,35 @@
     ]
   },
   {
+    "slug": "quesadillas-haricots-rouges",
+    "ingredients": [
+      { "id": "tortilla", "name": "Tortillas de blé", "optional": false },
+      { "id": "haricot-rouge", "name": "Haricots rouges (conserve)", "optional": false },
+      { "id": "cheddar", "name": "Cheddar", "optional": false },
+      { "id": "mais", "name": "Maïs doux", "optional": false },
+      { "id": "poivron", "name": "Poivron", "optional": false },
+      { "id": "oignon-rouge", "name": "Oignon rouge", "optional": false },
+      { "id": "cumin", "name": "Cumin", "optional": false },
+      { "id": "paprika", "name": "Paprika", "optional": false },
+      { "id": "huile-tournesol", "name": "Huile de tournesol", "optional": false },
+      { "id": "yaourt", "name": "Yaourt nature", "optional": true },
+      { "id": "citron-vert", "name": "Citron vert", "optional": true },
+      { "id": "coriandre", "name": "Coriandre fraîche", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true }
+    ],
+    "steps": [
+      "Égoutter et rincer les haricots rouges.",
+      "Épépiner le poivron et le couper en petits dés. Éplucher l'oignon rouge et l'émincer finement.",
+      "Faire chauffer l'huile dans une poêle à feu moyen et y faire revenir le poivron et l'oignon 5 minutes, jusqu'à ce qu'ils soient tendres.",
+      "Ajouter les haricots, le cumin et le paprika, saler, et écraser grossièrement à la fourchette en chauffant 2 minutes.",
+      "Hors du feu, incorporer le maïs.",
+      "Étaler la garniture sur la moitié des tortillas, parsemer de cheddar et couvrir avec les autres tortillas en appuyant.",
+      "Essuyer la poêle et y cuire les quesadillas une par une à feu moyen, 2 à 3 minutes par face, jusqu'à ce qu'elles soient dorées et que le fromage ait fondu.",
+      "Mélanger les yaourts avec le jus du citron vert, la coriandre ciselée et une pincée de sel.",
+      "Couper les quesadillas en quartiers et servir avec la sauce au yaourt."
+    ]
+  },
+  {
     "slug": "quiche-lardons",
     "ingredients": [
       { "id": "pate-brisee", "name": "Pâte brisée", "optional": false },
@@ -2495,6 +3075,34 @@
       "Parsemer d'emmental.",
       "Enfourner 35 minutes, jusqu'à ce que l'appareil soit pris et doré : il doit à peine trembler au centre.",
       "Laisser reposer 5 minutes avant de couper."
+    ]
+  },
+  {
+    "slug": "quiche-saumon-poireaux",
+    "ingredients": [
+      { "id": "pate-brisee", "name": "Pâte brisée", "optional": false },
+      { "id": "saumon", "name": "Pavé de saumon", "optional": false },
+      { "id": "poireau", "name": "Poireau", "optional": false },
+      { "id": "oeuf", "name": "Œuf", "optional": false },
+      { "id": "creme-liquide", "name": "Crème liquide", "optional": false },
+      { "id": "lait", "name": "Lait", "optional": false },
+      { "id": "beurre", "name": "Beurre", "optional": false },
+      { "id": "emmental", "name": "Emmental râpé", "optional": false },
+      { "id": "muscade", "name": "Noix de muscade", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true },
+      { "id": "poivre", "name": "Poivre noir", "optional": true }
+    ],
+    "steps": [
+      "Préchauffer le four à 190 °C.",
+      "Étaler la pâte dans un moule à tarte en gardant le papier de cuisson, et piquer le fond à la fourchette.",
+      "Couper les poireaux en deux dans la longueur, les rincer soigneusement entre les feuilles, puis les émincer finement.",
+      "Faire fondre le beurre dans une poêle à feu moyen et y étuver les poireaux 10 minutes à couvert, en remuant de temps en temps, jusqu'à ce qu'ils soient fondants. Saler.",
+      "Couper le saumon en cubes d'environ 2 cm.",
+      "Dans un saladier, battre les œufs avec la crème et le lait. Saler, poivrer et ajouter un peu de muscade.",
+      "Répartir les poireaux sur la pâte, puis les cubes de saumon.",
+      "Verser l'appareil aux œufs et parsemer d'emmental.",
+      "Enfourner 35 à 40 minutes, jusqu'à ce que la quiche soit dorée et que le centre ne tremble plus.",
+      "Laisser tiédir 10 minutes avant de couper."
     ]
   },
   {
@@ -2710,7 +3318,7 @@
       "Éplucher et émincer l'oignon. Épépiner le poivron et le couper en dés.",
       "Chauffer l'huile dans une sauteuse à feu moyen et faire revenir l'oignon et le poivron 5 minutes.",
       "Ajouter le cumin et le paprika et remuer 1 minute.",
-      "Rincer les haricots. Les ajouter avec les tomates et saler.",
+      "Égoutter et rincer les haricots. Les ajouter avec les tomates et saler.",
       "Laisser mijoter 10 minutes à feu doux.",
       "Mélanger avec le riz.",
       "Parsemer de coriandre ciselée et servir."
@@ -3022,6 +3630,34 @@
     ]
   },
   {
+    "slug": "salade-poulet-mangue-avocat",
+    "ingredients": [
+      { "id": "poulet-filet", "name": "Filet de poulet", "optional": false },
+      { "id": "mangue", "name": "Mangue", "optional": false },
+      { "id": "avocat", "name": "Avocat", "optional": false },
+      { "id": "concombre", "name": "Concombre", "optional": false },
+      { "id": "riz-basmati", "name": "Riz basmati", "optional": false },
+      { "id": "salade", "name": "Salade verte", "optional": false },
+      { "id": "citron-vert", "name": "Citron vert", "optional": false },
+      { "id": "sauce-soja", "name": "Sauce soja", "optional": false },
+      { "id": "huile-sesame", "name": "Huile de sésame", "optional": false },
+      { "id": "huile-tournesol", "name": "Huile de tournesol", "optional": false },
+      { "id": "coriandre", "name": "Coriandre fraîche", "optional": true },
+      { "id": "graine-sesame", "name": "Graines de sésame", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true }
+    ],
+    "steps": [
+      "Cuire le riz dans une casserole d'eau salée bouillante le temps indiqué sur le paquet, l'égoutter et le rincer à l'eau froide.",
+      "Faire chauffer une cuillerée d'huile de tournesol dans une poêle à feu moyen et y cuire les filets de poulet 5 à 6 minutes par face, jusqu'à ce qu'ils soient dorés et cuits à cœur. Saler et laisser tiédir.",
+      "Éplucher la mangue et la couper en dés. Couper les avocats en deux, retirer le noyau et les couper en dés.",
+      "Couper le concombre en demi-rondelles. Laver la salade et l'essorer.",
+      "Dans un bol, mélanger le jus des citrons verts, la sauce soja, l'huile de sésame et le reste de l'huile de tournesol.",
+      "Couper le poulet en lamelles.",
+      "Dans un grand saladier, disposer la salade, le riz, le poulet, la mangue, l'avocat et le concombre.",
+      "Arroser de vinaigrette et parsemer de coriandre ciselée et de graines de sésame."
+    ]
+  },
+  {
     "slug": "salade-quinoa-avocat-mais",
     "ingredients": [
       { "id": "quinoa", "name": "Quinoa", "optional": false },
@@ -3072,6 +3708,29 @@
     ]
   },
   {
+    "slug": "salade-thon-haricots-blancs",
+    "ingredients": [
+      { "id": "haricot-blanc", "name": "Haricots blancs (conserve)", "optional": false },
+      { "id": "thon-boite", "name": "Thon en boîte", "optional": false },
+      { "id": "oignon-rouge", "name": "Oignon rouge", "optional": false },
+      { "id": "tomate-cerise", "name": "Tomate cerise", "optional": false },
+      { "id": "persil", "name": "Persil frais", "optional": false },
+      { "id": "vinaigre", "name": "Vinaigre de vin", "optional": false },
+      { "id": "huile-olive", "name": "Huile d'olive", "optional": false },
+      { "id": "sel", "name": "Sel", "optional": true },
+      { "id": "poivre", "name": "Poivre noir", "optional": true }
+    ],
+    "steps": [
+      "Égoutter et rincer les haricots blancs, puis les laisser bien égoutter.",
+      "Éplucher l'oignon rouge et l'émincer très finement.",
+      "Mettre l'oignon dans un saladier avec le vinaigre et une pincée de sel, et laisser reposer 5 minutes : il devient plus doux.",
+      "Couper les tomates cerises en deux et ciseler le persil.",
+      "Ajouter l'huile dans le saladier et fouetter avec l'oignon.",
+      "Ajouter les haricots, les tomates et le persil, et mélanger.",
+      "Émietter le thon par-dessus en gros morceaux et mélanger délicatement. Poivrer et servir."
+    ]
+  },
+  {
     "slug": "saumon-grenailles-citron",
     "ingredients": [
       { "id": "saumon", "name": "Pavé de saumon", "optional": false },
@@ -3091,6 +3750,58 @@
       "Poser les pavés de saumon parmi les pommes de terre. Les arroser du jus de citron, puis les saler et les poivrer.",
       "Remettre au four 12 minutes : le saumon doit être rosé au centre et s'effeuiller facilement.",
       "Parsemer de ciboulette ciselée et servir avec le reste du citron en quartiers."
+    ]
+  },
+  {
+    "slug": "saumon-lentilles-vertes",
+    "ingredients": [
+      { "id": "saumon", "name": "Pavé de saumon", "optional": false },
+      { "id": "lentille-verte", "name": "Lentilles vertes", "optional": false },
+      { "id": "carotte", "name": "Carotte", "optional": false },
+      { "id": "echalote", "name": "Échalote", "optional": false },
+      { "id": "laurier", "name": "Laurier", "optional": false },
+      { "id": "moutarde", "name": "Moutarde", "optional": false },
+      { "id": "vinaigre", "name": "Vinaigre de vin", "optional": false },
+      { "id": "huile-olive", "name": "Huile d'olive", "optional": false },
+      { "id": "persil", "name": "Persil frais", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true },
+      { "id": "poivre", "name": "Poivre noir", "optional": true }
+    ],
+    "steps": [
+      "Rincer les lentilles. Éplucher les carottes et les couper en petits dés.",
+      "Mettre les lentilles, les carottes et le laurier dans une casserole, couvrir largement d'eau froide et porter à ébullition.",
+      "Laisser cuire 20 à 25 minutes à petits frémissements, jusqu'à ce que les lentilles soient tendres mais pas éclatées. Saler en fin de cuisson et égoutter.",
+      "Pendant ce temps, éplucher et ciseler finement les échalotes.",
+      "Dans un bol, fouetter la moutarde avec le vinaigre, puis ajouter deux cuillerées d'huile. Ajouter les échalotes, saler et poivrer.",
+      "Verser cette vinaigrette sur les lentilles chaudes et mélanger : elles l'absorbent mieux tièdes.",
+      "Faire chauffer le reste de l'huile dans une poêle à feu moyen-vif. Poser les pavés côté peau et les cuire 5 minutes sans y toucher, jusqu'à ce que la peau soit croustillante.",
+      "Retourner les pavés et cuire encore 2 à 3 minutes : le cœur doit rester rosé.",
+      "Servir le saumon sur les lentilles, parsemé de persil ciselé."
+    ]
+  },
+  {
+    "slug": "saumon-patate-douce-epinards",
+    "ingredients": [
+      { "id": "saumon", "name": "Pavé de saumon", "optional": false },
+      { "id": "patate-douce", "name": "Patate douce", "optional": false },
+      { "id": "epinard", "name": "Épinards", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "huile-olive", "name": "Huile d'olive", "optional": false },
+      { "id": "paprika", "name": "Paprika", "optional": false },
+      { "id": "citron", "name": "Citron", "optional": false },
+      { "id": "sel", "name": "Sel", "optional": true },
+      { "id": "poivre", "name": "Poivre noir", "optional": true }
+    ],
+    "steps": [
+      "Préchauffer le four à 210 °C.",
+      "Éplucher les patates douces et les couper en cubes d'environ 2 cm.",
+      "Sur la plaque du four, mélanger les cubes avec la moitié de l'huile, le paprika et du sel, en une seule couche.",
+      "Enfourner 15 minutes, jusqu'à ce que les patates douces commencent à dorer.",
+      "Sortir la plaque, écarter les patates douces et y poser les pavés de saumon. Saler, poivrer et ajouter quelques rondelles de citron sur le poisson.",
+      "Remettre au four 12 à 15 minutes : le saumon doit être rosé à cœur et se détacher en lamelles.",
+      "Pendant ce temps, éplucher et émincer l'ail. Faire chauffer le reste de l'huile dans une poêle à feu moyen et y faire revenir l'ail 30 secondes.",
+      "Ajouter les épinards et les faire tomber 2 à 3 minutes en remuant. Saler.",
+      "Servir le saumon avec les patates douces et les épinards, arrosé du jus des rondelles de citron restantes."
     ]
   },
   {
@@ -3259,6 +3970,37 @@
     ]
   },
   {
+    "slug": "soupe-paysanne-haricots-blancs",
+    "ingredients": [
+      { "id": "haricot-blanc", "name": "Haricots blancs (conserve)", "optional": false },
+      { "id": "chou-vert", "name": "Chou vert", "optional": false },
+      { "id": "poireau", "name": "Poireau", "optional": false },
+      { "id": "carotte", "name": "Carotte", "optional": false },
+      { "id": "pomme-de-terre", "name": "Pomme de terre", "optional": false },
+      { "id": "oignon", "name": "Oignon", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "bouillon-legumes", "name": "Bouillon cube de légumes", "optional": false },
+      { "id": "thym", "name": "Thym", "optional": false },
+      { "id": "laurier", "name": "Laurier", "optional": false },
+      { "id": "huile-olive", "name": "Huile d'olive", "optional": false },
+      { "id": "lardon", "name": "Lardons", "optional": true },
+      { "id": "pain", "name": "Pain", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true },
+      { "id": "poivre", "name": "Poivre noir", "optional": true }
+    ],
+    "steps": [
+      "Éplucher et émincer l'oignon et l'ail. Couper le poireau en deux dans la longueur, le rincer entre les feuilles et l'émincer.",
+      "Éplucher les carottes et les pommes de terre et les couper en dés. Émincer le chou en fines lanières.",
+      "Faire chauffer l'huile dans une grande cocotte à feu moyen et y faire revenir les lardons 3 minutes, s'il y en a.",
+      "Ajouter l'oignon, l'ail et le poireau, et les faire revenir 5 minutes en remuant, jusqu'à ce qu'ils soient tendres.",
+      "Ajouter les carottes, les pommes de terre et le chou, puis couvrir largement d'eau.",
+      "Émietter les cubes de bouillon, ajouter le thym et le laurier, et porter à ébullition.",
+      "Laisser mijoter 30 minutes à feu doux, à couvert, jusqu'à ce que tous les légumes soient tendres.",
+      "Égoutter et rincer les haricots blancs, les ajouter et cuire encore 10 minutes.",
+      "Retirer le laurier, goûter, saler et poivrer. Servir bien chaud avec des tranches de pain grillé."
+    ]
+  },
+  {
     "slug": "soupe-potiron",
     "ingredients": [
       { "id": "potiron", "name": "Potiron", "optional": false },
@@ -3328,7 +4070,7 @@
       "Ajouter les tomates, le cube émietté et l'eau.",
       "Cuire 20 minutes à frémissement, jusqu'à ce que les carottes soient tendres.",
       "Mixer à moitié, pour garder des morceaux.",
-      "Rincer les pois chiches, les ajouter et réchauffer 5 minutes à feu doux avant de servir."
+      "Égoutter et rincer les pois chiches, les ajouter et réchauffer 5 minutes à feu doux avant de servir."
     ]
   },
   {
@@ -3372,6 +4114,32 @@
       "Ajouter le mélange aux œufs et un peu d'eau de cuisson.",
       "Remuer vivement pendant 1 minute : la chaleur des pâtes épaissit la sauce sans cuire les œufs en omelette.",
       "Servir aussitôt, avec un tour de poivre."
+    ]
+  },
+  {
+    "slug": "spaghetti-sardines-citron",
+    "ingredients": [
+      { "id": "spaghetti", "name": "Spaghetti", "optional": false },
+      { "id": "sardine-boite", "name": "Sardines en boîte", "optional": false },
+      { "id": "citron", "name": "Citron", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "chapelure", "name": "Chapelure", "optional": false },
+      { "id": "huile-olive", "name": "Huile d'olive", "optional": false },
+      { "id": "persil", "name": "Persil frais", "optional": false },
+      { "id": "piment", "name": "Piment", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true },
+      { "id": "poivre", "name": "Poivre noir", "optional": true }
+    ],
+    "steps": [
+      "Porter une grande casserole d'eau salée à ébullition et y cuire les spaghetti le temps indiqué sur le paquet.",
+      "Pendant ce temps, faire chauffer une cuillerée d'huile dans une poêle à feu moyen et y dorer la chapelure 2 à 3 minutes en remuant, jusqu'à ce qu'elle soit blonde. La réserver dans un bol.",
+      "Éplucher et émincer finement l'ail. Râper le zeste du citron et presser son jus.",
+      "Dans la même poêle, faire chauffer le reste de l'huile à feu doux et y faire revenir l'ail et le piment 1 à 2 minutes, sans le laisser colorer.",
+      "Ajouter les sardines, les émietter grossièrement à la spatule et les réchauffer 2 minutes.",
+      "Avant d'égoutter les pâtes, prélever une petite tasse d'eau de cuisson.",
+      "Égoutter les spaghetti et les verser dans la poêle avec le zeste, le jus de citron et un peu d'eau de cuisson. Mélanger 1 minute à feu doux pour les enrober.",
+      "Ciseler le persil et l'ajouter, poivrer.",
+      "Servir aussitôt, parsemé de chapelure dorée."
     ]
   },
   {
@@ -3563,6 +4331,27 @@
     ]
   },
   {
+    "slug": "tartines-avocat-oeuf",
+    "ingredients": [
+      { "id": "pain", "name": "Pain", "optional": false },
+      { "id": "avocat", "name": "Avocat", "optional": false },
+      { "id": "oeuf", "name": "Œuf", "optional": false },
+      { "id": "citron", "name": "Citron", "optional": false },
+      { "id": "piment", "name": "Piment", "optional": true },
+      { "id": "graine-sesame", "name": "Graines de sésame", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true },
+      { "id": "poivre", "name": "Poivre noir", "optional": true }
+    ],
+    "steps": [
+      "Porter une petite casserole d'eau à ébullition, y plonger délicatement les œufs et les cuire 6 minutes.",
+      "Les passer sous l'eau froide, puis les écaler délicatement.",
+      "Pendant la cuisson, faire griller les tranches de pain.",
+      "Couper l'avocat en deux, retirer le noyau et écraser la chair à la fourchette avec le jus du citron, du sel et du poivre.",
+      "Étaler l'avocat sur les tartines.",
+      "Couper les œufs en deux et les poser sur les tartines. Parsemer de piment et de graines de sésame, et servir aussitôt."
+    ]
+  },
+  {
     "slug": "tartines-fromage-blanc-poire",
     "ingredients": [
       { "id": "pain", "name": "Pain", "optional": false },
@@ -3627,6 +4416,38 @@
       "Poser une grande assiette sur la poêle, retourner la tortilla dessus d'un geste franc, puis la faire glisser à nouveau dans la poêle.",
       "Cuire encore 5 minutes.",
       "Servir tiède avec la salade."
+    ]
+  },
+  {
+    "slug": "veau-marengo",
+    "ingredients": [
+      { "id": "veau", "name": "Veau", "optional": false },
+      { "id": "champignon", "name": "Champignons de Paris", "optional": false },
+      { "id": "tomate-concassee", "name": "Tomates concassées en boîte", "optional": false },
+      { "id": "oignon", "name": "Oignon", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "vin-blanc", "name": "Vin blanc", "optional": false },
+      { "id": "concentre-tomate", "name": "Concentré de tomate", "optional": false },
+      { "id": "farine", "name": "Farine de blé", "optional": false },
+      { "id": "herbes-provence", "name": "Herbes de Provence", "optional": false },
+      { "id": "laurier", "name": "Laurier", "optional": false },
+      { "id": "huile-olive", "name": "Huile d'olive", "optional": false },
+      { "id": "tagliatelles", "name": "Tagliatelles", "optional": false },
+      { "id": "persil", "name": "Persil frais", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true },
+      { "id": "poivre", "name": "Poivre noir", "optional": true }
+    ],
+    "steps": [
+      "Éponger les morceaux de veau. Éplucher et émincer les oignons et l'ail.",
+      "Faire chauffer l'huile dans une cocotte à feu vif et y dorer le veau en plusieurs fois, 4 à 5 minutes par fournée. Le réserver.",
+      "Baisser le feu à moyen et faire revenir les oignons 5 minutes dans la cocotte.",
+      "Remettre la viande, saupoudrer de farine et remuer 1 minute.",
+      "Verser le vin blanc en grattant le fond, puis ajouter la tomate concassée, le concentré, l'ail, les herbes et le laurier. Ajouter de l'eau juste à hauteur, saler et poivrer.",
+      "Couvrir et laisser mijoter 1 heure à feu doux.",
+      "Pendant ce temps, nettoyer les champignons et les couper en quartiers.",
+      "Ajouter les champignons et poursuivre 20 minutes à découvert, jusqu'à ce que la viande soit tendre et la sauce nappante.",
+      "Cuire les tagliatelles dans une grande casserole d'eau salée bouillante le temps indiqué sur le paquet, puis les égoutter.",
+      "Retirer le laurier et servir le veau sur les tagliatelles, parsemé de persil ciselé."
     ]
   },
   {
