@@ -1,89 +1,74 @@
+import { COLORS, LOGO_MARK_PATHS } from "./logo";
+
 /**
- * Formes de la marque (feuille, rond, demi-bol), utilisées en décor autour des visuels et
- * dans les pastilles. Toujours décoratives : aria-hidden.
+ * Formes de la marque, découpées dans le logo officiel (feuille sauge, rond ocre, demi-bol
+ * terracotta) : décor autour des visuels et pastilles. Toujours décoratives (aria-hidden).
+ * Chaque viewBox cadre la forme au plus près (repère du logo, 192 × 203).
  */
 
-export function LeafShape({
-  className = "",
-  color = "#8FA88A",
-}: {
-  className?: string;
-  color?: string;
-}) {
+const BOX = {
+  leaf: { x: 1, y: 0, w: 107, h: 100 },
+  dot: { x: 118, y: 8, w: 75, h: 75 },
+  bowl: { x: 15, y: 108, w: 185, h: 95 },
+} as const;
+type Piece = keyof typeof BOX;
+
+const viewBox = (k: Piece) => `${BOX[k].x} ${BOX[k].y} ${BOX[k].w} ${BOX[k].h}`;
+
+function Shape({ piece, className, color }: { piece: Piece; className: string; color: string }) {
   return (
-    <svg viewBox="0 0 40 48" aria-hidden="true" className={className}>
-      <path d="M33 46C12 45 1 30 4 3c22 3 33 19 29 43Z" fill={color} />
-      <path
-        d="M30 42C22 31 15 19 9 8"
-        fill="none"
-        stroke="#FFF8EF"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        opacity="0.7"
-      />
+    <svg viewBox={viewBox(piece)} aria-hidden="true" focusable="false" className={className}>
+      <path d={LOGO_MARK_PATHS[piece]} fill={color} />
     </svg>
   );
 }
 
-export function DotShape({
-  className = "",
-  color = "#F4C145",
-}: {
-  className?: string;
-  color?: string;
-}) {
+export function LeafShape({ className = "", color = COLORS.color.leaf }) {
+  return <Shape piece="leaf" className={className} color={color} />;
+}
+
+export function DotShape({ className = "", color = COLORS.color.dot }) {
+  return <Shape piece="dot" className={className} color={color} />;
+}
+
+export function BowlShape({ className = "", color = COLORS.color.bowl }) {
+  return <Shape piece="bowl" className={className} color={color} />;
+}
+
+/** Une forme placée dans la pastille (48 × 48) : position et taille en unités de pastille. */
+function Place({ piece, x, y, w }: { piece: Piece; x: number; y: number; w: number }) {
+  const h = (w * BOX[piece].h) / BOX[piece].w;
   return (
-    <svg viewBox="0 0 40 40" aria-hidden="true" className={className}>
-      <circle cx="20" cy="20" r="20" fill={color} />
+    <svg x={x} y={y} width={w} height={h} viewBox={viewBox(piece)}>
+      <path d={LOGO_MARK_PATHS[piece]} fill={COLORS.color[piece]} />
     </svg>
   );
 }
 
-export function BowlShape({
-  className = "",
-  color = "#E76F51",
-}: {
-  className?: string;
-  color?: string;
-}) {
-  return (
-    <svg viewBox="0 0 80 40" aria-hidden="true" className={className}>
-      <path d="M0 0h80c0 22-17.9 40-40 40S0 22 0 0Z" fill={color} />
-    </svg>
-  );
-}
-
-/** Pastille ronde à motif de marque, pour les bénéfices et les catégories. */
+/** Pastille à motif de marque, pour les bénéfices et les catégories. */
 export function BrandBadge({ variant }: { variant: "leaf" | "bowl" | "dot" | "mix" }) {
   return (
-    <svg viewBox="0 0 48 48" aria-hidden="true" className="size-12 shrink-0">
+    <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false" className="size-12 shrink-0">
       {variant === "leaf" ? (
         <>
-          <path d="M26 40C12 39 6 28 8 10c15 2 22 13 18 30Z" fill="#8FA88A" />
-          <path
-            d="M24 37C19 29 15 21 11 14"
-            fill="none"
-            stroke="#FFF8EF"
-            strokeWidth="1.3"
-            strokeLinecap="round"
-          />
-          <circle cx="35" cy="34" r="6" fill="#F4C145" />
+          <Place piece="leaf" x={3} y={6} w={32} />
+          <Place piece="dot" x={31} y={29} w={14} />
         </>
       ) : variant === "bowl" ? (
         <>
-          <circle cx="24" cy="14" r="8" fill="#F4C145" />
-          <path d="M6 24h36c0 10-8 18-18 18S6 34 6 24Z" fill="#E76F51" />
+          <Place piece="dot" x={16} y={4} w={17} />
+          <Place piece="bowl" x={3} y={23} w={42} />
         </>
       ) : variant === "dot" ? (
         <>
-          <path d="M22 26C12 25 7 17 9 7c10 2 15 9 13 19Z" fill="#8FA88A" />
-          <path d="M6 28h36c0 9-8 16-18 16S6 37 6 28Z" fill="#E76F51" />
+          <Place piece="leaf" x={6} y={4} w={22} />
+          <Place piece="bowl" x={3} y={25} w={42} />
         </>
       ) : (
         <>
-          <path d="M20 24C11 23 7 16 8 7c9 2 14 8 12 17Z" fill="#8FA88A" />
-          <circle cx="32" cy="13" r="7" fill="#F4C145" />
-          <path d="M6 27h36c0 9-8 16-18 16S6 36 6 27Z" fill="#0E3B2E" />
+          <Place piece="leaf" x={3} y={3} w={23} />
+          <Place piece="dot" x={28} y={4} w={16} />
+          <Place piece="bowl" x={6} y={25} w={39} />
         </>
       )}
     </svg>

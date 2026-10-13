@@ -10,7 +10,7 @@
 type Tone = "color" | "mono" | "inverse";
 
 /** Couleurs du fichier source. */
-const COLORS: Record<Tone, { bowl: string; dot: string; leaf: string }> = {
+export const COLORS: Record<Tone, { bowl: string; dot: string; leaf: string }> = {
   color: { bowl: "#D86134", dot: "#EEB653", leaf: "#879B83" },
   inverse: { bowl: "#D86134", dot: "#EEB653", leaf: "#A9C0A4" },
   mono: { bowl: "currentColor", dot: "currentColor", leaf: "currentColor" },

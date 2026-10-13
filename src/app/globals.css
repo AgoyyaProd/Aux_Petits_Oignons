@@ -6,17 +6,19 @@
  *
  * Palette de marque : vert forêt (structure), terracotta (attention), ocre (repères),
  * sauge (végétal, positif), pêche (surfaces douces), crème (fond).
- * Le terracotta de marque (#E76F51) n'est pas assez contrasté pour du texte blanc :
- * les boutons et liens d'accent utilisent sa version foncée `accent-strong`.
+ * Couleurs alignées sur le logo officiel (public/brand/aux-petits-oignons.svg) : nom #142F26,
+ * bol #D86134, rond #EEB653, feuille #879B83.
+ * Le terracotta du logo (#D86134) n'est pas assez contrasté pour du texte blanc (3,7:1) :
+ * les boutons et liens d'accent utilisent sa version foncée `accent-strong` (#B5512A, 5:1).
  */
 :root {
   /* Marque */
-  --forest: #0e3b2e;
+  --forest: #142f26;
   --forest-soft: #dce7df;
-  --terracotta: #e76f51;
-  --terracotta-strong: #c2502f;
-  --ocre: #f4c145;
-  --sage: #8fa88a;
+  --terracotta: #d86134;
+  --terracotta-strong: #b5512a;
+  --ocre: #eeb653;
+  --sage: #879b83;
   --peach: #fadcc8;
   --cream: #fff8ef;
 
@@ -47,11 +49,11 @@
   --nav: var(--surface);
   --nav-foreground: var(--foreground);
   --nav-muted: var(--muted);
-  --focus: #e76f51;
+  --focus: #d86134;
 
   /* Ombres : rares et courtes */
-  --shadow-sm: 0 1px 2px rgb(14 59 46 / 0.06);
-  --shadow-md: 0 6px 20px -8px rgb(14 59 46 / 0.18);
+  --shadow-sm: 0 1px 2px rgb(20 47 38 / 0.06);
+  --shadow-md: 0 6px 20px -8px rgb(20 47 38 / 0.18);
 }
 
 /*
@@ -71,23 +73,23 @@
   --brand: #a9cfb2;
   --brand-foreground: #0b1c16;
   --brand-soft: #1b3a30;
-  --accent: #f08a6f;
-  --accent-strong: #f08a6f;
+  --accent: #ec8a62;
+  --accent-strong: #ec8a62;
   --accent-soft: #3b231b;
-  --highlight: #f4c145;
+  --highlight: #eeb653;
   --highlight-soft: #3a3016;
-  --leaf: #a7bb9f;
+  --leaf: #a9c0a4;
   --leaf-soft: #1f3329;
   --danger: #f97066;
   --danger-soft: #3a1a17;
   --success: #6fcf97;
   --success-soft: #16301f;
-  --warning: #f4c145;
+  --warning: #eeb653;
   --warning-soft: #3a3016;
   --nav: #081510;
   --nav-foreground: var(--foreground);
   --nav-muted: #8fa597;
-  --focus: #f08a6f;
+  --focus: #ec8a62;
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
   --shadow-md: 0 6px 20px -8px rgb(0 0 0 / 0.5);
 }
@@ -105,23 +107,23 @@
     --brand: #a9cfb2;
     --brand-foreground: #0b1c16;
     --brand-soft: #1b3a30;
-    --accent: #f08a6f;
-    --accent-strong: #f08a6f;
+    --accent: #ec8a62;
+    --accent-strong: #ec8a62;
     --accent-soft: #3b231b;
-    --highlight: #f4c145;
+    --highlight: #eeb653;
     --highlight-soft: #3a3016;
-    --leaf: #a7bb9f;
+    --leaf: #a9c0a4;
     --leaf-soft: #1f3329;
     --danger: #f97066;
     --danger-soft: #3a1a17;
     --success: #6fcf97;
     --success-soft: #16301f;
-    --warning: #f4c145;
+    --warning: #eeb653;
     --warning-soft: #3a3016;
     --nav: #081510;
     --nav-foreground: var(--foreground);
     --nav-muted: #8fa597;
-    --focus: #f08a6f;
+    --focus: #ec8a62;
     --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
     --shadow-md: 0 6px 20px -8px rgb(0 0 0 / 0.5);
   }

@@ -7,8 +7,8 @@ import type { ButtonHTMLAttributes } from "react";
  *  - accent : synonyme de primary, conservé pour les écrans existants ;
  *  - secondary : blanc avec contour ;
  *  - ghost / text : actions discrètes.
- * Le terracotta des boutons est la version foncée de la marque (#C2502F) : texte blanc lisible
- * (contraste AA). Le terracotta vif (#E76F51) reste celui du logo et des formes.
+ * Le terracotta des boutons est la version foncée de celui du logo (#B5512A) : texte blanc lisible
+ * (contraste AA). Le terracotta du logo (#D86134) reste celui des formes et des accents.
  */
 export type ButtonVariant = "primary" | "forest" | "accent" | "secondary" | "ghost" | "text";
 

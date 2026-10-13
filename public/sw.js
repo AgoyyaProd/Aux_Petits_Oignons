@@ -8,7 +8,7 @@
  *    ni pour l'API, l'authentification ou une redirection (session expirée).
  *  - Les pages gardées sont propres à l'appareil ; elles sont effacées à la déconnexion.
  */
-const VERSION = "v2";
+const VERSION = "v3";
 const STATIC_CACHE = `apo-static-${VERSION}`;
 const PAGES_CACHE = "apo-pages";
 const OFFLINE_URL = "/hors-ligne";
