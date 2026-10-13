@@ -2,6 +2,8 @@ import { RecipeFacts } from "@/components/recipes/recipe-facts";
 import { WeekBalancePanel } from "@/components/planner/week-balance";
 import { AisleOrderForm } from "@/components/settings/aisle-order-form";
 import { MealPatternForm } from "@/components/settings/meal-pattern-form";
+import { WeekGrid } from "@/components/planner/week-grid";
+import type { PlannerEntryView, PlannerPage } from "@/server/modules/planning/queries";
 import { WeekSheet } from "@/components/planner/week-sheet";
 import { NutritionPanel } from "@/components/recipes/nutrition-panel";
 import { computeRecipeNutrition, weekBalance, type Per100g } from "@/domain/nutrition";
@@ -260,6 +262,10 @@ export default function DesignPreview() {
           order={["oeufs_laitiers", "fruits", "legumes"]}
           isOwner
         />
+      </section>
+      <section id="menu" className="flex flex-col gap-4">
+        <h2 className="type-section">Menu de la semaine</h2>
+        <WeekGrid page={DEMO_PLANNER} base={{ week: "2026-10-12", version: 1 }} />
       </section>
       <section id="semaine" className="flex max-w-xl flex-col gap-4">
         <h2 className="type-section">Ma semaine de repas</h2>
@@ -549,3 +555,75 @@ const DEMO_BALANCE = weekBalance([
     profile: { hasFish: true, hasLegumes: false, hasMeat: false, redMeatG: 0, charcuterieG: 0 },
   },
 ]);
+
+const DEMO_DAYS = Array.from({ length: 7 }, (_, i) => `2026-10-${String(12 + i).padStart(2, "0")}`);
+
+function demoEntry(
+  position: number,
+  slug: string,
+  title: string,
+  day: string,
+  extra: Partial<PlannerEntryView> = {},
+): PlannerEntryView {
+  return {
+    position,
+    recipeId: `00000000-0000-0000-0000-00000000000${position}`,
+    slug,
+    title,
+    tags: ["plat"],
+    servings: 2,
+    locked: false,
+    totalMinutes: 40,
+    cents: 274,
+    missingNames: [],
+    available: true,
+    cooked: false,
+    favorite: false,
+    day,
+    slot: "dinner",
+    leftover: false,
+    leftoverOf: null,
+    hasLeftovers: false,
+    ...extra,
+  };
+}
+
+const DEMO_PLANNER = {
+  weekStart: "2026-10-12",
+  today: "2026-10-13",
+  replace: null,
+  newKey: () => "00000000-0000-0000-0000-000000000000",
+  slots: DEMO_DAYS.flatMap((day) =>
+    (["lunch", "dinner"] as const).map((slot) => ({
+      value: `${day}:${slot}`,
+      label: `${day} ${slot === "lunch" ? "midi" : "soir"}`,
+      day,
+      planned: true,
+    })),
+  ),
+  entries: [
+    demoEntry(
+      1,
+      "veloute-poireaux-pommes-de-terre",
+      "Velouté poireaux-pommes de terre",
+      DEMO_DAYS[1]!,
+      { cooked: true },
+    ),
+    demoEntry(2, "soupe-legumes-hiver", "Soupe de légumes d'hiver", DEMO_DAYS[2]!, {
+      hasLeftovers: true,
+      servings: 4,
+    }),
+    demoEntry(3, "soupe-legumes-hiver", "Soupe de légumes d'hiver", DEMO_DAYS[3]!, {
+      leftover: true,
+      leftoverOf: "Mercredi 14 soir",
+    }),
+    demoEntry(4, "gratin-pates-brocoli", "Gratin de pâtes au brocoli", DEMO_DAYS[4]!, {
+      locked: true,
+      favorite: true,
+    }),
+    demoEntry(5, "cabillaud-poireaux", "Cabillaud sur fondue de poireaux", DEMO_DAYS[5]!, {
+      cents: 712,
+      missingNames: ["Cabillaud"],
+    }),
+  ],
+} as unknown as PlannerPage;
