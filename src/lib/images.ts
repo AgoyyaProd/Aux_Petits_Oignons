@@ -77,6 +77,7 @@ const RECIPES_WITH_PHOTO: readonly string[] = [
   "nouilles-sautees-tofu",
   "oeufs-brouilles-tartines",
   "oeufs-cocotte",
+  "oeufs-coque-mouillettes",
   "omelette-champignons",
   "one-pot-pasta-legumes",
   "overnight-oats-fruits-rouges",
