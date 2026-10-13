@@ -4,8 +4,8 @@
  *  - Élaborée : préparation ≥ 40 min, ou au moins 12 étapes ;
  *  - Moyenne : tout le reste.
  * Les étapes sont détaillées (une action par étape) : un plat simple en compte 6 à 8.
- * La cuisson longue (mijotage, four) ne rend pas une recette plus difficile : seul le travail
- * de préparation compte, temps de levée ou de repos compris.
+ * La cuisson longue (mijotage, four) et l'attente (levée, marinade, réfrigération, comptées à
+ * part en rest_minutes) ne rendent pas une recette plus difficile : seul le travail compte.
  * La règle est affichée à côté du libellé pour rester honnête sur son origine.
  */
 export type Difficulty = "facile" | "moyenne" | "elaboree";
@@ -17,7 +17,7 @@ export const DIFFICULTY_LABEL: Record<Difficulty, string> = {
 };
 
 export const DIFFICULTY_RULE =
-  "Calculée selon le temps de préparation et le nombre d'étapes ; une longue cuisson ne compte pas.";
+  "Calculée selon le temps de préparation et le nombre d'étapes ; la cuisson et l'attente (levée, marinade, frais) ne comptent pas.";
 
 export function recipeDifficulty(r: {
   prepMinutes: number;

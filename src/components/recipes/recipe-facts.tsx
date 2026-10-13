@@ -14,6 +14,8 @@ const DIFFICULTY_LEVEL: Record<Difficulty, number> = { facile: 1, moyenne: 2, el
 
 export interface RecipeFactsProps {
   prepMinutes: number;
+  /** Attente sans travail (levée, marinade, réfrigération) ; 0 si aucune. */
+  restMinutes?: number;
   cookMinutes: number;
   servings: number;
   stepCount: number;
@@ -78,8 +80,9 @@ function Fact({
  */
 export function RecipeFacts(props: RecipeFactsProps) {
   const { prepMinutes, cookMinutes, servings, stepCount, difficulty, cost, kcal } = props;
-  const total = prepMinutes + cookMinutes;
-  const prepShare = total > 0 ? Math.round((prepMinutes / total) * 100) : 100;
+  const restMinutes = props.restMinutes ?? 0;
+  const total = prepMinutes + restMinutes + cookMinutes;
+  const share = (m: number) => (total > 0 ? (m / total) * 100 : 0);
   const level = DIFFICULTY_LEVEL[difficulty];
   const perServing = cost ? Math.round(cost.cents / servings) : null;
   const costPartial = (cost?.missingNames.length ?? 0) > 0;
@@ -110,13 +113,28 @@ export function RecipeFacts(props: RecipeFactsProps) {
                 aria-hidden="true"
                 className="bg-highlight flex h-1.5 w-full max-w-32 overflow-hidden rounded-full"
               >
-                <span className="bg-brand h-full" style={{ width: `${prepShare}%` }} />
+                <span
+                  className="bg-brand h-full"
+                  style={{ width: `${total > 0 ? share(prepMinutes) : 100}%` }}
+                />
+                {restMinutes > 0 ? (
+                  <span
+                    className="bg-border-strong h-full"
+                    style={{ width: `${share(restMinutes)}%` }}
+                  />
+                ) : null}
               </span>
               <span className="flex flex-wrap gap-x-3 gap-y-0.5">
                 <span className="inline-flex items-center gap-1.5">
                   <span aria-hidden="true" className="bg-brand size-1.5 rounded-full" />
                   Prépa {minutes(prepMinutes)}
                 </span>
+                {restMinutes > 0 ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <span aria-hidden="true" className="bg-border-strong size-1.5 rounded-full" />
+                    Attente {minutes(restMinutes)}
+                  </span>
+                ) : null}
                 <span className="inline-flex items-center gap-1.5">
                   {cookMinutes > 0 ? (
                     <>

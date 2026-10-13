@@ -210,7 +210,7 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
     supabase
       .from("recipes")
       .select(
-        "id, slug, title, description, servings, prep_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, is_optional, quantity_base, dimension, ingredients (slug, name, density_g_per_ml, piece_weight_g)), recipe_steps (count), recipe_equipment (equipment_code)",
+        "id, slug, title, description, servings, prep_minutes, rest_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, is_optional, quantity_base, dimension, ingredients (slug, name, density_g_per_ml, piece_weight_g)), recipe_steps (count), recipe_equipment (equipment_code)",
       )
       .eq("status", "published")
       .order("title"),
@@ -256,7 +256,7 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
       lines.map((l) => [l.ingredient_id, l.ingredients?.name ?? "?"]),
     );
 
-    const totalMinutes = r.prep_minutes + r.cook_minutes;
+    const totalMinutes = r.prep_minutes + r.rest_minutes + r.cook_minutes;
     if (filters.maxMinutes && totalMinutes > filters.maxMinutes) continue;
     if (filters.tag && !r.tags.includes(filters.tag)) continue;
     const rating = ratings.get(r.id) ?? null;
@@ -405,6 +405,8 @@ export interface RecipeDetail {
   storageNote: string | null;
   servings: number;
   prepMinutes: number;
+  /** Attente sans travail : levée, marinade, réfrigération. */
+  restMinutes: number;
   cookMinutes: number;
   tags: string[];
   ingredients: {
@@ -450,7 +452,7 @@ export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
   const { data: r, error } = await supabase
     .from("recipes")
     .select(
-      "id, slug, title, description, storage_note, servings, prep_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, quantity, unit_code, quantity_base, dimension, is_optional, preparation_note, position, ingredients (slug, name, density_g_per_ml, piece_weight_g, ingredient_nutrition (kcal, proteins_g, carbs_g, sugars_g, fat_g, saturated_fat_g, fiber_g, salt_g))), recipe_steps (position, instruction), recipe_equipment (equipment_code)",
+      "id, slug, title, description, storage_note, servings, prep_minutes, rest_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, quantity, unit_code, quantity_base, dimension, is_optional, preparation_note, position, ingredients (slug, name, density_g_per_ml, piece_weight_g, ingredient_nutrition (kcal, proteins_g, carbs_g, sugars_g, fat_g, saturated_fat_g, fiber_g, salt_g))), recipe_steps (position, instruction), recipe_equipment (equipment_code)",
     )
     .eq("slug", slug)
     .maybeSingle();
@@ -501,6 +503,7 @@ export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
     storageNote: r.storage_note,
     servings: r.servings,
     prepMinutes: r.prep_minutes,
+    restMinutes: r.rest_minutes,
     cookMinutes: r.cook_minutes,
     tags: r.tags,
     ingredients: lines.map((l) => ({

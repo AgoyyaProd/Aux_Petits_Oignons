@@ -74,7 +74,7 @@ export function HouseholdForm({ household, isOwner }: Props) {
         placeholder="Facultatif"
         defaultValue={household.max_prep_minutes ?? ""}
         disabled={!isOwner}
-        hint="Les recettes plus longues seront moins proposées."
+        hint="Temps de travail en cuisine, hors cuisson et attente (levée, marinade). Les recettes plus longues ne sont pas proposées."
         error={state.fieldErrors?.maxPrepMinutes}
       />
       {isOwner ? (

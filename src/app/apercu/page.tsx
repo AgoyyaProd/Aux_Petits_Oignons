@@ -234,6 +234,7 @@ export default function DesignPreview() {
             />
             <RecipeFacts
               prepMinutes={10}
+              restMinutes={240}
               cookMinutes={0}
               servings={2}
               stepCount={4}

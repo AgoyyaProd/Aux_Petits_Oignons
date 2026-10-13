@@ -50,6 +50,7 @@ interface RecipeRow {
   title: string;
   servings: number;
   prep_minutes: number;
+  rest_minutes: number;
   cook_minutes: number;
   tags: string[];
   recipe_ingredients: {
@@ -84,7 +85,7 @@ export async function loadPlanningCatalog(
     supabase
       .from("recipes")
       .select(
-        "id, slug, title, servings, prep_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, quantity_base, dimension, is_optional, ingredients (slug, name, category, density_g_per_ml, piece_weight_g)), recipe_equipment (equipment_code)",
+        "id, slug, title, servings, prep_minutes, rest_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, quantity_base, dimension, is_optional, ingredients (slug, name, category, density_g_per_ml, piece_weight_g)), recipe_equipment (equipment_code)",
       )
       .eq("status", "published"),
     supabase.from("recipe_allergens").select("recipe_id, allergen_code"),
@@ -144,7 +145,7 @@ export async function loadPlanningCatalog(
       slug: r.slug,
       title: r.title,
       baseServings: r.servings,
-      totalMinutes: r.prep_minutes + r.cook_minutes,
+      totalMinutes: r.prep_minutes + r.rest_minutes + r.cook_minutes,
       prepMinutes: r.prep_minutes,
       tags: r.tags,
       lines,

@@ -111,6 +111,7 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
             ) : null}
             <RecipeFacts
               prepMinutes={recipe.prepMinutes}
+              restMinutes={recipe.restMinutes}
               cookMinutes={recipe.cookMinutes}
               servings={recipe.servings}
               stepCount={recipe.steps.length}
