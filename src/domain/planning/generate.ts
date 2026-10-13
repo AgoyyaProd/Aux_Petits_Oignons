@@ -395,3 +395,83 @@ export function suggestReplacements(
     .slice(0, limit)
     .map((c) => c.id);
 }
+
+/**
+ * « Changer » : tire au hasard UN plat de remplacement compatible avec le foyer (les
+ * candidats sont déjà filtrés : allergies, régimes, matériel, temps, « pas pour nous »).
+ *
+ * On évite les plats déjà au menu, ceux écartés pendant cette session (`rejected`) et ceux
+ * qui casseraient la variété. Parmi eux, on préfère ceux qui tiennent dans le budget, n'ont
+ * pas été servis récemment et sont de saison, s'il y en a assez pour que le tirage reste
+ * varié ; sinon on élargit. Quand tout a été écarté, on repart de zéro (en évitant au moins
+ * le plat actuel). Renvoie null s'il n'existe aucune autre recette compatible.
+ * `random` est injectable pour les tests (Math.random par défaut).
+ */
+export function randomReplacement(
+  candidates: readonly PlanCandidate[],
+  entries: readonly PlanEntry[],
+  index: number,
+  {
+    people,
+    budgetCents,
+    recentRecipeIds = [],
+    rejected = [],
+    month,
+    random = Math.random,
+  }: {
+    people: number;
+    budgetCents: number | null;
+    recentRecipeIds?: readonly string[];
+    rejected?: readonly string[];
+    month?: number;
+    random?: () => number;
+  },
+): string | null {
+  const current = entries[index];
+  if (!current) throw new DomainError("INVALID_PLAN", "Plat introuvable dans le menu.");
+  const byId = new Map(candidates.map((c) => [c.id, c]));
+  // Les restes du plat remplacé partent avec lui : ils ne comptent ni pour la variété ni
+  // pour le budget.
+  const others = entries.filter((e, i) => i !== index && e.recipeId !== current.recipeId);
+  const counts = familyCounts(
+    others.filter((e) => !e.leftover).map((e) => e.recipeId),
+    byId,
+  );
+  const inPlan = new Set(entries.map((e) => e.recipeId));
+  const skipped = new Set(rejected);
+  const recent = new Set(recentRecipeIds);
+
+  let othersCost = 0;
+  for (const e of others)
+    if (!e.leftover) othersCost += entryCost(byId.get(e.recipeId), e.servings) ?? 0;
+  const budget = budgetCents === null ? null : budgetCents * 1000;
+  const fits = (c: PlanCandidate) => {
+    if (budget === null) return true;
+    const cost = entryCost(c, people);
+    return cost !== null && othersCost + cost <= budget;
+  };
+
+  const fresh = candidates.filter((c) => !inPlan.has(c.id) && !skipped.has(c.id));
+  const tiers = [
+    fresh.filter(
+      (c) =>
+        respectsVariety(c, counts) &&
+        fits(c) &&
+        !recent.has(c.id) &&
+        candidateSeasonScore(c, month) >= 0,
+    ),
+    fresh.filter((c) => respectsVariety(c, counts) && fits(c)),
+    fresh.filter((c) => respectsVariety(c, counts)),
+    fresh,
+  ];
+  // Un palier trop petit rendrait le tirage répétitif : on en veut au moins 3 si possible.
+  // Quand tout a été écarté, on repart de la liste complète, sans le plat actuel.
+  const pool =
+    tiers.find((t) => t.length >= 3) ??
+    tiers.find((t) => t.length > 0) ??
+    candidates.filter((c) => !inPlan.has(c.id));
+  if (pool.length === 0) return null;
+  const sorted = [...pool].sort((a, b) => a.id.localeCompare(b.id));
+  const pick = Math.min(sorted.length - 1, Math.floor(random() * sorted.length));
+  return sorted[pick]!.id;
+}

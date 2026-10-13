@@ -3,11 +3,15 @@ import { parseEurosToCents } from "@/domain/money";
 import { isMonday } from "@/lib/week";
 
 const week = z.string().refine(isMonday, { error: "Semaine invalide." });
+/**
+ * Version vue par l'utilisateur : « d3 » (brouillon, révision 3), « p2 » (menu validé,
+ * version 2), ou vide (aucun menu). Sert à détecter une modification concurrente.
+ */
 const version = z
   .string()
   .optional()
-  .transform((v) => (v ? Number(v) : null))
-  .refine((v) => v === null || (Number.isInteger(v) && v >= 1), { error: "Version invalide." });
+  .transform((v) => (v ? v : null))
+  .refine((v) => v === null || /^[dp][1-9]\d{0,8}$/.test(v), { error: "Version invalide." });
 const key = z.uuid({ error: "Formulaire expiré, recharge la page." });
 
 const intIn = (min: number, max: number, message: string) =>

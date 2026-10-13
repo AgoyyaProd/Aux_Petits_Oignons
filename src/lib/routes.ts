@@ -5,6 +5,7 @@ const PUBLIC_PATHS = [
   "/signup",
   "/manifest.webmanifest",
   "/apercu",
+  "/apercu/menu",
   // Service worker et page de secours hors ligne : chargés sans session.
   "/sw.js",
   "/hors-ligne",

@@ -11,6 +11,7 @@ import {
   normalizeLeftovers,
   parseSlotKey,
   placeBatches,
+  randomReplacement,
   toPattern,
   type MealPattern,
   removeEntryWithLeftovers,
@@ -26,12 +27,19 @@ import { firstErrors } from "@/server/modules/households/schema";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 import { recentRecipeIds } from "@/server/modules/recipes/ratings";
 import { loadPlanningCatalog } from "./catalog";
-import { readPlan, savePlan, type StoredPlan } from "./repository";
+import {
+  discardDraft,
+  readPlan,
+  readWorking,
+  saveDraft,
+  savePlan,
+  validateDraft,
+  type WorkingPlan,
+} from "./repository";
 import {
   entrySchema,
   generateSchema,
   planActionSchema,
-  replaceSchema,
   servingsSchema,
   slotSchema,
   type GenerateField,
@@ -79,13 +87,47 @@ async function catalogFor(supabase: Db, household: { id: string; timezone: strin
   return { ...catalog, pattern: settings.pattern };
 }
 
-/** Le menu doit exister et être à la version vue par l'utilisateur. */
-function requirePlan(plan: StoredPlan | null, version: number | null): StoredPlan {
-  if (!plan) throw new ActionError("not_found", "Ce menu n'existe plus. Recharge la page.");
-  if (version !== null && plan.version !== version) {
+/** Le menu (ou son brouillon) doit exister et être à la version vue par l'utilisateur. */
+function requireWorking(working: WorkingPlan | null, token: string | null): WorkingPlan {
+  if (!working) throw new ActionError("not_found", "Ce menu n'existe plus. Recharge la page.");
+  if (token !== null && working.token !== token) {
     throw new ActionError("conflict", "Le menu a été modifié entre-temps. Recharge la page.");
   }
-  return plan;
+  return working;
+}
+
+/**
+ * Toute modification va dans le brouillon de la semaine (créé à la première modification,
+ * à partir du menu validé s'il existe). Le menu validé, lui, ne change qu'à la validation.
+ */
+async function writeDraft(
+  supabase: Db,
+  householdId: string,
+  week: string,
+  working: WorkingPlan | null,
+  next: {
+    people: number;
+    mealCount: number;
+    budgetCents: number | null;
+    seed: number;
+    entries: PlanEntry[];
+    rejected?: string[];
+  },
+  key: string,
+): Promise<void> {
+  await saveDraft(supabase, {
+    householdId,
+    weekStart: week,
+    baseVersion: working?.draft ? working.draft.baseVersion : (working?.plan?.version ?? null),
+    expectedRevision: working?.draft?.revision ?? null,
+    people: next.people,
+    mealCount: next.mealCount,
+    budgetCents: next.budgetCents,
+    seed: next.seed,
+    entries: next.entries,
+    rejected: next.rejected ?? working?.rejected ?? [],
+    idempotencyKey: key,
+  });
 }
 
 /** Proposer un menu (nouveau) ou le relancer en gardant les plats verrouillés. */
@@ -101,7 +143,7 @@ export async function generatePlanAction(
   try {
     const { household, supabase } = await context();
     const [plan, catalog, recent] = await Promise.all([
-      readPlan(supabase, household.id, input.week),
+      readWorking(supabase, household.id, input.week),
       catalogFor(supabase, household),
       recentRecipeIds(supabase, household.id, input.week),
     ]);
@@ -111,7 +153,7 @@ export async function generatePlanAction(
         "Un menu existe déjà pour cette semaine. Recharge la page.",
       );
     }
-    if (plan) requirePlan(plan, input.version);
+    if (plan) requireWorking(plan, input.version);
     // On ne garde que les plats verrouillés encore proposables (allergies changées entre-temps).
     const allowed = new Set(catalog.candidates.map((c) => c.id));
     // Plats cuisinés : toujours gardés (le stock a déjà été décompté). Les restes d'un plat
@@ -170,20 +212,23 @@ export async function generatePlanAction(
         message: "Aucune recette ne correspond à tes préférences. Assouplis-les dans Paramètres.",
       };
     }
-    await savePlan(supabase, {
-      householdId: household.id,
-      weekStart: input.week,
-      people: input.people,
-      mealCount: input.mealCount,
-      budgetCents: input.budget,
-      seed,
-      entries,
-      expectedVersion: plan?.version ?? null,
-      idempotencyKey: input.key,
-    });
+    await writeDraft(
+      supabase,
+      household.id,
+      input.week,
+      plan,
+      {
+        people: input.people,
+        mealCount: input.mealCount,
+        budgetCents: input.budget,
+        seed,
+        entries,
+      },
+      input.key,
+    );
     refresh();
     const notes = {
-      ok: "Menu proposé.",
+      ok: "Menu proposé : vérifie-le, change les plats qui ne te tentent pas, puis valide-le.",
       over_budget:
         "Menu proposé : c'est le moins cher possible avec tes préférences, mais il dépasse le budget.",
       not_enough_recipes: `Seulement ${result.entries.length} recette(s) compatible(s) pour ${input.mealCount} repas.`,
@@ -196,22 +241,23 @@ export async function generatePlanAction(
 
 type EntryEdit = (
   entries: PlanEntry[],
-  plan: StoredPlan,
+  plan: WorkingPlan,
   pattern: MealPattern,
 ) => PlanEntry[] | Promise<PlanEntry[]>;
 
-/** Modifie les plats d'un menu existant puis l'enregistre entièrement. */
+/** Modifie les plats du menu affiché puis enregistre le brouillon entier. */
 async function editEntries(
-  input: { week: string; version: number | null; key: string },
+  input: { week: string; version: string | null; key: string },
   edit: EntryEdit,
+  extra?: (plan: WorkingPlan) => { rejected?: string[] },
 ): Promise<PlannerState> {
   try {
     const { household, supabase } = await context();
     const [stored, settings] = await Promise.all([
-      readPlan(supabase, household.id, input.week),
+      readWorking(supabase, household.id, input.week),
       planningSettings(supabase, household.id),
     ]);
-    const plan = requirePlan(stored, input.version);
+    const plan = requireWorking(stored, input.version);
     const entries = normalizeLeftovers(
       await edit(
         plan.entries.map((e) => ({ ...e })),
@@ -221,17 +267,21 @@ async function editEntries(
       input.week,
       settings.pattern,
     );
-    await savePlan(supabase, {
-      householdId: household.id,
-      weekStart: input.week,
-      people: plan.people,
-      mealCount: Math.max(1, entries.length),
-      budgetCents: plan.budgetCents,
-      seed: plan.seed,
-      entries,
-      expectedVersion: plan.version,
-      idempotencyKey: input.key,
-    });
+    await writeDraft(
+      supabase,
+      household.id,
+      input.week,
+      plan,
+      {
+        people: plan.people,
+        mealCount: Math.max(1, entries.length),
+        budgetCents: plan.budgetCents,
+        seed: plan.seed,
+        entries,
+        ...extra?.(plan),
+      },
+      input.key,
+    );
     refresh();
     return { status: "success" };
   } catch (error) {
@@ -247,7 +297,7 @@ function entryAt(entries: PlanEntry[], position: number): PlanEntry {
 }
 
 /** Un plat cuisiné ne se modifie plus : ses ingrédients ont déjà quitté le garde-manger. */
-function assertNotCooked(plan: StoredPlan, position: number): void {
+function assertNotCooked(plan: WorkingPlan, position: number): void {
   if (plan.cooked.has(position)) {
     throw new ActionError("invalid", "Ce plat est déjà cuisiné : il ne peut plus être modifié.");
   }
@@ -383,37 +433,58 @@ export async function addEntryAction(
   return state;
 }
 
-/** Remplace un plat par une recette proposée (contrôlée côté serveur et en base). */
-export async function replaceEntryAction(formData: FormData): Promise<void> {
-  const parsed = replaceSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) redirect("/planner");
-  const { week, recipeId, position } = parsed.data;
-  const state = await editEntries(parsed.data, async (entries, plan) => {
-    const { household, supabase } = await context();
-    const catalog = await catalogFor(supabase, household);
-    if (!catalog.candidates.some((c) => c.id === recipeId)) {
-      throw new ActionError("invalid", "Cette recette ne correspond pas à tes préférences.");
-    }
-    if (entries.some((e, i) => e.recipeId === recipeId && i !== position - 1)) {
-      throw new ActionError("invalid", "Cette recette est déjà dans le menu.");
-    }
-    const entry = entryAt(entries, position);
-    assertNotCooked(plan, position);
-    assertNotLeftover(entries, position);
-    entries[position - 1] = {
-      recipeId,
-      servings: entry.servings || plan.people,
-      locked: false,
-      day: entry.day,
-      slot: entry.slot,
-    };
-    return entries;
-  });
-  redirect(
-    state.status === "success"
-      ? `/planner?semaine=${week}`
-      : `/planner?semaine=${week}&remplacer=${position}&erreur=1`,
+/**
+ * « Changer » : remplace un plat par une recette tirée au hasard parmi celles qui conviennent
+ * au foyer. On peut recommencer autant qu'on veut : les plats écartés ne reviennent pas tant
+ * qu'il reste d'autres possibilités. Les restes du plat suivent le nouveau plat.
+ */
+export async function changeEntryAction(
+  _prev: PlannerState,
+  formData: FormData,
+): Promise<PlannerState> {
+  const parsed = entrySchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { status: "error", message: "Requête invalide." };
+  const { week, position } = parsed.data;
+  let rejected: string[] = [];
+  let found = true;
+  const state = await editEntries(
+    parsed.data,
+    async (entries, plan) => {
+      const entry = entryAt(entries, position);
+      assertNotCooked(plan, position);
+      assertNotLeftover(entries, position);
+      const { household, supabase } = await context();
+      const [catalog, recent] = await Promise.all([
+        catalogFor(supabase, household),
+        recentRecipeIds(supabase, household.id, week),
+      ]);
+      const next = randomReplacement(catalog.candidates, entries, position - 1, {
+        people: entry.servings,
+        budgetCents: plan.budgetCents,
+        recentRecipeIds: recent,
+        rejected: plan.rejected,
+        month: monthOf(week),
+      });
+      if (!next) {
+        found = false;
+        return entries;
+      }
+      rejected = [...plan.rejected.filter((id) => id !== entry.recipeId), entry.recipeId];
+      const old = entry.recipeId;
+      return entries.map((e, i) =>
+        i === position - 1
+          ? { ...e, recipeId: next, locked: false }
+          : e.leftover && e.recipeId === old
+            ? { ...e, recipeId: next }
+            : e,
+      );
+    },
+    () => ({ rejected }),
   );
+  if (state.status === "success" && !found) {
+    return { status: "error", message: "Aucune autre recette compatible à proposer." };
+  }
+  return state;
 }
 
 /**
@@ -466,6 +537,9 @@ export async function addRecipeToPlanAction(
     const { household, supabase } = await context();
     const today = todayIn(household.timezone);
     const week = mondayOf(today);
+    // Ajout direct au menu validé (depuis une fiche recette) : un éventuel brouillon de
+    // la semaine, resté ouvert, est abandonné pour ne pas le valider sur une base dépassée.
+    await discardDraft(supabase, household.id, week);
     const [plan, catalog] = await Promise.all([
       readPlan(supabase, household.id, week),
       catalogFor(supabase, household),
@@ -530,4 +604,44 @@ export async function reorganizeAction(
       pattern,
     ),
   );
+}
+
+/** « Valider le menu » : le brouillon devient le menu de la semaine ; la liste de courses suit. */
+export async function validatePlanAction(
+  _prev: PlannerState,
+  formData: FormData,
+): Promise<PlannerState> {
+  const parsed = planActionSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success || !parsed.data.version?.startsWith("d")) {
+    return { status: "error", message: "Requête invalide." };
+  }
+  try {
+    const { household, supabase } = await context();
+    await validateDraft(supabase, {
+      householdId: household.id,
+      weekStart: parsed.data.week,
+      revision: Number(parsed.data.version.slice(1)),
+      idempotencyKey: parsed.data.key,
+    });
+  } catch (error) {
+    return failure(error);
+  }
+  redirect(`/planner?semaine=${parsed.data.week}&valide=1`);
+}
+
+/** « Annuler les modifications » : abandonne le brouillon, le menu validé revient. */
+export async function discardDraftAction(
+  _prev: PlannerState,
+  formData: FormData,
+): Promise<PlannerState> {
+  const parsed = planActionSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { status: "error", message: "Requête invalide." };
+  try {
+    const { household, supabase } = await context();
+    await discardDraft(supabase, household.id, parsed.data.week);
+    refresh();
+    return { status: "success" };
+  } catch (error) {
+    return failure(error);
+  }
 }

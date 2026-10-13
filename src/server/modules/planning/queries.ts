@@ -1,5 +1,4 @@
 import "server-only";
-import { monthOf } from "@/domain/recipes/season";
 import { randomUUID } from "node:crypto";
 import {
   compareBySlot,
@@ -7,7 +6,6 @@ import {
   plannedSlots,
   slotKey,
   toPattern,
-  suggestReplacements,
   weekSlots,
   type MealSlot,
 } from "@/domain/planning";
@@ -16,8 +14,7 @@ import { addDays, formatSlot, isMonday, mondayOf } from "@/lib/week";
 import { getCurrentContext } from "@/server/modules/auth/session";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 import { costOfEntry, getPlanningCatalog } from "./catalog";
-import { recentRecipeIds } from "@/server/modules/recipes/ratings";
-import { readPlan } from "./repository";
+import { readWorking } from "./repository";
 import { loadWeekBalance } from "@/server/modules/recipes/nutrition-data";
 
 export interface PlannerEntryView {
@@ -49,17 +46,11 @@ export interface PlannerEntryView {
   hasLeftovers: boolean;
 }
 
-export interface ReplacementView {
-  recipeId: string;
-  slug: string;
-  title: string;
-  totalMinutes: number;
-  cents: number;
-  missing: number;
-}
-
-/** Données de la page Menu pour une semaine (lundi), avec propositions de remplacement. */
-export async function getPlannerPage({ week, replace }: { week?: string; replace?: number }) {
+/**
+ * Données de la page Menu pour une semaine (lundi) : le brouillon en cours s'il existe
+ * (menu proposé, pas encore validé), sinon le menu validé.
+ */
+export async function getPlannerPage({ week }: { week?: string }) {
   const { household } = await getCurrentContext();
   if (!household) return null;
   const supabase = await createSupabaseServerClient();
@@ -75,7 +66,7 @@ export async function getPlannerPage({ week, replace }: { week?: string; replace
   if (settings.error) throw new Error(settings.error.message);
 
   const [plan, catalog, lastPrice] = await Promise.all([
-    readPlan(supabase, household.id, weekStart),
+    readWorking(supabase, household.id, weekStart),
     getPlanningCatalog(household.id, household.timezone, settings.data.max_prep_minutes),
     supabase
       .from("reference_prices")
@@ -141,34 +132,6 @@ export async function getPlannerPage({ week, replace }: { week?: string; replace
   // Affichage dans l'ordre de la semaine ; la position reste l'identifiant du plat.
   entries.sort((a, b) => compareBySlot(a, b) || a.position - b.position);
 
-  let replacements: ReplacementView[] = [];
-  if (plan && replace && replace >= 1 && replace <= plan.entries.length) {
-    const servings = plan.entries[replace - 1]!.servings;
-    const recent = await recentRecipeIds(supabase, household.id, weekStart);
-    replacements = suggestReplacements(catalog.candidates, plan.entries, replace - 1, {
-      people: servings,
-      budgetCents: plan.budgetCents,
-      seed: plan.seed,
-      recentRecipeIds: recent,
-      profile: catalog.profile,
-      month: monthOf(weekStart),
-    }).flatMap((id) => {
-      const meta = catalog.recipes.get(id);
-      if (!meta) return [];
-      const cost = costOfEntry(meta, servings, catalog.priceBook);
-      return [
-        {
-          recipeId: id,
-          slug: meta.slug,
-          title: meta.title,
-          totalMinutes: meta.totalMinutes,
-          cents: cost.cents,
-          missing: cost.missingNames.length,
-        },
-      ];
-    });
-  }
-
   const balance = await loadWeekBalance(
     supabase,
     entries.filter((e) => e.slug !== null).map((e) => ({ recipeId: e.recipeId, title: e.title })),
@@ -196,11 +159,16 @@ export async function getPlannerPage({ week, replace }: { week?: string; replace
     /** Repas couverts par une cuisson (réglage du foyer). */
     mealsPerCook: pattern.mealsPerCook,
     plan: plan && {
-      version: plan.version,
+      /** Version vue, renvoyée par chaque formulaire (« d3 » brouillon, « p2 » menu validé). */
+      version: plan.token,
+      /** Menu proposé ou modifié, pas encore validé : rien n'est enregistré. */
+      isDraft: plan.isDraft,
+      /** Un menu validé existe pour cette semaine (le brouillon le remplacera). */
+      hasValidated: plan.plan !== null,
       people: plan.people,
       mealCount: plan.mealCount,
       budgetCents: plan.budgetCents,
-      shoppingDoneAt: plan.shoppingDoneAt,
+      shoppingDoneAt: plan.plan?.shoppingDoneAt ?? null,
     },
     entries,
     /** Équilibre nutritionnel des repas du menu (repères PNNS). */
@@ -219,8 +187,6 @@ export async function getPlannerPage({ week, replace }: { week?: string; replace
       /** Repas prévu dans la semaine type du foyer. */
       planned: isPlannedSlot(ref, weekStart, pattern),
     })),
-    replace: replace ?? null,
-    replacements,
     candidateCount: catalog.candidates.length,
     prices: { pricedIngredients, lastObservation: lastPrice.data?.observed_to ?? null },
     /** Une clé d'idempotence par formulaire affiché : un double envoi n'agit qu'une fois. */

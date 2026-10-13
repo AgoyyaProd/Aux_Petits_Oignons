@@ -6,7 +6,7 @@ import { idlePlanner } from "@/server/modules/planning/schema";
 
 interface Props {
   week: string;
-  version: number;
+  version: string;
   formKey: string;
   position: number;
   value: string;

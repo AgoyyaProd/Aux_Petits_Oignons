@@ -267,7 +267,7 @@ export default function DesignPreview() {
       </section>
       <section id="menu" className="flex flex-col gap-4">
         <h2 className="type-section">Menu de la semaine</h2>
-        <WeekGrid page={DEMO_PLANNER} base={{ week: "2026-10-12", version: 1 }} />
+        <WeekGrid page={DEMO_PLANNER} base={{ week: "2026-10-12", version: "d1" }} />
       </section>
       <section id="bienvenue" className="flex max-w-4xl flex-col gap-4">
         <h2 className="type-section">Questionnaire de bienvenue</h2>

@@ -443,6 +443,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"meal_plan_drafts": {
+                  Row: {
+                    "base_version": number | null,"budget_cents": number | null,"entries": NonNullable<Json>,"household_id": string,"last_key": string | null,"meal_count": number,"people": number,"rejected": (string)[],"revision": number,"seed": number,"updated_at": string,"updated_by": string | null,"week_start": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "base_version"?: number | null,"budget_cents"?: number | null,"entries": NonNullable<Json>,"household_id": string,"last_key"?: string | null,"meal_count": number,"people": number,"rejected"?: (string)[],"revision"?: number,"seed"?: number,"updated_at"?: string,"updated_by"?: string | null,"week_start": string
+                  }
+                  Update: {
+                    "base_version"?: number | null,"budget_cents"?: number | null,"entries"?: NonNullable<Json>,"household_id"?: string,"last_key"?: string | null,"meal_count"?: number,"people"?: number,"rejected"?: (string)[],"revision"?: number,"seed"?: number,"updated_at"?: string,"updated_by"?: string | null,"week_start"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "meal_plan_drafts_household_id_fkey"
+      columns: ["household_id"]
+isOneToOne: false
+      referencedRelation: "households"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"meal_plan_entries": {
                   Row: {
                     "created_at": string,"household_id": string,"id": string,"leftover": boolean,"locked": boolean,"meal_slot": string | null,"plan_id": string,"planned_on": string | null,"position": number,"recipe_id": string,"servings": number
@@ -910,6 +930,14 @@ isOneToOne: false
                            },
 "meal_cook":
 { Args: { "p_consumptions": Json,"p_household_id": string,"p_idempotency_key": string,"p_missing": Json,"p_recipe_id": string,"p_servings": number,"p_week_start": string }; Returns: Json
+                           },
+"meal_plan_draft_save":
+{ Args: { "p_base_version": number,"p_budget_cents": number,"p_entries": Json,"p_expected_revision": number,"p_household_id": string,"p_key": string,"p_meal_count": number,"p_people": number,"p_rejected": (string)[],"p_seed": number,"p_week_start": string }; Returns: number
+                           },
+"meal_plan_draft_validate":
+{ Args: { "p_expected_revision": number,"p_household_id": string,"p_idempotency_key": string,"p_week_start": string }; Returns: {
+              "plan_id": string,"plan_version": number
+            }[]
                            },
 "meal_plan_save":
 { Args: { "p_budget_cents": number,"p_entries": Json,"p_expected_version": number,"p_household_id": string,"p_idempotency_key": string,"p_meal_count": number,"p_people": number,"p_seed": number,"p_week_start": string }; Returns: {

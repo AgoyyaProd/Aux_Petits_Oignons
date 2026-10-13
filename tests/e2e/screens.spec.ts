@@ -7,7 +7,7 @@ import { expect, test } from "@playwright/test";
 const SCREENS = [
   { path: "/dashboard", name: "accueil" },
   { path: "/recipes", name: "recettes", heading: "Nos recettes" },
-  { path: "/planner", name: "menu", heading: "Mon menu de la semaine" },
+  { path: "/planner", name: "menu", heading: "Mon menu" },
   { path: "/shopping", name: "courses", heading: "Ma liste de courses" },
   { path: "/pantry", name: "garde-manger", heading: "Mon garde-manger" },
   { path: "/budget", name: "budget" },

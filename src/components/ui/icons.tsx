@@ -157,6 +157,14 @@ export const SwapIcon = (p: IconProps) => (
     <path d="M7 4 3.5 7.5 7 11M3.5 7.5h13M17 13l3.5 3.5L17 20M20.5 16.5h-13" />
   </svg>
 );
+/** Tirage au hasard (« Changer » un plat). */
+export const ShuffleIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M3.5 7h3.2c2 0 3.3.9 4.4 2.6l2 3.3c1.1 1.8 2.4 2.6 4.4 2.6h3" />
+    <path d="M3.5 16.5h3.2c1.5 0 2.6-.5 3.5-1.5M14 8.5c.9-1 2-1.5 3.5-1.5h3" />
+    <path d="m18 4.5 2.5 2.5-2.5 2.5M18 13l2.5 2.5L18 18" />
+  </svg>
+);
 export const FridgeIcon = (p: IconProps) => (
   <svg {...base(p)}>
     <rect x="6" y="2.5" width="12" height="19" rx="2.5" />

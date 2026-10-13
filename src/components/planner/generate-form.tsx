@@ -10,7 +10,7 @@ import { idlePlanner } from "@/server/modules/planning/schema";
 
 interface Props {
   week: string;
-  version: number | null;
+  version: string | null;
   formKey: string;
   defaults: { mealCount: number; people: number; budget: string };
   submitLabel: string;
