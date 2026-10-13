@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { RecipeVisual } from "@/components/recipes/recipe-visual";
+import { ImageSlot } from "@/components/ui/image-slot";
+import { ingredientImage } from "@/lib/images";
 import { AddExtraButton } from "@/components/shopping/add-extra-button";
 import { Badge } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";
@@ -46,7 +48,16 @@ async function IngredientContent({ params }: Pick<PageProps<"/ingredients/[id]">
     <article className="flex flex-col gap-10">
       <header className="grid gap-6 lg:grid-cols-[1fr_1fr] lg:gap-12">
         <div className="aspect-[4/3] overflow-hidden rounded-3xl">
-          <RecipeVisual slug={ingredient.id} title={ingredient.name} tags={["salade"]} />
+          {ingredientImage(ingredient.slug) ? (
+            <ImageSlot
+              src={ingredientImage(ingredient.slug)}
+              alt={ingredient.name}
+              sizes="(min-width: 1024px) 40vw, 100vw"
+              priority
+            />
+          ) : (
+            <RecipeVisual slug={ingredient.id} title={ingredient.name} tags={["salade"]} />
+          )}
         </div>
         <div className="flex flex-col gap-5">
           <div className="flex flex-wrap gap-1.5">

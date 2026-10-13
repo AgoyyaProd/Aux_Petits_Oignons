@@ -15,7 +15,7 @@ export async function getIngredientPage(id: string) {
 
   const { data: ingredient, error } = await supabase
     .from("ingredients")
-    .select("id, name, category, parent_id, is_staple")
+    .select("id, slug, name, category, parent_id, is_staple")
     .eq("id", id)
     .maybeSingle();
   if (error) throw new Error(`Lecture de l'ingrédient impossible : ${error.message}`);

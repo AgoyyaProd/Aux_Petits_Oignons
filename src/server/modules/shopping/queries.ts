@@ -33,6 +33,8 @@ export function defaultLocation(category: string): "pantry" | "fridge" | "freeze
 
 export interface ShoppingLineView {
   ingredientId: string;
+  /** Slug de l'ingrédient, pour sa photo (lib/images). */
+  slug: string | null;
   name: string;
   category: string;
   dimension: Dimension;
@@ -74,7 +76,9 @@ export async function getShoppingPage(week?: string) {
     getPlanningCatalog(household.id, household.timezone, settings.data.max_prep_minutes),
     supabase
       .from("ingredients")
-      .select("id, name, category, default_dimension, density_g_per_ml, piece_weight_g, parent_id"),
+      .select(
+        "id, slug, name, category, default_dimension, density_g_per_ml, piece_weight_g, parent_id",
+      ),
     supabase
       .from("pantry_items")
       .select(
@@ -110,7 +114,9 @@ export async function getShoppingPage(week?: string) {
 
   const info = new Map<string, IngredientInfo>();
   const category = new Map<string, string>();
+  const slugs = new Map<string, string>();
   for (const i of ingredients.data!) {
+    slugs.set(i.id, i.slug);
     info.set(i.id, {
       id: i.id,
       name: i.name,
@@ -196,6 +202,7 @@ export async function getShoppingPage(week?: string) {
         : null;
     const view: ShoppingLineView = {
       ingredientId: line.ingredientId,
+      slug: slugs.get(line.ingredientId) ?? null,
       name: line.ingredientName,
       category: category.get(line.ingredientId) ?? "epicerie_salee",
       dimension: line.dimension,

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ingredientImage } from "@/lib/images";
 import { Suspense } from "react";
 import { CheckLine } from "@/components/shopping/check-line";
 import { ShoppingLiveRefresh } from "@/components/shopping/live-refresh";
@@ -349,6 +350,7 @@ function ListView({ page, byRecipe }: { page: ListPage; byRecipe: boolean }) {
                       ingredientId={line.ingredientId}
                       dimension={line.dimension}
                       checked={line.checked}
+                      image={ingredientImage(line.slug)}
                     >
                       <span className="flex flex-col gap-0.5 lg:grid lg:grid-cols-[minmax(0,1fr)_9rem_7rem] lg:items-center lg:gap-4">
                         <span className="flex min-w-0 flex-col gap-0.5">

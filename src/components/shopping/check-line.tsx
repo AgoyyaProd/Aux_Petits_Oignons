@@ -13,12 +13,15 @@ export function CheckLine({
   ingredientId,
   dimension,
   checked,
+  image,
   children,
 }: {
   week: string;
   ingredientId: string;
   dimension: string;
   checked: boolean;
+  /** Photo de l'aliment, s'il en a une (vignette à côté de la case). */
+  image?: string | null;
   children: React.ReactNode;
 }) {
   const [optimistic, setOptimistic] = useOptimistic(checked);
@@ -55,6 +58,16 @@ export function CheckLine({
       >
         {optimistic ? <CheckIcon size={16} strokeWidth={2.5} /> : null}
       </span>
+      {image ? (
+        // eslint-disable-next-line @next/next/no-img-element -- photo locale, vignette fixe
+        <img
+          src={image.replace(/\.webp(\?|$)/, "-600.webp$1")}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          className={`size-11 shrink-0 rounded-lg object-cover transition-opacity ${optimistic ? "opacity-50" : ""}`}
+        />
+      ) : null}
       <span
         className={`flex min-w-0 flex-1 flex-col gap-0.5 transition-opacity ${optimistic ? "opacity-50 [&_.item-name]:line-through" : ""}`}
       >

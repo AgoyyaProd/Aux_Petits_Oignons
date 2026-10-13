@@ -537,7 +537,7 @@ async function UseSoon() {
             return (
               <li key={item.id} className="flex items-center gap-3 py-2.5">
                 <ImageSlot
-                  src={ingredientImage(item.ingredientId)}
+                  src={ingredientImage(item.ingredientSlug)}
                   alt=""
                   className="size-10 shrink-0 rounded-lg"
                   iconSize={16}

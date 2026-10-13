@@ -62,7 +62,7 @@ export function PantryItemCard({
       <div className="flex items-center gap-3 lg:grid lg:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)_2.75rem] lg:gap-4">
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <ImageSlot
-            src={ingredientImage(item.ingredientId)}
+            src={ingredientImage(item.ingredientSlug)}
             alt=""
             className="size-12 shrink-0 rounded-lg"
             iconSize={18}

@@ -8,8 +8,10 @@ import type { Location } from "./schema";
 
 export interface PantryItemView {
   id: string;
-  /** Pour l'emplacement d'image (lib/images) et le lien vers la fiche ingrédient. */
+  /** Lien vers la fiche ingrédient. */
   ingredientId: string;
+  /** Slug de l'ingrédient, pour sa photo (lib/images). */
+  ingredientSlug: string | null;
   ingredientName: string;
   category: string;
   location: Location;
@@ -32,7 +34,7 @@ export async function getPantry() {
   const { data, error } = await supabase
     .from("pantry_items")
     .select(
-      "id, ingredient_id, location, quantity_base, dimension, display_unit, expires_on, expiry_kind, opened_at, version, ingredients (name, category)",
+      "id, ingredient_id, location, quantity_base, dimension, display_unit, expires_on, expiry_kind, opened_at, version, ingredients (name, category, slug)",
     )
     .eq("household_id", household.id)
     .eq("status", "active")
@@ -49,6 +51,7 @@ export async function getPantry() {
     return {
       id: row.id,
       ingredientId: row.ingredient_id,
+      ingredientSlug: row.ingredients?.slug ?? null,
       ingredientName: row.ingredients?.name ?? "?",
       category: row.ingredients?.category ?? "",
       location: row.location,

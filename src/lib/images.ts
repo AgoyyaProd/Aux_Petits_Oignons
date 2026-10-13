@@ -240,15 +240,36 @@ export const RECIPE_IMAGES: Readonly<Record<string, string>> = Object.fromEntrie
   ]),
 );
 
-/** Variante légère d'une photo de recette (600 px), pour le srcset. */
+/** Variante légère d'une photo de recette ou d'aliment (600 px), pour le srcset. */
 export function recipeImageSmall(src: string): string | null {
-  return /^\/images\/recettes\/[a-z0-9-]+\.webp(\?v=[0-9a-f]+)?$/.test(src)
+  return /^\/images\/(recettes|aliments)\/[a-z0-9-]+\.webp(\?v=[0-9a-f]+)?$/.test(src)
     ? src.replace(/\.webp(\?|$)/, "-600.webp$1")
     : null;
 }
 
-/** Photo d'un ingrédient, par identifiant. */
-export const INGREDIENT_IMAGES: Readonly<Record<string, string>> = {};
+/**
+ * Aliments qui ont une photo : public/images/aliments/<slug de l'ingrédient>.webp et
+ * <slug>-600.webp, même format que les recettes. Généré par scripts/photo-index.py.
+ */
+const INGREDIENT_PHOTO_VERSIONS: Readonly<Record<string, string>> = {
+  beurre: "7fc19dc9",
+  carotte: "67b4f2a4",
+  compote: "4ad42fb0",
+  confiture: "663b3855",
+  "creme-fraiche": "19869eb6",
+  "fromage-blanc": "f949644f",
+  "fromage-frais": "d3ad7e73",
+  "pate-feuilletee": "f05c832f",
+  salade: "aa0228eb",
+};
+
+/** Photo d'un ingrédient, par slug. */
+export const INGREDIENT_IMAGES: Readonly<Record<string, string>> = Object.fromEntries(
+  Object.entries(INGREDIENT_PHOTO_VERSIONS).map(([slug, v]) => [
+    slug,
+    `/images/aliments/${slug}.webp?v=${v}`,
+  ]),
+);
 
 /** Visuels de la vitrine. */
 export const SITE_IMAGES: Readonly<{ hero: string | null }> = {
@@ -259,6 +280,7 @@ export function recipeImage(slug: string | null | undefined): string | null {
   return slug ? (RECIPE_IMAGES[slug] ?? null) : null;
 }
 
-export function ingredientImage(id: string): string | null {
-  return INGREDIENT_IMAGES[id] ?? null;
+/** Photo d'un ingrédient (par slug), ou null : l'emplacement neutre s'affiche. */
+export function ingredientImage(slug: string | null | undefined): string | null {
+  return slug ? (INGREDIENT_IMAGES[slug] ?? null) : null;
 }
