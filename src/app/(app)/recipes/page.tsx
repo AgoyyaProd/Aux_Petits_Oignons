@@ -25,7 +25,15 @@ const TIME_OPTIONS = [
   { value: "45", label: "45 min max" },
   { value: "60", label: "1 h max" },
 ];
-const TYPE_TAGS = ["plat", "soupe", "salade", "dessert", "petit-dejeuner"] as const;
+const TYPE_TAGS = [
+  "plat",
+  "soupe",
+  "salade",
+  "dessert",
+  "petit-dejeuner",
+  "boulangerie",
+  "monde",
+] as const;
 
 type Search = Awaited<PageProps<"/recipes">["searchParams"]>;
 

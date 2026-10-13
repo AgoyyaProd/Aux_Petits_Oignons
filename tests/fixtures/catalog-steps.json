@@ -31,6 +31,36 @@
     ]
   },
   {
+    "slug": "aloo-gobi",
+    "ingredients": [
+      { "id": "pomme-de-terre", "name": "Pomme de terre", "optional": false },
+      { "id": "chou-fleur", "name": "Chou-fleur", "optional": false },
+      { "id": "tomate", "name": "Tomate", "optional": false },
+      { "id": "oignon", "name": "Oignon", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "gingembre", "name": "Gingembre frais", "optional": false },
+      { "id": "cumin", "name": "Cumin", "optional": false },
+      { "id": "curcuma", "name": "Curcuma", "optional": false },
+      { "id": "curry", "name": "Curry en poudre", "optional": false },
+      { "id": "huile-tournesol", "name": "Huile de tournesol", "optional": false },
+      { "id": "riz-basmati", "name": "Riz basmati", "optional": false },
+      { "id": "coriandre", "name": "Coriandre fraîche", "optional": true },
+      { "id": "citron", "name": "Citron", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true }
+    ],
+    "steps": [
+      "Éplucher les pommes de terre et les couper en cubes d'environ 2 cm. Détailler le chou-fleur en petits bouquets.",
+      "Éplucher et émincer l'oignon et l'ail. Râper le gingembre. Couper les tomates en dés.",
+      "Faire chauffer l'huile dans une grande sauteuse à feu moyen et y faire grésiller le cumin 30 secondes.",
+      "Ajouter l'oignon et le faire revenir 5 minutes, jusqu'à ce qu'il soit tendre.",
+      "Ajouter l'ail, le gingembre, le curcuma et le curry, et remuer 1 minute.",
+      "Ajouter les pommes de terre et le chou-fleur, saler et remuer pour bien les enrober d'épices.",
+      "Ajouter les tomates et un fond d'eau, couvrir et cuire 20 minutes à feu doux en remuant de temps en temps, jusqu'à ce que les légumes soient tendres.",
+      "Pendant ce temps, cuire le riz dans une casserole d'eau salée bouillante le temps indiqué sur le paquet, puis l'égoutter.",
+      "Découvrir et laisser dorer 5 minutes à feu moyen. Servir avec le riz, la coriandre ciselée et des quartiers de citron."
+    ]
+  },
+  {
     "slug": "aubergines-parmesane",
     "ingredients": [
       { "id": "aubergine", "name": "Aubergine", "optional": false },
@@ -54,6 +84,71 @@
       "Parsemer de parmesan râpé sur toute la surface.",
       "Enfourner 20 minutes, jusqu'à ce que le dessus gratine et que la sauce bouillonne sur les bords.",
       "Laisser reposer 5 minutes hors du four avant de servir : les couches se tiennent mieux."
+    ]
+  },
+  {
+    "slug": "bibimbap-boeuf",
+    "ingredients": [
+      { "id": "riz-rond", "name": "Riz rond (risotto)", "optional": false },
+      { "id": "boeuf-hache", "name": "Bœuf haché", "optional": false },
+      { "id": "epinard", "name": "Épinards", "optional": false },
+      { "id": "carotte", "name": "Carotte", "optional": false },
+      { "id": "courgette", "name": "Courgette", "optional": false },
+      { "id": "champignon", "name": "Champignons de Paris", "optional": false },
+      { "id": "oeuf", "name": "Œuf", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "sauce-soja", "name": "Sauce soja", "optional": false },
+      { "id": "sucre-roux", "name": "Sucre roux", "optional": false },
+      { "id": "huile-sesame", "name": "Huile de sésame", "optional": false },
+      { "id": "huile-tournesol", "name": "Huile de tournesol", "optional": false },
+      { "id": "piment", "name": "Piment", "optional": false },
+      { "id": "graine-sesame", "name": "Graines de sésame", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true }
+    ],
+    "steps": [
+      "Rincer le riz et le cuire dans une casserole d'eau salée bouillante le temps indiqué sur le paquet, puis l'égoutter et le garder au chaud.",
+      "Éplucher les carottes et les couper en bâtonnets fins. Couper la courgette en bâtonnets et émincer les champignons. Hacher l'ail.",
+      "Faire chauffer un peu d'huile de tournesol dans une poêle à feu vif et y faire sauter les carottes 3 minutes. Saler et réserver.",
+      "Faire de même avec la courgette, puis les champignons, 3 minutes chacun, en les réservant à part.",
+      "Faire tomber les épinards 2 minutes avec un peu d'ail, puis les assaisonner d'un filet d'huile de sésame.",
+      "Dans la même poêle, cuire le bœuf avec le reste de l'ail 5 minutes en l'émiettant, puis ajouter la moitié de la sauce soja et le sucre roux, et laisser caraméliser 2 minutes.",
+      "Cuire les œufs au plat à feu moyen, jusqu'à ce que le blanc soit pris et le jaune encore coulant.",
+      "Mélanger le reste de la sauce soja avec le piment et le reste de l'huile de sésame : c'est la sauce.",
+      "Répartir le riz dans les bols, disposer le bœuf et les légumes par-dessus en petits tas, et poser un œuf au centre.",
+      "Parsemer de graines de sésame et servir avec la sauce, à mélanger à table."
+    ]
+  },
+  {
+    "slug": "biryani-poulet",
+    "ingredients": [
+      { "id": "poulet-cuisse", "name": "Cuisse de poulet", "optional": false },
+      { "id": "riz-basmati", "name": "Riz basmati", "optional": false },
+      { "id": "yaourt", "name": "Yaourt nature", "optional": false },
+      { "id": "oignon", "name": "Oignon", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "gingembre", "name": "Gingembre frais", "optional": false },
+      { "id": "curry", "name": "Curry en poudre", "optional": false },
+      { "id": "curcuma", "name": "Curcuma", "optional": false },
+      { "id": "cannelle", "name": "Cannelle", "optional": false },
+      { "id": "laurier", "name": "Laurier", "optional": false },
+      { "id": "huile-tournesol", "name": "Huile de tournesol", "optional": false },
+      { "id": "raisin-sec", "name": "Raisins secs", "optional": true },
+      { "id": "amande", "name": "Amandes", "optional": true },
+      { "id": "coriandre", "name": "Coriandre fraîche", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true }
+    ],
+    "steps": [
+      "Désosser les cuisses de poulet, retirer la peau et couper la viande en morceaux.",
+      "Mélanger le poulet avec le yaourt, le curry, l'ail écrasé, le gingembre râpé et une pincée de sel. Laisser mariner 20 minutes.",
+      "Rincer le riz plusieurs fois, jusqu'à ce que l'eau soit claire.",
+      "Éplucher les oignons et les émincer finement.",
+      "Faire chauffer l'huile dans une cocotte à feu moyen et y dorer les oignons 10 à 12 minutes, jusqu'à ce qu'ils soient bien bruns. En réserver une partie pour le service.",
+      "Ajouter le poulet et sa marinade, et cuire 8 minutes en remuant.",
+      "Ajouter le riz, le curcuma, la cannelle et le laurier, et remuer 1 minute pour enrober les grains.",
+      "Verser de l'eau à hauteur plus un doigt, saler et porter à ébullition.",
+      "Couvrir et cuire 15 minutes à feu très doux, sans soulever le couvercle.",
+      "Couper le feu et laisser reposer 5 minutes à couvert, puis égrainer délicatement à la fourchette.",
+      "Servir parsemé des oignons réservés, des raisins secs, des amandes et de la coriandre."
     ]
   },
   {
@@ -88,6 +183,37 @@
       "Hors du feu, ajouter la crème et le jus du citron. Goûter, saler et poivrer.",
       "Remettre la viande, les carottes et les champignons dans la sauce et réchauffer 10 minutes à feu très doux, sans faire bouillir pour que la sauce ne tourne pas.",
       "Servir bien chaud avec le riz."
+    ]
+  },
+  {
+    "slug": "bo-bun-boeuf",
+    "ingredients": [
+      { "id": "nouilles-riz", "name": "Nouilles de riz", "optional": false },
+      { "id": "boeuf-steak", "name": "Steak de bœuf", "optional": false },
+      { "id": "salade", "name": "Salade verte", "optional": false },
+      { "id": "carotte", "name": "Carotte", "optional": false },
+      { "id": "concombre", "name": "Concombre", "optional": false },
+      { "id": "oignon", "name": "Oignon", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "cacahuete", "name": "Cacahuètes", "optional": false },
+      { "id": "menthe", "name": "Menthe fraîche", "optional": false },
+      { "id": "coriandre", "name": "Coriandre fraîche", "optional": false },
+      { "id": "citron-vert", "name": "Citron vert", "optional": false },
+      { "id": "sauce-soja", "name": "Sauce soja", "optional": false },
+      { "id": "sucre", "name": "Sucre", "optional": false },
+      { "id": "huile-tournesol", "name": "Huile de tournesol", "optional": false },
+      { "id": "piment", "name": "Piment", "optional": true }
+    ],
+    "steps": [
+      "Cuire les nouilles de riz dans l'eau bouillante le temps indiqué sur le paquet, les rincer à l'eau froide et les égoutter.",
+      "Couper le bœuf en fines lanières et le mélanger avec l'ail haché et la moitié de la sauce soja.",
+      "Éplucher les carottes et les râper. Couper le concombre en bâtonnets. Laver la salade et la couper en lanières.",
+      "Effeuiller la menthe et la coriandre. Concasser les cacahuètes.",
+      "Pour la sauce, mélanger le jus des citrons verts avec le reste de la sauce soja, le sucre, le piment et quelques cuillerées d'eau, jusqu'à ce que le sucre soit dissous.",
+      "Éplucher l'oignon et l'émincer.",
+      "Faire chauffer l'huile dans une poêle à feu vif et y faire sauter l'oignon 2 minutes, puis le bœuf 2 à 3 minutes : il doit rester rosé.",
+      "Dans de grands bols, disposer la salade, les nouilles, les carottes et le concombre.",
+      "Ajouter le bœuf chaud, parsemer d'herbes et de cacahuètes, et arroser de sauce au moment de manger."
     ]
   },
   {
@@ -291,6 +417,61 @@
     ]
   },
   {
+    "slug": "brioche-maison",
+    "ingredients": [
+      { "id": "farine", "name": "Farine de blé", "optional": false },
+      { "id": "oeuf", "name": "Œuf", "optional": false },
+      { "id": "beurre", "name": "Beurre", "optional": false },
+      { "id": "lait", "name": "Lait", "optional": false },
+      { "id": "sucre", "name": "Sucre", "optional": false },
+      { "id": "levure-boulangere", "name": "Levure de boulanger", "optional": false },
+      { "id": "sel", "name": "Sel", "optional": false },
+      { "id": "sucre-glace", "name": "Sucre glace", "optional": true }
+    ],
+    "steps": [
+      "Délayer la levure dans le lait tiède et laisser reposer 5 minutes.",
+      "Dans un grand saladier, mélanger la farine, le sucre et le sel.",
+      "Ajouter le lait et quatre œufs, et pétrir 10 minutes, jusqu'à ce que la pâte se détache des parois.",
+      "Ajouter le beurre en petits morceaux, un peu à la fois, en pétrissant 10 minutes de plus : la pâte doit devenir lisse, brillante et élastique.",
+      "Couvrir et laisser lever 1 heure 30 dans un endroit tiède.",
+      "Dégazer la pâte, la couvrir de film et la placer une nuit au réfrigérateur : froide, elle se façonne beaucoup mieux.",
+      "Le lendemain, diviser la pâte en trois boudins et les tresser, ou en huit boules à serrer dans un moule.",
+      "Déposer sur une plaque ou dans un moule beurré, couvrir et laisser lever 2 heures, jusqu'à ce que la brioche ait presque doublé.",
+      "Préchauffer le four à 180 °C.",
+      "Battre le dernier œuf et en badigeonner délicatement la brioche au pinceau.",
+      "Enfourner 25 à 30 minutes, jusqu'à ce qu'elle soit bien dorée ; couvrir de papier si elle colore trop vite.",
+      "Laisser tiédir sur une grille et saupoudrer de sucre glace."
+    ]
+  },
+  {
+    "slug": "brioches-roulees-cannelle",
+    "ingredients": [
+      { "id": "farine", "name": "Farine de blé", "optional": false },
+      { "id": "lait", "name": "Lait", "optional": false },
+      { "id": "oeuf", "name": "Œuf", "optional": false },
+      { "id": "beurre", "name": "Beurre", "optional": false },
+      { "id": "sucre", "name": "Sucre", "optional": false },
+      { "id": "sucre-roux", "name": "Sucre roux", "optional": false },
+      { "id": "cannelle", "name": "Cannelle", "optional": false },
+      { "id": "levure-boulangere", "name": "Levure de boulanger", "optional": false },
+      { "id": "sel", "name": "Sel", "optional": false },
+      { "id": "sucre-glace", "name": "Sucre glace", "optional": true }
+    ],
+    "steps": [
+      "Délayer la levure dans le lait tiède et laisser reposer 5 minutes.",
+      "Dans un saladier, mélanger la farine, le sucre et le sel, puis ajouter le lait et l'œuf.",
+      "Pétrir 5 minutes, ajouter une petite moitié du beurre et pétrir encore 8 minutes, jusqu'à ce que la pâte soit lisse.",
+      "Couvrir et laisser lever 1 heure dans un endroit tiède.",
+      "Mélanger le reste du beurre avec le sucre roux et la cannelle jusqu'à obtenir une pâte à tartiner.",
+      "Étaler la pâte en un grand rectangle d'environ 5 mm d'épaisseur.",
+      "Tartiner le beurre à la cannelle sur toute la surface, puis rouler la pâte serrée sur la longueur.",
+      "Couper le rouleau en douze tranches et les serrer côte à côte dans un plat beurré.",
+      "Couvrir et laisser lever 40 minutes, jusqu'à ce que les roulés se touchent.",
+      "Préchauffer le four à 180 °C et enfourner 20 à 25 minutes, jusqu'à ce qu'ils soient dorés.",
+      "Mélanger le sucre glace avec quelques gouttes d'eau et en napper les brioches encore tièdes."
+    ]
+  },
+  {
     "slug": "buddha-bowl-quinoa",
     "ingredients": [
       { "id": "quinoa", "name": "Quinoa", "optional": false },
@@ -315,6 +496,65 @@
       "Couper les avocats en deux, retirer le noyau et les couper en tranches. Laver les épinards.",
       "Répartir le quinoa dans les bols, puis disposer les légumes rôtis, les épinards et l'avocat.",
       "Arroser de jus de citron et parsemer de sésame."
+    ]
+  },
+  {
+    "slug": "burgers-maison",
+    "ingredients": [
+      { "id": "boeuf-hache", "name": "Bœuf haché", "optional": false },
+      { "id": "pain", "name": "Pain", "optional": false },
+      { "id": "cheddar", "name": "Cheddar", "optional": false },
+      { "id": "tomate", "name": "Tomate", "optional": false },
+      { "id": "oignon-rouge", "name": "Oignon rouge", "optional": false },
+      { "id": "salade", "name": "Salade verte", "optional": false },
+      { "id": "cornichon", "name": "Cornichons", "optional": false },
+      { "id": "ketchup", "name": "Ketchup", "optional": false },
+      { "id": "mayonnaise", "name": "Mayonnaise", "optional": false },
+      { "id": "moutarde", "name": "Moutarde", "optional": false },
+      { "id": "huile-tournesol", "name": "Huile de tournesol", "optional": false },
+      { "id": "sel", "name": "Sel", "optional": true },
+      { "id": "poivre", "name": "Poivre noir", "optional": true }
+    ],
+    "steps": [
+      "Façonner la viande en quatre galettes un peu plus larges que les pains, sans trop la tasser. Faire un léger creux au centre avec le pouce : elles resteront plates à la cuisson.",
+      "Mélanger la mayonnaise, le ketchup, la moutarde et les cornichons hachés : c'est la sauce.",
+      "Couper les tomates en rondelles, émincer l'oignon rouge en fines rondelles et laver les feuilles de salade.",
+      "Couper les pains en deux et les toaster côté mie 1 minute dans une poêle sèche.",
+      "Faire chauffer l'huile dans la poêle à feu vif. Saler et poivrer les steaks et les cuire 3 minutes sans y toucher.",
+      "Retourner les steaks, poser une tranche de cheddar sur chacun, couvrir et cuire 2 à 3 minutes, jusqu'à ce que le fromage fonde.",
+      "Tartiner les pains de sauce, puis empiler salade, steak, tomate et oignon.",
+      "Refermer et servir aussitôt."
+    ]
+  },
+  {
+    "slug": "butter-chicken",
+    "ingredients": [
+      { "id": "poulet-filet", "name": "Filet de poulet", "optional": false },
+      { "id": "yaourt", "name": "Yaourt nature", "optional": false },
+      { "id": "tomate-concassee", "name": "Tomates concassées en boîte", "optional": false },
+      { "id": "creme-liquide", "name": "Crème liquide", "optional": false },
+      { "id": "beurre", "name": "Beurre", "optional": false },
+      { "id": "oignon", "name": "Oignon", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "gingembre", "name": "Gingembre frais", "optional": false },
+      { "id": "curry", "name": "Curry en poudre", "optional": false },
+      { "id": "paprika", "name": "Paprika", "optional": false },
+      { "id": "cumin", "name": "Cumin", "optional": false },
+      { "id": "riz-basmati", "name": "Riz basmati", "optional": false },
+      { "id": "coriandre", "name": "Coriandre fraîche", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true }
+    ],
+    "steps": [
+      "Couper le poulet en morceaux et le mélanger dans un saladier avec le yaourt, la moitié du curry, le paprika et une pincée de sel. Laisser mariner au moins 20 minutes.",
+      "Éplucher et hacher l'oignon et l'ail. Râper le gingembre.",
+      "Faire fondre la moitié du beurre dans une sauteuse à feu moyen-vif et y dorer le poulet égoutté de sa marinade 5 minutes. Le réserver.",
+      "Dans la même sauteuse, faire fondre le reste du beurre à feu moyen et y faire revenir l'oignon 5 minutes.",
+      "Ajouter l'ail, le gingembre, le cumin et le reste du curry, et remuer 1 minute.",
+      "Verser la tomate concassée, saler et laisser mijoter 10 minutes à feu doux.",
+      "Mixer la sauce pour la rendre lisse, puis ajouter la crème.",
+      "Remettre le poulet dans la sauce et laisser mijoter 10 minutes, jusqu'à ce qu'il soit cuit à cœur.",
+      "Pendant ce temps, cuire le riz dans une casserole d'eau salée bouillante le temps indiqué sur le paquet, puis l'égoutter.",
+      "Servir avec le riz, parsemé de coriandre ciselée."
     ]
   },
   {
@@ -1035,6 +1275,39 @@
     ]
   },
   {
+    "slug": "enchiladas-poulet",
+    "ingredients": [
+      { "id": "tortilla", "name": "Tortillas de blé", "optional": false },
+      { "id": "poulet-filet", "name": "Filet de poulet", "optional": false },
+      { "id": "haricot-rouge", "name": "Haricots rouges (conserve)", "optional": false },
+      { "id": "poivron", "name": "Poivron", "optional": false },
+      { "id": "oignon", "name": "Oignon", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "coulis-tomate", "name": "Coulis de tomate", "optional": false },
+      { "id": "cumin", "name": "Cumin", "optional": false },
+      { "id": "paprika", "name": "Paprika", "optional": false },
+      { "id": "piment", "name": "Piment", "optional": false },
+      { "id": "cheddar", "name": "Cheddar", "optional": false },
+      { "id": "huile-tournesol", "name": "Huile de tournesol", "optional": false },
+      { "id": "creme-fraiche", "name": "Crème fraîche épaisse", "optional": true },
+      { "id": "coriandre", "name": "Coriandre fraîche", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true }
+    ],
+    "steps": [
+      "Préchauffer le four à 200 °C.",
+      "Couper le poulet en petits dés. Épépiner le poivron et le couper en dés. Éplucher et émincer l'oignon et l'ail.",
+      "Égoutter et rincer les haricots rouges.",
+      "Faire chauffer l'huile dans une poêle à feu moyen-vif et y faire revenir le poulet 5 minutes. Ajouter l'oignon, le poivron et l'ail et poursuivre 5 minutes.",
+      "Ajouter les haricots, le cumin, le paprika et le piment, saler et remuer 2 minutes.",
+      "Dans une casserole, faire chauffer le coulis de tomate avec une pincée de sel 5 minutes.",
+      "Étaler un peu de sauce au fond d'un plat à gratin.",
+      "Garnir chaque tortilla de poulet, la rouler et la poser dans le plat, soudure dessous.",
+      "Napper du reste de sauce et parsemer de cheddar.",
+      "Enfourner 20 minutes, jusqu'à ce que le fromage soit doré et bouillonnant.",
+      "Servir avec une cuillerée de crème fraîche et la coriandre ciselée."
+    ]
+  },
+  {
     "slug": "endives-jambon",
     "ingredients": [
       { "id": "endive", "name": "Endive", "optional": false },
@@ -1183,6 +1456,32 @@
       "Verser la crème chaude sur la pâte et lisser la surface.",
       "Enfourner 45 à 50 minutes, jusqu'à ce que le dessus soit bien doré par endroits.",
       "Laisser refroidir complètement, puis réfrigérer au moins 4 heures avant de couper : le flan doit être bien pris."
+    ]
+  },
+  {
+    "slug": "focaccia-tomates-cerises",
+    "ingredients": [
+      { "id": "farine", "name": "Farine de blé", "optional": false },
+      { "id": "eau", "name": "Eau", "optional": false },
+      { "id": "huile-olive", "name": "Huile d'olive", "optional": false },
+      { "id": "levure-boulangere", "name": "Levure de boulanger", "optional": false },
+      { "id": "sel", "name": "Sel", "optional": false },
+      { "id": "tomate-cerise", "name": "Tomate cerise", "optional": false },
+      { "id": "herbes-provence", "name": "Herbes de Provence", "optional": false }
+    ],
+    "steps": [
+      "Délayer la levure dans l'eau tiède et laisser reposer 5 minutes.",
+      "Dans un saladier, mélanger la farine et le sel, puis verser l'eau et deux cuillerées d'huile.",
+      "Mélanger 5 minutes à la cuillère : la pâte est très collante, c'est normal.",
+      "Couvrir et laisser lever 1 heure 30 dans un endroit tiède, jusqu'à ce qu'elle double de volume.",
+      "Huiler généreusement un grand plat rectangulaire et y verser la pâte.",
+      "Étirer la pâte avec les doigts huilés jusqu'aux bords du plat, puis couvrir et laisser lever 30 minutes.",
+      "Préchauffer le four à 220 °C.",
+      "Enfoncer le bout des doigts dans la pâte pour former des creux sur toute la surface.",
+      "Couper les tomates cerises en deux et les enfoncer dans les creux.",
+      "Arroser du reste d'huile et parsemer d'herbes de Provence et d'une pincée de sel.",
+      "Enfourner 20 à 25 minutes, jusqu'à ce que la focaccia soit bien dorée.",
+      "Laisser tiédir 10 minutes avant de la couper en carrés."
     ]
   },
   {
@@ -1367,6 +1666,38 @@
       "Égoutter la mozzarella, la couper en tranches et la répartir sur les gnocchis. Parsemer de parmesan.",
       "Enfourner 10 minutes, jusqu'à ce que la mozzarella soit fondue et commence à dorer.",
       "Servir aussitôt, parsemé du reste de basilic."
+    ]
+  },
+  {
+    "slug": "goulash-boeuf",
+    "ingredients": [
+      { "id": "boeuf-bourguignon", "name": "Bœuf à mijoter", "optional": false },
+      { "id": "oignon", "name": "Oignon", "optional": false },
+      { "id": "poivron", "name": "Poivron", "optional": false },
+      { "id": "pomme-de-terre", "name": "Pomme de terre", "optional": false },
+      { "id": "tomate-concassee", "name": "Tomates concassées en boîte", "optional": false },
+      { "id": "concentre-tomate", "name": "Concentré de tomate", "optional": false },
+      { "id": "paprika", "name": "Paprika", "optional": false },
+      { "id": "cumin", "name": "Cumin", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "bouillon-volaille", "name": "Bouillon cube de volaille", "optional": false },
+      { "id": "laurier", "name": "Laurier", "optional": false },
+      { "id": "huile-tournesol", "name": "Huile de tournesol", "optional": false },
+      { "id": "creme-fraiche", "name": "Crème fraîche épaisse", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true },
+      { "id": "poivre", "name": "Poivre noir", "optional": true }
+    ],
+    "steps": [
+      "Couper la viande en cubes et l'éponger. Éplucher et émincer les oignons et l'ail.",
+      "Faire chauffer l'huile dans une cocotte à feu vif et y dorer la viande en plusieurs fois, 5 minutes par fournée. La réserver.",
+      "Baisser le feu à moyen et faire revenir les oignons 10 minutes, jusqu'à ce qu'ils soient tendres et dorés.",
+      "Hors du feu, ajouter le paprika, le cumin et l'ail, et remuer : le paprika brûle vite.",
+      "Remettre la viande, ajouter le concentré et la tomate concassée, puis couvrir d'eau à hauteur.",
+      "Émietter le cube de bouillon, ajouter le laurier, saler, poivrer et porter à frémissement.",
+      "Couvrir et laisser mijoter 1 heure 30 à feu doux.",
+      "Épépiner les poivrons et les couper en lanières. Éplucher les pommes de terre et les couper en cubes.",
+      "Ajouter les poivrons et les pommes de terre et poursuivre 40 minutes, jusqu'à ce que la viande soit fondante.",
+      "Retirer le laurier et servir avec une cuillerée de crème fraîche."
     ]
   },
   {
@@ -1598,6 +1929,38 @@
     ]
   },
   {
+    "slug": "jambalaya",
+    "ingredients": [
+      { "id": "riz", "name": "Riz", "optional": false },
+      { "id": "poulet-filet", "name": "Filet de poulet", "optional": false },
+      { "id": "chorizo", "name": "Chorizo", "optional": false },
+      { "id": "crevette", "name": "Crevettes", "optional": false },
+      { "id": "poivron", "name": "Poivron", "optional": false },
+      { "id": "celeri-branche", "name": "Céleri branche", "optional": false },
+      { "id": "oignon", "name": "Oignon", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "tomate-concassee", "name": "Tomates concassées en boîte", "optional": false },
+      { "id": "paprika", "name": "Paprika", "optional": false },
+      { "id": "thym", "name": "Thym", "optional": false },
+      { "id": "bouillon-volaille", "name": "Bouillon cube de volaille", "optional": false },
+      { "id": "huile-olive", "name": "Huile d'olive", "optional": false },
+      { "id": "persil", "name": "Persil frais", "optional": true },
+      { "id": "piment", "name": "Piment", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true }
+    ],
+    "steps": [
+      "Couper le poulet en cubes et le chorizo en rondelles. Épépiner les poivrons et les couper en dés. Émincer le céleri, l'oignon et l'ail.",
+      "Faire chauffer l'huile dans une grande cocotte à feu moyen-vif et y dorer le chorizo 2 minutes, puis le poulet 5 minutes. Réserver.",
+      "Dans la même cocotte, faire revenir l'oignon, le céleri et les poivrons 8 minutes, jusqu'à ce qu'ils soient tendres.",
+      "Ajouter l'ail, le paprika, le thym et le piment, et remuer 1 minute.",
+      "Ajouter le riz et remuer 1 minute pour bien l'enrober.",
+      "Verser la tomate concassée et de l'eau à hauteur plus deux doigts, émietter le cube de bouillon, saler et remettre le poulet et le chorizo.",
+      "Porter à ébullition, couvrir et cuire 18 minutes à feu doux, jusqu'à ce que le riz soit presque tendre.",
+      "Ajouter les crevettes en les enfonçant dans le riz, couvrir et cuire encore 5 minutes, jusqu'à ce qu'elles soient roses.",
+      "Laisser reposer 5 minutes hors du feu, puis servir parsemé de persil ciselé."
+    ]
+  },
+  {
     "slug": "lasagnes-bolognaise",
     "ingredients": [
       { "id": "pates-lasagne", "name": "Pâtes à lasagne", "optional": false },
@@ -1760,6 +2123,64 @@
       "Verser dans un plat à gratin.",
       "Couvrir d'emmental, puis de chapelure.",
       "Enfourner 20 minutes, jusqu'à ce que le dessus soit doré et croustillant."
+    ]
+  },
+  {
+    "slug": "mafe-poulet",
+    "ingredients": [
+      { "id": "poulet-cuisse", "name": "Cuisse de poulet", "optional": false },
+      { "id": "beurre-cacahuete", "name": "Beurre de cacahuète", "optional": false },
+      { "id": "tomate-concassee", "name": "Tomates concassées en boîte", "optional": false },
+      { "id": "concentre-tomate", "name": "Concentré de tomate", "optional": false },
+      { "id": "patate-douce", "name": "Patate douce", "optional": false },
+      { "id": "carotte", "name": "Carotte", "optional": false },
+      { "id": "oignon", "name": "Oignon", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "gingembre", "name": "Gingembre frais", "optional": false },
+      { "id": "bouillon-volaille", "name": "Bouillon cube de volaille", "optional": false },
+      { "id": "huile-tournesol", "name": "Huile de tournesol", "optional": false },
+      { "id": "riz", "name": "Riz", "optional": false },
+      { "id": "piment", "name": "Piment", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true }
+    ],
+    "steps": [
+      "Éplucher et émincer l'oignon et l'ail. Râper le gingembre. Éplucher la patate douce et les carottes et les couper en gros morceaux.",
+      "Faire chauffer l'huile dans une cocotte à feu moyen-vif et y dorer les cuisses de poulet 8 minutes sur toutes les faces. Les réserver.",
+      "Dans la même cocotte, faire revenir l'oignon 5 minutes, puis ajouter l'ail, le gingembre et le concentré de tomate, et remuer 1 minute.",
+      "Ajouter la tomate concassée, puis délayer le beurre de cacahuète dans la sauce jusqu'à ce qu'elle soit lisse.",
+      "Ajouter de l'eau à hauteur, émietter le cube de bouillon et ajouter le piment. Remettre le poulet.",
+      "Couvrir et laisser mijoter 20 minutes à feu doux, en remuant de temps en temps : la sauce attache facilement.",
+      "Ajouter la patate douce et les carottes et poursuivre 20 minutes, jusqu'à ce qu'elles soient tendres et la sauce nappante.",
+      "Pendant ce temps, cuire le riz dans une casserole d'eau salée bouillante le temps indiqué sur le paquet, puis l'égoutter.",
+      "Goûter, saler et servir le mafé avec le riz."
+    ]
+  },
+  {
+    "slug": "mapo-tofu",
+    "ingredients": [
+      { "id": "tofu", "name": "Tofu ferme", "optional": false },
+      { "id": "boeuf-hache", "name": "Bœuf haché", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "gingembre", "name": "Gingembre frais", "optional": false },
+      { "id": "sauce-soja", "name": "Sauce soja", "optional": false },
+      { "id": "concentre-tomate", "name": "Concentré de tomate", "optional": false },
+      { "id": "piment", "name": "Piment", "optional": false },
+      { "id": "fecule-mais", "name": "Fécule de maïs", "optional": false },
+      { "id": "huile-tournesol", "name": "Huile de tournesol", "optional": false },
+      { "id": "riz-thai", "name": "Riz thaï (jasmin)", "optional": false },
+      { "id": "ciboulette", "name": "Ciboulette", "optional": true },
+      { "id": "huile-sesame", "name": "Huile de sésame", "optional": true }
+    ],
+    "steps": [
+      "Cuire le riz dans une casserole d'eau bouillante le temps indiqué sur le paquet, puis l'égoutter.",
+      "Couper le tofu en cubes d'environ 2 cm. Hacher l'ail et râper le gingembre.",
+      "Délayer la fécule dans un peu d'eau froide.",
+      "Faire chauffer l'huile dans une poêle à feu vif et y faire revenir le bœuf 4 minutes en l'émiettant, jusqu'à ce qu'il soit doré.",
+      "Ajouter l'ail, le gingembre, le piment et le concentré de tomate, et remuer 1 minute.",
+      "Verser la sauce soja et un verre d'eau, et porter à frémissement.",
+      "Ajouter le tofu délicatement et laisser mijoter 5 minutes à feu doux, sans trop remuer pour ne pas le casser.",
+      "Verser la fécule délayée et remuer doucement 1 minute, jusqu'à ce que la sauce épaississe.",
+      "Servir sur le riz, avec un filet d'huile de sésame et la ciboulette ciselée."
     ]
   },
   {
@@ -1938,6 +2359,57 @@
       "Remplir les empreintes aux trois quarts.",
       "Enfourner 20 à 22 minutes : les muffins doivent être dorés et une lame plantée au centre doit ressortir sèche.",
       "Laisser tiédir 5 minutes avant de démouler."
+    ]
+  },
+  {
+    "slug": "mujaddara",
+    "ingredients": [
+      { "id": "lentille-verte", "name": "Lentilles vertes", "optional": false },
+      { "id": "riz", "name": "Riz", "optional": false },
+      { "id": "oignon", "name": "Oignon", "optional": false },
+      { "id": "huile-olive", "name": "Huile d'olive", "optional": false },
+      { "id": "cumin", "name": "Cumin", "optional": false },
+      { "id": "cannelle", "name": "Cannelle", "optional": false },
+      { "id": "yaourt", "name": "Yaourt nature", "optional": false },
+      { "id": "persil", "name": "Persil frais", "optional": true },
+      { "id": "salade", "name": "Salade verte", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true },
+      { "id": "poivre", "name": "Poivre noir", "optional": true }
+    ],
+    "steps": [
+      "Rincer les lentilles, les couvrir largement d'eau et les cuire 15 minutes à petits frémissements : elles doivent rester un peu fermes. Les égoutter en gardant l'eau de cuisson.",
+      "Éplucher les oignons et les émincer finement.",
+      "Faire chauffer l'huile dans une grande poêle à feu moyen et y cuire les oignons 25 minutes en remuant souvent, jusqu'à ce qu'ils soient bien bruns et caramélisés. Saler.",
+      "Rincer le riz.",
+      "Dans une casserole, mettre le riz, les lentilles, le cumin, la cannelle et un tiers des oignons. Couvrir de l'eau de cuisson des lentilles à hauteur plus un doigt, saler et porter à ébullition.",
+      "Couvrir et cuire 15 minutes à feu très doux, jusqu'à ce que l'eau soit absorbée et le riz tendre.",
+      "Laisser reposer 5 minutes à couvert, puis égrainer à la fourchette et poivrer.",
+      "Servir surmonté du reste des oignons, avec le yaourt, le persil ciselé et une salade verte."
+    ]
+  },
+  {
+    "slug": "naans-ail",
+    "ingredients": [
+      { "id": "farine", "name": "Farine de blé", "optional": false },
+      { "id": "yaourt", "name": "Yaourt nature", "optional": false },
+      { "id": "lait", "name": "Lait", "optional": false },
+      { "id": "levure-boulangere", "name": "Levure de boulanger", "optional": false },
+      { "id": "sucre", "name": "Sucre", "optional": false },
+      { "id": "sel", "name": "Sel", "optional": false },
+      { "id": "beurre", "name": "Beurre", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "coriandre", "name": "Coriandre fraîche", "optional": true }
+    ],
+    "steps": [
+      "Délayer la levure et le sucre dans le lait tiède et laisser reposer 5 minutes.",
+      "Dans un saladier, mélanger la farine et le sel, puis ajouter le lait et le yaourt.",
+      "Pétrir 8 minutes, jusqu'à obtenir une pâte souple et un peu collante.",
+      "Couvrir et laisser lever 1 heure dans un endroit tiède.",
+      "Éplucher et hacher finement l'ail, puis le faire fondre avec le beurre dans une petite casserole à feu doux 2 minutes.",
+      "Diviser la pâte en huit boules et les étaler en ovales d'environ 5 mm.",
+      "Faire chauffer une poêle à feu vif, sans matière grasse.",
+      "Cuire chaque naan 1 à 2 minutes, jusqu'à ce que des bulles apparaissent, puis le retourner et cuire encore 1 minute : il doit être tacheté de brun.",
+      "Badigeonner aussitôt de beurre à l'ail et parsemer de coriandre ciselée."
     ]
   },
   {
@@ -2130,6 +2602,30 @@
     ]
   },
   {
+    "slug": "oyakodon",
+    "ingredients": [
+      { "id": "poulet-cuisse", "name": "Cuisse de poulet", "optional": false },
+      { "id": "oignon", "name": "Oignon", "optional": false },
+      { "id": "oeuf", "name": "Œuf", "optional": false },
+      { "id": "riz-rond", "name": "Riz rond (risotto)", "optional": false },
+      { "id": "sauce-soja", "name": "Sauce soja", "optional": false },
+      { "id": "sucre", "name": "Sucre", "optional": false },
+      { "id": "bouillon-volaille", "name": "Bouillon cube de volaille", "optional": false },
+      { "id": "ciboulette", "name": "Ciboulette", "optional": true }
+    ],
+    "steps": [
+      "Rincer le riz et le cuire dans une casserole d'eau bouillante le temps indiqué sur le paquet, puis l'égoutter et le garder au chaud.",
+      "Désosser les cuisses de poulet et couper la viande en petits morceaux.",
+      "Éplucher les oignons et les émincer finement.",
+      "Dans une sauteuse, délayer le cube de bouillon dans un verre d'eau chaude, puis ajouter la sauce soja et le sucre. Porter à frémissement.",
+      "Ajouter les oignons et le poulet, et laisser mijoter 10 minutes à feu moyen, jusqu'à ce que le poulet soit cuit.",
+      "Battre légèrement les œufs : les blancs et les jaunes doivent rester un peu marbrés.",
+      "Verser les œufs en filet sur le poulet, couvrir et cuire 1 à 2 minutes à feu doux : ils doivent être juste pris et encore crémeux.",
+      "Répartir le riz dans les bols et faire glisser le poulet aux œufs par-dessus, avec un peu de bouillon.",
+      "Parsemer de ciboulette ciselée et servir aussitôt."
+    ]
+  },
+  {
     "slug": "pad-thai-crevettes",
     "ingredients": [
       { "id": "nouilles-riz", "name": "Nouilles de riz", "optional": false },
@@ -2192,6 +2688,53 @@
     ]
   },
   {
+    "slug": "pain-de-mie-maison",
+    "ingredients": [
+      { "id": "farine", "name": "Farine de blé", "optional": false },
+      { "id": "lait", "name": "Lait", "optional": false },
+      { "id": "beurre", "name": "Beurre", "optional": false },
+      { "id": "sucre", "name": "Sucre", "optional": false },
+      { "id": "levure-boulangere", "name": "Levure de boulanger", "optional": false },
+      { "id": "sel", "name": "Sel", "optional": false }
+    ],
+    "steps": [
+      "Délayer la levure dans le lait tiède et laisser reposer 5 minutes.",
+      "Dans un grand saladier, mélanger la farine, le sucre et le sel.",
+      "Verser le lait et mélanger jusqu'à obtenir une pâte grossière.",
+      "Ajouter le beurre en petits morceaux et pétrir 10 minutes, jusqu'à ce que la pâte soit lisse et ne colle plus.",
+      "Couvrir et laisser lever 1 heure 30 dans un endroit tiède, jusqu'à ce que la pâte double de volume.",
+      "Beurrer un moule à cake.",
+      "Dégazer la pâte, l'étaler en rectangle puis la rouler serrée sur la largeur du moule.",
+      "Déposer le rouleau dans le moule, soudure dessous, couvrir et laisser lever 45 minutes : la pâte doit dépasser le bord.",
+      "Préchauffer le four à 180 °C.",
+      "Enfourner 30 à 35 minutes, jusqu'à ce que le dessus soit bien doré.",
+      "Démouler aussitôt et laisser refroidir complètement sur une grille avant de trancher."
+    ]
+  },
+  {
+    "slug": "pain-maison",
+    "ingredients": [
+      { "id": "farine", "name": "Farine de blé", "optional": false },
+      { "id": "eau", "name": "Eau", "optional": false },
+      { "id": "levure-boulangere", "name": "Levure de boulanger", "optional": false },
+      { "id": "sel", "name": "Sel", "optional": false }
+    ],
+    "steps": [
+      "Dans un grand saladier, mélanger la farine et le sel.",
+      "Délayer la levure dans l'eau tiède et laisser reposer 5 minutes.",
+      "Verser l'eau sur la farine et mélanger à la cuillère jusqu'à ce qu'il ne reste plus de farine sèche.",
+      "Pétrir la pâte 10 minutes sur le plan de travail légèrement fariné, jusqu'à ce qu'elle soit lisse et élastique.",
+      "Remettre la pâte dans le saladier, couvrir d'un torchon et laisser lever 1 heure 30 dans un endroit tiède : elle doit doubler de volume.",
+      "Dégazer la pâte en appuyant dessus, puis la façonner en boule en ramenant les bords vers le centre.",
+      "Poser la boule sur une plaque farinée, couvrir et laisser lever encore 45 minutes.",
+      "Préchauffer le four à 240 °C avec un plat vide sur la grille du bas.",
+      "Fariner le dessus du pain et l'entailler d'un coup de lame franc.",
+      "Enfourner, verser un verre d'eau dans le plat chaud pour créer de la vapeur, et cuire 10 minutes.",
+      "Baisser le four à 210 °C et poursuivre 25 minutes : le pain doit sonner creux quand on tapote dessous.",
+      "Laisser refroidir sur une grille au moins 30 minutes avant de couper."
+    ]
+  },
+  {
     "slug": "pain-perdu",
     "ingredients": [
       { "id": "pain", "name": "Pain", "optional": false },
@@ -2209,6 +2752,54 @@
       "Cuire les tranches 2 à 3 minutes par face, jusqu'à ce qu'elles soient bien dorées.",
       "Ajouter un peu de beurre à chaque fournée pour qu'elles ne collent pas.",
       "Servir aussitôt, saupoudré d'un peu de sucre."
+    ]
+  },
+  {
+    "slug": "pains-burger",
+    "ingredients": [
+      { "id": "farine", "name": "Farine de blé", "optional": false },
+      { "id": "lait", "name": "Lait", "optional": false },
+      { "id": "eau", "name": "Eau", "optional": false },
+      { "id": "oeuf", "name": "Œuf", "optional": false },
+      { "id": "beurre", "name": "Beurre", "optional": false },
+      { "id": "sucre", "name": "Sucre", "optional": false },
+      { "id": "levure-boulangere", "name": "Levure de boulanger", "optional": false },
+      { "id": "sel", "name": "Sel", "optional": false },
+      { "id": "graine-sesame", "name": "Graines de sésame", "optional": false }
+    ],
+    "steps": [
+      "Délayer la levure dans le lait et l'eau tièdes et laisser reposer 5 minutes.",
+      "Dans un saladier, mélanger la farine, le sucre et le sel, puis ajouter le liquide et un œuf.",
+      "Pétrir 5 minutes, puis ajouter le beurre et pétrir encore 8 minutes, jusqu'à obtenir une pâte lisse et souple.",
+      "Couvrir et laisser lever 1 heure dans un endroit tiède, jusqu'à ce qu'elle double de volume.",
+      "Diviser la pâte en huit boules régulières et les déposer sur une plaque recouverte de papier, en les espaçant.",
+      "Aplatir légèrement chaque boule avec la paume, couvrir et laisser lever 40 minutes.",
+      "Préchauffer le four à 190 °C.",
+      "Battre le second œuf et en badigeonner les pains, puis les parsemer de graines de sésame.",
+      "Enfourner 15 à 18 minutes, jusqu'à ce qu'ils soient bien dorés.",
+      "Laisser refroidir sur une grille avant de les couper en deux."
+    ]
+  },
+  {
+    "slug": "pains-pita",
+    "ingredients": [
+      { "id": "farine", "name": "Farine de blé", "optional": false },
+      { "id": "eau", "name": "Eau", "optional": false },
+      { "id": "huile-olive", "name": "Huile d'olive", "optional": false },
+      { "id": "levure-boulangere", "name": "Levure de boulanger", "optional": false },
+      { "id": "sucre", "name": "Sucre", "optional": false },
+      { "id": "sel", "name": "Sel", "optional": false }
+    ],
+    "steps": [
+      "Délayer la levure et le sucre dans l'eau tiède et laisser reposer 5 minutes.",
+      "Dans un saladier, mélanger la farine et le sel, puis ajouter l'eau et l'huile.",
+      "Pétrir 8 minutes, jusqu'à obtenir une pâte lisse et souple.",
+      "Couvrir et laisser lever 1 heure dans un endroit tiède.",
+      "Préchauffer le four à 250 °C avec une plaque à l'intérieur.",
+      "Diviser la pâte en huit boules et les étaler en disques d'environ 5 mm d'épaisseur.",
+      "Laisser reposer les disques 10 minutes sous un torchon.",
+      "Déposer quelques disques sur la plaque brûlante et cuire 4 à 5 minutes : ils doivent gonfler comme un ballon, sans trop dorer.",
+      "Envelopper les pitas dans un torchon dès la sortie du four pour qu'elles restent souples."
     ]
   },
   {
@@ -2360,6 +2951,70 @@
     ]
   },
   {
+    "slug": "pate-brisee-maison",
+    "ingredients": [
+      { "id": "farine", "name": "Farine de blé", "optional": false },
+      { "id": "beurre", "name": "Beurre", "optional": false },
+      { "id": "eau", "name": "Eau", "optional": false },
+      { "id": "sel", "name": "Sel", "optional": false }
+    ],
+    "steps": [
+      "Dans un saladier, mélanger la farine et le sel.",
+      "Couper le beurre froid en petits cubes et l'ajouter à la farine.",
+      "Sabler du bout des doigts en frottant le beurre et la farine, jusqu'à obtenir une texture de sable grossier.",
+      "Verser l'eau très froide et rassembler rapidement la pâte en boule, sans la pétrir : moins on la travaille, plus elle est friable.",
+      "Aplatir la boule en disque, l'envelopper de film et la réfrigérer au moins 30 minutes.",
+      "Étaler la pâte sur le plan de travail fariné et en garnir le moule.",
+      "Pour une tarte à garniture liquide, piquer le fond et le précuire 15 minutes à 180 °C avant de garnir."
+    ]
+  },
+  {
+    "slug": "pate-pizza-maison",
+    "ingredients": [
+      { "id": "farine", "name": "Farine de blé", "optional": false },
+      { "id": "eau", "name": "Eau", "optional": false },
+      { "id": "huile-olive", "name": "Huile d'olive", "optional": false },
+      { "id": "levure-boulangere", "name": "Levure de boulanger", "optional": false },
+      { "id": "sel", "name": "Sel", "optional": false }
+    ],
+    "steps": [
+      "Délayer la levure dans l'eau tiède et laisser reposer 5 minutes.",
+      "Dans un saladier, mélanger la farine et le sel.",
+      "Verser l'eau et l'huile, et mélanger jusqu'à ce que la pâte forme une boule.",
+      "Pétrir 8 à 10 minutes sur le plan de travail fariné, jusqu'à ce que la pâte soit lisse et rebondisse sous le doigt.",
+      "Remettre dans le saladier huilé, couvrir et laisser lever 1 heure 30 dans un endroit tiède, jusqu'à ce qu'elle double de volume.",
+      "Dégazer la pâte et la diviser en deux boules.",
+      "Étaler chaque boule à la main ou au rouleau, en gardant les bords un peu plus épais.",
+      "Garnir, puis cuire 10 à 12 minutes dans le four préchauffé à sa température maximale."
+    ]
+  },
+  {
+    "slug": "pates-alla-norma",
+    "ingredients": [
+      { "id": "rigatoni", "name": "Rigatoni", "optional": false },
+      { "id": "aubergine", "name": "Aubergine", "optional": false },
+      { "id": "tomate-concassee", "name": "Tomates concassées en boîte", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "basilic", "name": "Basilic frais", "optional": false },
+      { "id": "huile-olive", "name": "Huile d'olive", "optional": false },
+      { "id": "ricotta", "name": "Ricotta", "optional": false },
+      { "id": "parmesan", "name": "Parmesan", "optional": true },
+      { "id": "piment", "name": "Piment", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true }
+    ],
+    "steps": [
+      "Couper les aubergines en cubes d'environ 2 cm.",
+      "Faire chauffer quatre cuillerées d'huile dans une grande poêle à feu moyen-vif et y dorer les aubergines 12 à 15 minutes en remuant, jusqu'à ce qu'elles soient fondantes. Saler et réserver.",
+      "Éplucher et émincer l'ail.",
+      "Dans la même poêle, faire revenir l'ail et le piment avec le reste de l'huile 1 minute à feu doux.",
+      "Verser la tomate concassée, saler et laisser mijoter 10 minutes.",
+      "Pendant ce temps, cuire les rigatoni dans une grande casserole d'eau salée bouillante le temps indiqué sur le paquet.",
+      "Remettre les aubergines dans la sauce avec la moitié du basilic.",
+      "Égoutter les pâtes et les mélanger à la sauce.",
+      "Servir avec des cuillerées de ricotta, le parmesan et le reste du basilic."
+    ]
+  },
+  {
     "slug": "pates-pois-chiches",
     "ingredients": [
       { "id": "coquillettes", "name": "Coquillettes", "optional": false },
@@ -2479,6 +3134,33 @@
       "Égoutter les pâtes et les mélanger aux courgettes avec le zeste et le jus de citron.",
       "Émietter la feta et ciseler la menthe.",
       "Les ajouter au moment de servir."
+    ]
+  },
+  {
+    "slug": "pizza-margherita",
+    "ingredients": [
+      { "id": "farine", "name": "Farine de blé", "optional": false },
+      { "id": "eau", "name": "Eau", "optional": false },
+      { "id": "levure-boulangere", "name": "Levure de boulanger", "optional": false },
+      { "id": "huile-olive", "name": "Huile d'olive", "optional": false },
+      { "id": "coulis-tomate", "name": "Coulis de tomate", "optional": false },
+      { "id": "mozzarella", "name": "Mozzarella", "optional": false },
+      { "id": "basilic", "name": "Basilic frais", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "sel", "name": "Sel", "optional": false }
+    ],
+    "steps": [
+      "Délayer la levure dans l'eau tiède et laisser reposer 5 minutes.",
+      "Dans un saladier, mélanger la farine et le sel, puis ajouter l'eau et la moitié de l'huile.",
+      "Pétrir 8 à 10 minutes, jusqu'à ce que la pâte soit lisse et élastique.",
+      "Couvrir et laisser lever 1 heure 30 dans un endroit tiède, jusqu'à ce qu'elle double de volume.",
+      "Éplucher et écraser l'ail, et le mélanger au coulis de tomate avec une cuillerée d'huile et une pincée de sel.",
+      "Préchauffer le four à sa température maximale, avec la plaque à l'intérieur.",
+      "Diviser la pâte en deux et étaler chaque moitié en disque fin sur du papier de cuisson, en gardant les bords plus épais.",
+      "Étaler la sauce sur la pâte sans aller jusqu'au bord.",
+      "Égoutter la mozzarella, la déchirer en morceaux et la répartir sur la sauce.",
+      "Glisser la pizza sur la plaque brûlante et cuire 10 à 12 minutes, jusqu'à ce que les bords soient dorés et la mozzarella fondue.",
+      "À la sortie du four, ajouter les feuilles de basilic et un filet du reste d'huile. Cuire la seconde pizza de la même façon."
     ]
   },
   {
@@ -2768,6 +3450,33 @@
       "Ajouter les pommes de terre et les saucisses.",
       "Cuire encore 30 minutes, jusqu'à ce que les pommes de terre soient tendres.",
       "Poivrer et servir avec un peu de bouillon."
+    ]
+  },
+  {
+    "slug": "poulet-basilic-thai",
+    "ingredients": [
+      { "id": "poulet-filet", "name": "Filet de poulet", "optional": false },
+      { "id": "basilic", "name": "Basilic frais", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "oignon", "name": "Oignon", "optional": false },
+      { "id": "haricot-vert", "name": "Haricots verts", "optional": false },
+      { "id": "sauce-soja", "name": "Sauce soja", "optional": false },
+      { "id": "sucre-roux", "name": "Sucre roux", "optional": false },
+      { "id": "piment", "name": "Piment", "optional": false },
+      { "id": "oeuf", "name": "Œuf", "optional": false },
+      { "id": "huile-tournesol", "name": "Huile de tournesol", "optional": false },
+      { "id": "riz-thai", "name": "Riz thaï (jasmin)", "optional": false }
+    ],
+    "steps": [
+      "Cuire le riz dans une casserole d'eau bouillante le temps indiqué sur le paquet, puis l'égoutter.",
+      "Hacher le poulet grossièrement au couteau. Hacher l'ail, émincer l'oignon et couper les haricots verts en tronçons.",
+      "Mélanger la sauce soja et le sucre roux dans un bol.",
+      "Faire chauffer deux cuillerées d'huile dans un wok à feu vif et y faire sauter l'ail, l'oignon et le piment 1 minute.",
+      "Ajouter le poulet et le faire sauter 4 minutes en le séparant à la spatule, jusqu'à ce qu'il soit cuit.",
+      "Ajouter les haricots verts et la sauce, et faire sauter 3 minutes : les haricots doivent rester croquants.",
+      "Hors du feu, ajouter les feuilles de basilic et mélanger jusqu'à ce qu'elles flétrissent.",
+      "Dans une poêle, faire chauffer le reste de l'huile à feu vif et y cuire les œufs au plat 2 minutes, jusqu'à ce que les bords soient croustillants.",
+      "Servir le poulet sur le riz, surmonté d'un œuf."
     ]
   },
   {
@@ -4074,6 +4783,34 @@
     ]
   },
   {
+    "slug": "souvlaki-poulet-tzatziki",
+    "ingredients": [
+      { "id": "poulet-filet", "name": "Filet de poulet", "optional": false },
+      { "id": "citron", "name": "Citron", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "herbes-provence", "name": "Herbes de Provence", "optional": false },
+      { "id": "huile-olive", "name": "Huile d'olive", "optional": false },
+      { "id": "yaourt", "name": "Yaourt nature", "optional": false },
+      { "id": "concombre", "name": "Concombre", "optional": false },
+      { "id": "menthe", "name": "Menthe fraîche", "optional": false },
+      { "id": "tortilla", "name": "Tortillas de blé", "optional": false },
+      { "id": "tomate", "name": "Tomate", "optional": false },
+      { "id": "oignon-rouge", "name": "Oignon rouge", "optional": false },
+      { "id": "sel", "name": "Sel", "optional": true },
+      { "id": "poivre", "name": "Poivre noir", "optional": true }
+    ],
+    "steps": [
+      "Couper le poulet en cubes et le mélanger avec le jus du citron, deux gousses d'ail écrasées, les herbes, la moitié de l'huile, du sel et du poivre. Laisser mariner au moins 20 minutes.",
+      "Pour le tzatziki, râper le concombre et le presser dans les mains pour en retirer l'eau.",
+      "Mélanger le concombre avec les yaourts, le reste de l'ail écrasé, la menthe ciselée, un filet d'huile et une pincée de sel.",
+      "Couper les tomates en dés et émincer finement l'oignon rouge.",
+      "Enfiler le poulet sur des brochettes.",
+      "Faire chauffer le reste de l'huile dans une poêle à feu moyen-vif et y cuire les brochettes 10 à 12 minutes en les retournant, jusqu'à ce qu'elles soient dorées et cuites à cœur.",
+      "Réchauffer les tortillas 30 secondes par face dans la poêle.",
+      "Garnir chaque tortilla de poulet, de tomates, d'oignon et de tzatziki, puis la rouler."
+    ]
+  },
+  {
     "slug": "spaghetti-aglio-olio",
     "ingredients": [
       { "id": "spaghetti", "name": "Spaghetti", "optional": false },
@@ -4265,6 +5002,41 @@
     ]
   },
   {
+    "slug": "tajine-legumes-pois-chiches",
+    "ingredients": [
+      { "id": "pois-chiche", "name": "Pois chiches (conserve)", "optional": false },
+      { "id": "carotte", "name": "Carotte", "optional": false },
+      { "id": "courgette", "name": "Courgette", "optional": false },
+      { "id": "patate-douce", "name": "Patate douce", "optional": false },
+      { "id": "oignon", "name": "Oignon", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "tomate-concassee", "name": "Tomates concassées en boîte", "optional": false },
+      { "id": "cumin", "name": "Cumin", "optional": false },
+      { "id": "cannelle", "name": "Cannelle", "optional": false },
+      { "id": "curcuma", "name": "Curcuma", "optional": false },
+      { "id": "gingembre", "name": "Gingembre frais", "optional": false },
+      { "id": "raisin-sec", "name": "Raisins secs", "optional": false },
+      { "id": "amande", "name": "Amandes", "optional": true },
+      { "id": "bouillon-legumes", "name": "Bouillon cube de légumes", "optional": false },
+      { "id": "huile-olive", "name": "Huile d'olive", "optional": false },
+      { "id": "semoule", "name": "Semoule de blé", "optional": false },
+      { "id": "coriandre", "name": "Coriandre fraîche", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true }
+    ],
+    "steps": [
+      "Éplucher et émincer l'oignon et l'ail. Éplucher les carottes et la patate douce et les couper en gros morceaux. Couper les courgettes en tronçons.",
+      "Égoutter et rincer les pois chiches.",
+      "Faire chauffer l'huile dans une cocotte ou un tajine à feu moyen et y faire revenir l'oignon 5 minutes.",
+      "Ajouter l'ail, le cumin, la cannelle, le curcuma et le gingembre râpé, et remuer 1 minute.",
+      "Ajouter les carottes, la patate douce et la tomate concassée, puis un verre d'eau et le cube de bouillon émietté. Saler.",
+      "Couvrir et laisser mijoter 20 minutes à feu doux.",
+      "Ajouter les courgettes, les pois chiches et les raisins secs, et poursuivre 15 minutes, jusqu'à ce que tous les légumes soient tendres.",
+      "Pendant ce temps, verser la semoule dans un saladier, la couvrir d'eau bouillante salée à hauteur, couvrir et laisser gonfler 5 minutes, puis l'égrainer à la fourchette.",
+      "Faire dorer les amandes à sec dans une poêle 3 minutes.",
+      "Servir le tajine sur la semoule, parsemé d'amandes et de coriandre ciselée."
+    ]
+  },
+  {
     "slug": "tarte-fine-tomate-mozzarella",
     "ingredients": [
       { "id": "pate-feuilletee", "name": "Pâte feuilletée", "optional": false },
@@ -4393,6 +5165,35 @@
       "Ajouter le brocoli, l'ail et le gingembre et faire sauter 5 minutes, jusqu'à ce que le brocoli soit tendre mais encore croquant.",
       "Ajouter la sauce soja et l'huile de sésame et mélanger 30 secondes.",
       "Parsemer de graines de sésame et servir avec le riz."
+    ]
+  },
+  {
+    "slug": "tonkatsu-porc",
+    "ingredients": [
+      { "id": "porc-filet", "name": "Filet mignon de porc", "optional": false },
+      { "id": "chapelure", "name": "Chapelure", "optional": false },
+      { "id": "farine", "name": "Farine de blé", "optional": false },
+      { "id": "oeuf", "name": "Œuf", "optional": false },
+      { "id": "chou-vert", "name": "Chou vert", "optional": false },
+      { "id": "riz-rond", "name": "Riz rond (risotto)", "optional": false },
+      { "id": "ketchup", "name": "Ketchup", "optional": false },
+      { "id": "sauce-soja", "name": "Sauce soja", "optional": false },
+      { "id": "sucre", "name": "Sucre", "optional": false },
+      { "id": "huile-tournesol", "name": "Huile de tournesol", "optional": false },
+      { "id": "citron", "name": "Citron", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true },
+      { "id": "poivre", "name": "Poivre noir", "optional": true }
+    ],
+    "steps": [
+      "Rincer le riz et le cuire dans une casserole d'eau bouillante le temps indiqué sur le paquet, puis l'égoutter et le garder au chaud.",
+      "Couper le filet de porc en tranches d'environ 1,5 cm et les aplatir légèrement au rouleau entre deux feuilles de papier. Saler et poivrer.",
+      "Émincer le chou en lanières très fines et le garder au frais.",
+      "Mélanger le ketchup, la sauce soja et le sucre : c'est la sauce.",
+      "Préparer trois assiettes : la farine, les œufs battus et la chapelure.",
+      "Passer chaque tranche dans la farine, puis dans l'œuf, puis dans la chapelure en appuyant bien.",
+      "Faire chauffer l'huile dans une grande poêle à feu moyen-vif.",
+      "Cuire les tranches 3 à 4 minutes par face, jusqu'à ce qu'elles soient bien dorées et cuites à cœur. Les égoutter sur du papier absorbant.",
+      "Couper en lanières et servir avec le chou, le riz, la sauce et des quartiers de citron."
     ]
   },
   {
@@ -4622,6 +5423,36 @@
       "Ajouter les flocons d'avoine et les fruits sur les yaourts.",
       "Concasser les amandes.",
       "Terminer avec un filet de miel et les amandes."
+    ]
+  },
+  {
+    "slug": "yassa-poulet",
+    "ingredients": [
+      { "id": "poulet-cuisse", "name": "Cuisse de poulet", "optional": false },
+      { "id": "oignon", "name": "Oignon", "optional": false },
+      { "id": "citron", "name": "Citron", "optional": false },
+      { "id": "moutarde", "name": "Moutarde", "optional": false },
+      { "id": "ail", "name": "Ail (gousse)", "optional": false },
+      { "id": "bouillon-volaille", "name": "Bouillon cube de volaille", "optional": false },
+      { "id": "laurier", "name": "Laurier", "optional": false },
+      { "id": "huile-tournesol", "name": "Huile de tournesol", "optional": false },
+      { "id": "olive", "name": "Olives", "optional": true },
+      { "id": "riz", "name": "Riz", "optional": false },
+      { "id": "piment", "name": "Piment", "optional": true },
+      { "id": "sel", "name": "Sel", "optional": true },
+      { "id": "poivre", "name": "Poivre noir", "optional": true }
+    ],
+    "steps": [
+      "Presser les citrons. Éplucher et émincer finement les oignons et hacher l'ail.",
+      "Dans un saladier, mélanger le jus de citron, la moutarde, l'ail, le piment, du sel et du poivre.",
+      "Ajouter le poulet et les oignons, bien mélanger et laisser mariner au moins 30 minutes au frais.",
+      "Égoutter le poulet. Faire chauffer l'huile dans une cocotte à feu moyen-vif et le dorer 8 minutes sur toutes les faces. Le réserver.",
+      "Dans la même cocotte, faire revenir les oignons égouttés 15 minutes à feu moyen en remuant, jusqu'à ce qu'ils soient fondants et légèrement dorés.",
+      "Verser la marinade, un verre d'eau, le cube de bouillon émietté et le laurier.",
+      "Remettre le poulet, couvrir et laisser mijoter 25 minutes à feu doux, jusqu'à ce qu'il soit cuit à cœur.",
+      "Ajouter les olives et poursuivre 5 minutes à découvert.",
+      "Pendant ce temps, cuire le riz dans une casserole d'eau salée bouillante le temps indiqué sur le paquet, puis l'égoutter.",
+      "Retirer le laurier et servir le poulet et ses oignons avec le riz."
     ]
   }
 ]

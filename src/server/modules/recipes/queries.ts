@@ -42,6 +42,8 @@ export const RECIPE_TAG_LABEL: Record<string, string> = {
   "batch-cooking": "Se prépare à l'avance",
   "sans-cuisson": "Sans cuisson",
   mijote: "Mijoté",
+  boulangerie: "Pains et pâtes",
+  monde: "Cuisine du monde",
 };
 
 function fail(what: string, error: { message: string }): never {

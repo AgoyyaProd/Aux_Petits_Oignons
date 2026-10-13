@@ -145,7 +145,7 @@ export default function HomePage() {
               Les produits à finir passent en premier dans tes menus.
             </Benefit>
             <Benefit badge="bowl" title="Des recettes simples">
-              Plus de 180 plats du quotidien, chiffrés et adaptés à ton foyer.
+              Plus de 200 plats du quotidien, chiffrés et adaptés à ton foyer.
             </Benefit>
             <Benefit badge="mix" title="Des menus équilibrés">
               Une semaine variée, midi et soir, pour toute la famille.
