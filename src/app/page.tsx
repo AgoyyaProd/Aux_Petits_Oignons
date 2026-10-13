@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import type { ReactNode } from "react";
-import { Logo, LogoMark } from "@/components/brand/logo";
-import { BrandBadge, DotShape, LeafShape } from "@/components/brand/shapes";
+import { Logo } from "@/components/brand/logo";
+import { BrandBadge, BrandElement, TexturedMark } from "@/components/brand/shapes";
 import { RecipeVisual } from "@/components/recipes/recipe-visual";
 import { ImageSlot } from "@/components/ui/image-slot";
 import { SITE_IMAGES } from "@/lib/images";
@@ -94,6 +94,12 @@ export default function HomePage() {
         {/* Hero */}
         <section className="mx-auto w-full max-w-7xl px-4 sm:px-6">
           <div className="bg-surface-muted relative grid overflow-hidden rounded-3xl lg:grid-cols-[1fr_1.1fr]">
+            <BrandElement
+              name="dot"
+              priority
+              sizes="96px"
+              className="absolute -top-8 -right-8 w-24 lg:hidden"
+            />
             <div className="relative z-10 flex flex-col gap-6 px-6 py-12 sm:px-12 lg:py-20">
               <h1 className="type-display text-forest dark:text-foreground">
                 Bien manger
@@ -132,10 +138,19 @@ export default function HomePage() {
                   priority
                 />
               </div>
-              <LeafShape className="absolute top-10 left-2 hidden w-24 -rotate-12 lg:block" />
+              <BrandElement
+                name="leaf"
+                priority
+                sizes="144px"
+                className="absolute top-8 -left-2 hidden w-36 -rotate-6 lg:block"
+              />
               {/* Sans photo, le rond jaune habille le vide ; sur une photo, il masquerait le plat. */}
               {SITE_IMAGES.hero ? null : (
-                <DotShape className="absolute top-6 right-[38%] w-20 lg:w-24" />
+                <BrandElement
+                  name="dot"
+                  priority
+                  className="absolute top-6 right-[38%] w-20 lg:w-24"
+                />
               )}
             </div>
           </div>
@@ -144,7 +159,7 @@ export default function HomePage() {
             <Benefit badge="leaf" title="Moins de gaspillage">
               Les produits à finir passent en premier dans tes menus.
             </Benefit>
-            <Benefit badge="bowl" title="Des recettes simples">
+            <Benefit badge="slice" title="Des recettes simples">
               Plus de 200 plats du quotidien, chiffrés et adaptés à ton foyer.
             </Benefit>
             <Benefit badge="mix" title="Des menus équilibrés">
@@ -239,7 +254,12 @@ export default function HomePage() {
             id="courses"
             className="bg-forest text-cream relative grid gap-12 overflow-hidden rounded-3xl px-6 py-14 sm:px-12 lg:grid-cols-2 lg:py-20"
           >
-            <DotShape className="absolute -top-8 -right-8 w-40 opacity-90" />
+            <BrandElement name="dot" sizes="176px" className="absolute -top-24 -right-20 w-44" />
+            <BrandElement
+              name="leaf"
+              sizes="160px"
+              className="absolute -bottom-10 -left-8 w-40 rotate-12 opacity-90"
+            />
             <div className="relative flex flex-col gap-5">
               <h2 id="gaspi-titre" className="type-page">
                 Ce qui est acheté est mangé.
@@ -265,7 +285,7 @@ export default function HomePage() {
 
         {/* Appel à l'inscription */}
         <section className="mx-auto flex w-full max-w-3xl flex-col items-center gap-6 px-4 text-center sm:px-6">
-          <LogoMark size={64} />
+          <TexturedMark className="w-28" sizes="112px" />
           <h2 className="type-page">La cuisine du quotidien, bien pensée.</h2>
           <p className="text-muted max-w-md">
             Crée ton foyer, invite les personnes avec qui tu vis, et prépare ta première semaine en
@@ -312,7 +332,7 @@ function Benefit({
   title,
   children,
 }: {
-  badge: "leaf" | "bowl" | "dot" | "mix";
+  badge: "leaf" | "slice" | "dot" | "mix";
   title: string;
   children: ReactNode;
 }) {
@@ -336,31 +356,38 @@ function WeekPreview() {
     { d: "Ven", dish: "Lasagnes bolognaise" },
   ];
   return (
-    <figure className="bg-surface border-border flex flex-col gap-4 rounded-3xl border p-5 sm:p-6">
-      <figcaption className="flex items-baseline justify-between gap-3">
-        <span className="type-section">Semaine du 12 octobre</span>
-        <span className="text-muted text-sm">5 dîners</span>
-      </figcaption>
-      <ul className="flex flex-col gap-2">
-        {days.map((day) => (
-          <li key={day.d} className="bg-background flex items-center gap-4 rounded-xl px-4 py-3">
-            <span className="text-muted w-9 text-sm font-semibold">{day.d}</span>
-            <span className={`flex-1 font-medium ${day.done ? "text-muted line-through" : ""}`}>
-              {day.dish}
-            </span>
-            {day.urgent ? (
-              <span className="bg-accent-soft text-accent-strong rounded-full px-2.5 py-0.5 text-xs font-semibold">
-                Crème à finir
+    <div className="relative">
+      <BrandElement
+        name="slice"
+        sizes="192px"
+        className="absolute -top-12 -right-6 w-48 -rotate-12 max-sm:hidden"
+      />
+      <figure className="bg-surface border-border relative flex flex-col gap-4 rounded-3xl border p-5 sm:p-6">
+        <figcaption className="flex items-baseline justify-between gap-3">
+          <span className="type-section">Semaine du 12 octobre</span>
+          <span className="text-muted text-sm">5 dîners</span>
+        </figcaption>
+        <ul className="flex flex-col gap-2">
+          {days.map((day) => (
+            <li key={day.d} className="bg-background flex items-center gap-4 rounded-xl px-4 py-3">
+              <span className="text-muted w-9 text-sm font-semibold">{day.d}</span>
+              <span className={`flex-1 font-medium ${day.done ? "text-muted line-through" : ""}`}>
+                {day.dish}
               </span>
-            ) : day.done ? (
-              <span className="bg-leaf-soft text-success rounded-full px-2.5 py-0.5 text-xs font-semibold">
-                Cuisiné
-              </span>
-            ) : null}
-          </li>
-        ))}
-      </ul>
-    </figure>
+              {day.urgent ? (
+                <span className="bg-accent-soft text-accent-strong rounded-full px-2.5 py-0.5 text-xs font-semibold">
+                  Crème à finir
+                </span>
+              ) : day.done ? (
+                <span className="bg-leaf-soft text-success rounded-full px-2.5 py-0.5 text-xs font-semibold">
+                  Cuisiné
+                </span>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      </figure>
+    </div>
   );
 }
 

@@ -1,76 +1,161 @@
-import { COLORS, LOGO_MARK_PATHS } from "./logo";
+import { useId } from "react";
+import { LOGO_MARK_PATHS, MarkGradients, type MarkPiece } from "./logo";
 
 /**
- * Formes de la marque, découpées dans le logo officiel (feuille sauge, rond ocre, demi-bol
- * terracotta) : décor autour des visuels et pastilles. Toujours décoratives (aria-hidden).
- * Chaque viewBox cadre la forme au plus près (repère du logo, 192 × 203).
+ * Formes de la marque, tirées du logo officiel : feuille verte, rond jaune-orangé, tranche
+ * rouge. Toujours décoratives (aria-hidden).
+ *  - <BrandElement /> : la forme texturée d'origine (grain), en image WebP, pour les grands
+ *    décors (accueil, connexion, bienvenue, pages vides…) ;
+ *  - <LeafShape />, <DotShape />, <SliceShape /> et <BrandBadge /> : versions vectorielles
+ *    légères (dégradés), pour les petites tailles.
  */
 
-const BOX = {
-  leaf: { x: 1, y: 0, w: 107, h: 100 },
-  dot: { x: 118, y: 8, w: 75, h: 75 },
-  bowl: { x: 15, y: 108, w: 185, h: 95 },
-} as const;
-type Piece = keyof typeof BOX;
+/** Cadre de chaque forme dans le repère du logo (2095,9 × 709,5). */
+const BOX: Record<MarkPiece, { x: number; y: number; w: number; h: number }> = {
+  leaf: { x: -2, y: 62, w: 425, h: 293 },
+  dot: { x: 474, y: 12, w: 278, h: 278 },
+  slice: { x: 158, y: 354, w: 637, h: 334 },
+};
 
-const viewBox = (k: Piece) => `${BOX[k].x} ${BOX[k].y} ${BOX[k].w} ${BOX[k].h}`;
+const viewBox = (k: MarkPiece) => `${BOX[k].x} ${BOX[k].y} ${BOX[k].w} ${BOX[k].h}`;
 
-function Shape({ piece, className, color }: { piece: Piece; className: string; color: string }) {
+function useGradientId() {
+  return `s${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
+}
+
+function Shape({ piece, className }: { piece: MarkPiece; className: string }) {
+  const id = useGradientId();
   return (
     <svg viewBox={viewBox(piece)} aria-hidden="true" focusable="false" className={className}>
-      <path d={LOGO_MARK_PATHS[piece]} fill={color} />
+      <MarkGradients id={id} />
+      <path d={LOGO_MARK_PATHS[piece]} fill={`url(#${id}-${piece})`} />
     </svg>
   );
 }
 
-export function LeafShape({ className = "", color = COLORS.color.leaf }) {
-  return <Shape piece="leaf" className={className} color={color} />;
-}
+export const LeafShape = ({ className = "" }) => <Shape piece="leaf" className={className} />;
+export const DotShape = ({ className = "" }) => <Shape piece="dot" className={className} />;
+export const SliceShape = ({ className = "" }) => <Shape piece="slice" className={className} />;
 
-export function DotShape({ className = "", color = COLORS.color.dot }) {
-  return <Shape piece="dot" className={className} color={color} />;
-}
-
-export function BowlShape({ className = "", color = COLORS.color.bowl }) {
-  return <Shape piece="bowl" className={className} color={color} />;
-}
-
-/** Une forme placée dans la pastille (48 × 48) : position et taille en unités de pastille. */
-function Place({ piece, x, y, w }: { piece: Piece; x: number; y: number; w: number }) {
+/** Une forme placée dans la pastille (48 × 48) : position et largeur en unités de pastille. */
+function Place({
+  id,
+  piece,
+  x,
+  y,
+  w,
+}: {
+  id: string;
+  piece: MarkPiece;
+  x: number;
+  y: number;
+  w: number;
+}) {
   const h = (w * BOX[piece].h) / BOX[piece].w;
   return (
     <svg x={x} y={y} width={w} height={h} viewBox={viewBox(piece)}>
-      <path d={LOGO_MARK_PATHS[piece]} fill={COLORS.color[piece]} />
+      <path d={LOGO_MARK_PATHS[piece]} fill={`url(#${id}-${piece})`} />
     </svg>
   );
 }
 
 /** Pastille à motif de marque, pour les bénéfices et les catégories. */
-export function BrandBadge({ variant }: { variant: "leaf" | "bowl" | "dot" | "mix" }) {
+export function BrandBadge({ variant }: { variant: "leaf" | "slice" | "dot" | "mix" }) {
+  const id = useGradientId();
   return (
     <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false" className="size-12 shrink-0">
+      <MarkGradients id={id} />
       {variant === "leaf" ? (
         <>
-          <Place piece="leaf" x={3} y={6} w={32} />
-          <Place piece="dot" x={31} y={29} w={14} />
+          <Place id={id} piece="leaf" x={2} y={8} w={36} />
+          <Place id={id} piece="dot" x={31} y={28} w={14} />
         </>
-      ) : variant === "bowl" ? (
+      ) : variant === "slice" ? (
         <>
-          <Place piece="dot" x={16} y={4} w={17} />
-          <Place piece="bowl" x={3} y={23} w={42} />
+          <Place id={id} piece="dot" x={16} y={4} w={17} />
+          <Place id={id} piece="slice" x={3} y={24} w={42} />
         </>
       ) : variant === "dot" ? (
         <>
-          <Place piece="leaf" x={6} y={4} w={22} />
-          <Place piece="bowl" x={3} y={25} w={42} />
+          <Place id={id} piece="dot" x={9} y={6} w={30} />
+          <Place id={id} piece="leaf" x={27} y={30} w={19} />
         </>
       ) : (
         <>
-          <Place piece="leaf" x={3} y={3} w={23} />
-          <Place piece="dot" x={28} y={4} w={16} />
-          <Place piece="bowl" x={6} y={25} w={39} />
+          <Place id={id} piece="leaf" x={2} y={6} w={24} />
+          <Place id={id} piece="dot" x={28} y={3} w={16} />
+          <Place id={id} piece="slice" x={8} y={24} w={38} />
         </>
       )}
     </svg>
+  );
+}
+
+/** Formes texturées d'origine (WebP, 800 px et 400 px de large). */
+const ELEMENTS = {
+  leaf: { ratio: 1880 / 1285 },
+  slice: { ratio: 1904 / 993 },
+  dot: { ratio: 1 },
+} as const;
+
+export type BrandElementName = keyof typeof ELEMENTS;
+
+/**
+ * Forme texturée du logo, en décor. La largeur se règle par className (w-24, w-40…) ;
+ * `sizes` aide le navigateur à choisir la bonne image (400 ou 800 px).
+ */
+export function BrandElement({
+  name,
+  className = "",
+  sizes = "160px",
+  priority = false,
+}: {
+  name: BrandElementName;
+  className?: string;
+  sizes?: string;
+  priority?: boolean;
+}) {
+  const { ratio } = ELEMENTS[name];
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- décor statique déjà optimisé (WebP)
+    <img
+      src={`/brand/elements/${name}.webp`}
+      srcSet={`/brand/elements/${name}-400.webp 400w, /brand/elements/${name}.webp 800w`}
+      sizes={sizes}
+      width={800}
+      height={Math.round(800 / ratio)}
+      alt=""
+      aria-hidden="true"
+      draggable={false}
+      loading={priority ? "eager" : "lazy"}
+      decoding="async"
+      className={`pointer-events-none h-auto select-none ${className}`}
+    />
+  );
+}
+
+/**
+ * Le symbole du logo recomposé avec les trois formes texturées (grain d'origine), pour les
+ * grands formats. Les positions reprennent celles du logo (cadre 793 × 671).
+ */
+export function TexturedMark({
+  className = "",
+  sizes = "240px",
+}: {
+  className?: string;
+  sizes?: string;
+}) {
+  return (
+    <div aria-hidden="true" className={className}>
+      <div className="relative aspect-[793/671]">
+        <BrandElement
+          name="slice"
+          sizes={sizes}
+          className="absolute top-[51%] left-[20.2%] w-[79.8%]"
+        />
+        <BrandElement name="leaf" sizes={sizes} className="absolute top-[7.4%] left-0 w-[53.3%]" />
+        <BrandElement name="dot" sizes={sizes} className="absolute top-0 left-[60%] w-[34.6%]" />
+      </div>
+    </div>
   );
 }

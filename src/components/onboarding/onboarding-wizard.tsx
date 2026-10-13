@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useTransition, type ReactNode } from "react";
-import { LogoMark } from "@/components/brand/logo";
+import { TexturedMark } from "@/components/brand/shapes";
 import { Alert } from "@/components/ui/alert";
 import { Button, buttonClasses } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
@@ -515,7 +515,7 @@ export function OnboardingWizard(props: OnboardingWizardProps) {
 function Done({ name }: { name: string }) {
   return (
     <div className="flex flex-col items-center gap-6 py-6 text-center">
-      <LogoMark size={88} />
+      <TexturedMark className="w-36" sizes="144px" />
       <div className="flex flex-col gap-2">
         <h1 className="type-page">{name ? `C'est prêt, ${name} !` : "C'est prêt !"}</h1>
         <p className="text-muted max-w-md">

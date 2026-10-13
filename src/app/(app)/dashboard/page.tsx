@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
-import { LogoMark } from "@/components/brand/logo";
-import { DotShape } from "@/components/brand/shapes";
+import { BrandElement, TexturedMark } from "@/components/brand/shapes";
 import { RecipeVisual } from "@/components/recipes/recipe-visual";
 import { Badge, type BadgeTone } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";
@@ -150,10 +149,15 @@ async function Greeting() {
   return (
     <header className="bg-surface-muted relative flex flex-col gap-5 overflow-hidden rounded-3xl px-5 py-7 sm:px-8 lg:px-10 lg:py-10 xl:pr-72">
       {/* Décor : les trois formes du logo, comme sur la page d'accueil du site. */}
-      <DotShape className="pointer-events-none absolute -top-5 -right-5 w-16 xl:hidden" />
-      <LogoMark
-        size={190}
-        className="pointer-events-none absolute top-1/2 right-12 hidden -translate-y-1/2 -rotate-6 xl:block"
+      <BrandElement
+        name="dot"
+        priority
+        sizes="80px"
+        className="absolute -top-6 -right-6 w-20 xl:hidden"
+      />
+      <TexturedMark
+        sizes="224px"
+        className="absolute top-1/2 right-10 hidden w-56 -translate-y-1/2 xl:block"
       />
       <div className="relative flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="flex flex-col gap-1.5">
