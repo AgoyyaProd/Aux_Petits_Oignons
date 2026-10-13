@@ -2,12 +2,12 @@ import "server-only";
 import { MIN_RELIABLE_SAMPLE, type UnitPrice } from "@/domain/pricing";
 import type { Supabase } from "@/server/modules/recipes/queries";
 
-export type PriceSource = "household" | "open_prices" | "free";
+export type PriceSource = "household" | "receipts" | "open_prices" | "free";
 
 export interface PriceInfo {
   unit: UnitPrice;
   source: PriceSource;
-  /** Nombre de relevés retenus (prix indicatif). */
+  /** Nombre de relevés retenus (prix indicatif : relevés Open Prices ou lignes de ticket). */
   sampleSize: number;
   /** Date du relevé le plus récent, ou de la saisie du foyer. */
   observedTo: string | null;
@@ -19,7 +19,8 @@ export interface PriceInfo {
 }
 
 /**
- * Prix connus pour le foyer : sa propre saisie l'emporte sur le prix indicatif.
+ * Prix connus pour le foyer : sa propre saisie l'emporte sur le prix indicatif, lui-même tiré
+ * des tickets de caisse récents quand il y en a, d'Open Prices sinon.
  * Un ingrédient absent de la carte n'a PAS de prix (jamais de valeur par défaut).
  */
 export async function loadPriceBook(
@@ -47,7 +48,8 @@ export async function loadPriceBook(
   );
   const book = new Map<string, PriceInfo>();
   for (const r of reference.data) {
-    const source: PriceSource = r.source === "free" ? "free" : "open_prices";
+    const source: PriceSource =
+      r.source === "free" ? "free" : r.source === "receipts" ? "receipts" : "open_prices";
     book.set(r.ingredient_id, {
       unit: { dimension: r.dimension, centsPerRef: r.cents_per_ref },
       source,

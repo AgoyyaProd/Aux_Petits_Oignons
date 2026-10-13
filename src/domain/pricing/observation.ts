@@ -34,6 +34,38 @@ function packageRate(cents: number, quantity: number, unit: string): Rate | null
   return milli > 0 ? { dimension: f[0], cents, milli } : null;
 }
 
+/** Relevé d'un ticket de caisse : prix d'un article et contenance imprimée. */
+export interface ReceiptLine {
+  cents: number;
+  packQuantity: number;
+  packUnit: "g" | "kg" | "ml" | "cl" | "l" | "piece";
+}
+
+/**
+ * Prix d'une quantité de référence de l'ingrédient d'après un ticket de caisse.
+ * Seules conversions possibles : densité et poids unitaire de l'ingrédient ; sinon null.
+ */
+export function receiptUnitPrice(
+  line: ReceiptLine,
+  target: Dimension,
+  conv: IngredientConversions,
+): number | null {
+  if (!Number.isSafeInteger(line.cents) || line.cents <= 0) return null;
+  const rate =
+    line.packUnit === "piece"
+      ? Number.isFinite(line.packQuantity) && line.packQuantity > 0
+        ? {
+            dimension: "count" as const,
+            cents: line.cents,
+            milli: Math.round(line.packQuantity * REF_MILLI.count),
+          }
+        : null
+      : packageRate(line.cents, line.packQuantity, line.packUnit);
+  if (!rate || rate.milli <= 0) return null;
+  const unit = rateToUnitPrice(rate, target, conv);
+  return unit && unit.centsPerRef > 0 ? unit.centsPerRef : null;
+}
+
 /**
  * Nombre de pièces lu dans le nom du produit (« 6 œufs », « Boîte de 12 »).
  * Volontairement strict : un nom ambigu ne donne rien plutôt qu'un nombre deviné.

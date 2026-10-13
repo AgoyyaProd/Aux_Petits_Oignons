@@ -22,7 +22,8 @@ export default function PricesPage({ searchParams }: PageProps<"/prices">) {
         <h1 className="type-page">Prix</h1>
         <p className="text-muted text-sm">
           Les prix servent à estimer le coût de tes menus. Par défaut, ce sont des prix indicatifs :
-          la médiane des relevés publics Open Prices faits en France ces 6 derniers mois. Ton prix,
+          les prix relevés sur des tickets de caisse des 12 derniers mois quand il y en a, sinon la
+          médiane des relevés publics Open Prices faits en France sur la même période. Ton prix,
           s&apos;il est renseigné, les remplace.
         </p>
       </div>
@@ -121,8 +122,10 @@ function ReferenceLine({ row }: { row: PriceRow }) {
   }
   return (
     <span>
-      Indicatif : {formatCents(ref.cents)} / {row.refLabel} · {ref.sampleSize} relevé
+      Indicatif : {formatCents(ref.cents)} / {row.refLabel} · {ref.sampleSize}{" "}
+      {ref.receipts ? "ticket" : "relevé"}
       {ref.sampleSize > 1 ? "s" : ""}
+      {ref.receipts ? " de caisse" : ""}
       {ref.observedTo ? ` · jusqu'au ${formatShortDate(ref.observedTo)}` : ""}
       {ref.lowSample ? " · peu de relevés" : ""}
       {row.approximate ? " · catégorie approchante" : ""}

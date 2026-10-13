@@ -101,7 +101,7 @@ export async function runPriceSyncAction(): Promise<SyncState> {
       : "";
     return {
       status: "success",
-      message: `${summary.updated} prix mis à jour, ${summary.priced} ingrédients ont un prix indicatif sur ${summary.total}.${rest}`,
+      message: `${summary.updated} prix mis à jour depuis Open Prices, ${summary.receipts} depuis les tickets de caisse, ${summary.priced} ingrédients ont un prix indicatif sur ${summary.total}.${rest}`,
     };
   } catch (error) {
     console.error("Synchronisation des prix en échec", error);

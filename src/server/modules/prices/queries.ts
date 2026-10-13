@@ -17,6 +17,8 @@ export interface PriceRow {
     observedTo: string | null;
     lowSample: boolean;
     free: boolean;
+    /** Prix tiré de tickets de caisse (sinon : relevés Open Prices). */
+    receipts: boolean;
   } | null;
   approximate: boolean;
   noSource: boolean;
@@ -76,6 +78,7 @@ export async function getPricesPage(q?: string) {
               observedTo: ref.observed_to,
               lowSample: ref.source === "open_prices" && ref.sample_size < MIN_RELIABLE_SAMPLE,
               free: ref.source === "free",
+              receipts: ref.source === "receipts",
             }
           : null,
         approximate: src?.approximate ?? false,
@@ -92,7 +95,7 @@ export async function getPricesPage(q?: string) {
       };
     });
 
-  const priced = reference.data!.filter((r) => r.source === "open_prices").length;
+  const priced = reference.data!.filter((r) => r.source !== "free").length;
   let lastRun = null;
   if (isAdmin.data) {
     const run = await supabase

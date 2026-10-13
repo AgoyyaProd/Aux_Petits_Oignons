@@ -575,6 +575,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"receipt_prices": {
+                  Row: {
+                    "cents": number,"created_at": string,"id": number,"ingredient_id": string,"pack_quantity": number,"pack_unit": string,"purchased_on": string,"receipt_label": string,"store_label": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cents": number,"created_at"?: string,"id"?: never,"ingredient_id": string,"pack_quantity": number,"pack_unit": string,"purchased_on": string,"receipt_label": string,"store_label": string
+                  }
+                  Update: {
+                    "cents"?: number,"created_at"?: string,"id"?: never,"ingredient_id"?: string,"pack_quantity"?: number,"pack_unit"?: string,"purchased_on"?: string,"receipt_label"?: string,"store_label"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "receipt_prices_ingredient_id_fkey"
+      columns: ["ingredient_id"]
+isOneToOne: false
+      referencedRelation: "ingredients"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"recipe_equipment": {
                   Row: {
                     "equipment_code": string,"recipe_id": string

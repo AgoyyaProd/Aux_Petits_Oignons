@@ -3,7 +3,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   MIN_PUBLISH_SAMPLE,
   normalizeObservation,
+  receiptUnitPrice,
   robustMedian,
+  type ReceiptLine,
   type RejectReason,
 } from "@/domain/pricing";
 import type { Dimension } from "@/domain/units";
@@ -28,6 +30,8 @@ export interface IngredientSyncResult {
 
 export interface SyncSummary {
   runId: number;
+  /** Ingrédients dont le prix vient des tickets de caisse. */
+  receipts: number;
   total: number;
   priced: number;
   updated: number;
@@ -52,8 +56,97 @@ interface SourceRow {
   } | null;
 }
 
+interface ReceiptRow {
+  ingredient_id: string;
+  purchased_on: string;
+  pack_quantity: number;
+  pack_unit: ReceiptLine["packUnit"];
+  cents: number;
+  ingredients: {
+    default_dimension: Dimension;
+    density_g_per_ml: number | null;
+    piece_weight_g: number | null;
+  } | null;
+}
+
 /**
- * Recalcule les prix indicatifs à partir d'Open Prices.
+ * Prix indicatifs tirés des tickets de caisse des 12 derniers mois (médiane robuste).
+ * Ils remplacent le prix Open Prices de l'ingrédient : ce sont des prix réellement payés.
+ * Un ingrédient dont les tickets ont tous vieilli repasse à Open Prices.
+ * Renvoie les ingrédients ainsi tarifés.
+ */
+export async function syncReceiptPrices(supabase: Client, now = new Date()): Promise<Set<string>> {
+  const since = isoDaysAgo(WINDOW_DAYS, now);
+  const [lines, existing] = await Promise.all([
+    supabase
+      .from("receipt_prices")
+      .select(
+        "ingredient_id, purchased_on, pack_quantity, pack_unit, cents, ingredients (default_dimension, density_g_per_ml, piece_weight_g)",
+      )
+      .gte("purchased_on", since),
+    supabase.from("reference_prices").select("ingredient_id").eq("source", "receipts"),
+  ]);
+  if (lines.error) throw new Error(`Tickets de caisse : ${lines.error.message}`);
+  if (existing.error) throw new Error(`Tickets de caisse : ${existing.error.message}`);
+
+  const byIngredient = new Map<string, { values: number[]; dates: string[] }>();
+  for (const row of lines.data as unknown as ReceiptRow[]) {
+    const ing = row.ingredients;
+    if (!ing) continue;
+    const value = receiptUnitPrice(
+      { cents: row.cents, packQuantity: Number(row.pack_quantity), packUnit: row.pack_unit },
+      ing.default_dimension,
+      { densityGPerMl: ing.density_g_per_ml, pieceWeightG: ing.piece_weight_g },
+    );
+    if (value === null) continue;
+    const entry = byIngredient.get(row.ingredient_id) ?? { values: [], dates: [] };
+    entry.values.push(value);
+    entry.dates.push(row.purchased_on);
+    byIngredient.set(row.ingredient_id, entry);
+  }
+
+  const dimensions = new Map(
+    (lines.data as unknown as ReceiptRow[]).map((r) => [
+      r.ingredient_id,
+      r.ingredients!.default_dimension,
+    ]),
+  );
+  const rows = [];
+  for (const [ingredientId, { values, dates }] of byIngredient) {
+    const median = robustMedian(values);
+    if (!median) continue;
+    dates.sort();
+    rows.push({
+      ingredient_id: ingredientId,
+      source: "receipts",
+      dimension: dimensions.get(ingredientId)!,
+      cents_per_ref: median.value,
+      sample_size: median.kept,
+      observed_from: dates[0]!,
+      observed_to: dates[dates.length - 1]!,
+      computed_at: new Date().toISOString(),
+    });
+  }
+  if (rows.length > 0) {
+    const write = await supabase.from("reference_prices").upsert(rows);
+    if (write.error) throw new Error(`Tickets de caisse : ${write.error.message}`);
+  }
+  const priced = new Set(rows.map((r) => r.ingredient_id));
+  const stale = existing.data.map((r) => r.ingredient_id).filter((id) => !priced.has(id));
+  if (stale.length > 0) {
+    const drop = await supabase
+      .from("reference_prices")
+      .delete()
+      .in("ingredient_id", stale)
+      .eq("source", "receipts");
+    if (drop.error) throw new Error(`Tickets de caisse : ${drop.error.message}`);
+  }
+  return priced;
+}
+
+/**
+ * Recalcule les prix indicatifs : d'abord les tickets de caisse, puis Open Prices pour les
+ * ingrédients sans ticket récent.
  * - Les ingrédients au prix le plus ancien passent en premier : si le temps manque,
  *   la synchronisation suivante reprend là où celle-ci s'est arrêtée.
  * - Un ingrédient sans relevé exploitable garde son prix précédent (daté) ou reste sans prix.
@@ -83,6 +176,7 @@ export async function syncReferencePrices(
   const runId = run.data.id;
 
   try {
+    const fromReceipts = await syncReceiptPrices(supabase, now);
     const [sources, existing] = await Promise.all([
       supabase
         .from("ingredient_price_sources")
@@ -97,7 +191,7 @@ export async function syncReferencePrices(
 
     const lastComputed = new Map(existing.data.map((r) => [r.ingredient_id, r.computed_at]));
     const queue = (sources.data as unknown as SourceRow[])
-      .filter((s) => s.ingredients)
+      .filter((s) => s.ingredients && !fromReceipts.has(s.ingredient_id))
       .sort((a, b) =>
         (lastComputed.get(a.ingredient_id) ?? "").localeCompare(
           lastComputed.get(b.ingredient_id) ?? "",
@@ -198,11 +292,12 @@ export async function syncReferencePrices(
     const priced = await supabase
       .from("reference_prices")
       .select("ingredient_id", { count: "exact", head: true })
-      .eq("source", "open_prices");
+      .in("source", ["open_prices", "receipts"]);
 
     const summary: SyncSummary = {
       runId,
-      total: queue.length,
+      receipts: fromReceipts.size,
+      total: queue.length + fromReceipts.size,
       priced: priced.count ?? 0,
       updated,
       failed,

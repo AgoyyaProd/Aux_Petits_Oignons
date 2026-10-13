@@ -1,0 +1,85 @@
+# Tickets de caisse transmis le 13/10/2026 (3 tickets).
+# Recopiés tels qu'imprimés ; seules les lignes alimentaires sont reprises, sans aucune donnée
+# personnelle (ni nom, ni téléphone, ni numéro de commande, ni moyen de paiement).
+#
+# Format :
+#   @ <date AAAA-MM-JJ> | <magasin>
+#   <libellé du ticket> | <nombre d'articles> | <prix d'un article en €> | <ingrédient> | <contenance>
+# Ingrédient « - » : ligne non reprise dans les prix (raison en commentaire après « # »).
+# Contenance : <nombre> <g|kg|ml|cl|l|pièce>, telle qu'imprimée sur le ticket ; jamais devinée.
+# Prix d'un article : pour « 2 x 1.19 », 2 articles à 1.19 €.
+
+@ 2026-09-28 | E.Leclerc Drive Noyal-sur-Vilaine
+Filet de poulet blanc - Le Gaulois 720g | 1 | 9.53 | poulet-filet | 720 g
+Saumon fumé Eco+ - Norvège - 200g | 1 | 4.43 | saumon-fume | 200 g
+Tomate cerise Eco+ - Barquette 250g | 1 | 0.99 | tomate-cerise | 250 g
+Concombre Bio Bio Village - x1 | 1 | 1.29 | concombre | 1 pièce
+Pommes de terre Grenailles - Panier du Primeur - 1kg | 1 | 1.99 | pomme-de-terre-grenaille | 1 kg
+Pains Façon Bretzel - x6 - 270g | 1 | 2.12 | - | # pas d'ingrédient correspondant
+Crème fraîche légère Délisse - Epaisse - 15% MG - 20cl | 1 | 0.65 | creme-fraiche | 20 cl
+Fromage en Tranches Entremont - Comté AOP - 120g | 1 | 2.42 | comte | 120 g
+Chorizo Doux Saint Azay - 225g | 1 | 1.89 | chorizo | 225 g
+Jambon Italien Saint Azay - x6 - 100g | 1 | 1.69 | jambon-cru | 100 g
+Blanc de dinde Tradilège - 4 tranches 160g | 1 | 1.68 | - | # charcuterie, pas d'ingrédient correspondant
+Haricots Mungo Notre Jardin - 180g | 1 | 1.06 | - | # pas d'ingrédient correspondant
+Sauce Pesto Turini - Basilic - 185g | 1 | 1.29 | pesto | 185 g
+Jus de citron vert Rustica - 2x12,5cl | 1 | 1.39 | - | # jus, pas le fruit
+Cacahuètes Eco+ - Grillées à sec - 150g | 1 | 0.44 | cacahuete-grillee | 150 g
+Beurre Bio Ethiquable - 100% cacahuètes - 350g | 1 | 3.84 | beurre-cacahuete | 350 g
+Nouilles de riz Table du monde - 250g | 1 | 1.44 | nouilles-riz | 250 g
+
+@ 2026-09-18 | E.Leclerc Ancenis
+NOUILLES RIZ SECHES,TANOSHI | 1 | 2.49 | - | # contenance absente du ticket
+SAUCE TOMAT.LEG.,TB TURINI,180 | 1 | 0.82 | - | # sauce cuisinée aux légumes
+EAU SOURCE NATUREX6 CRISTALINE | 1 | 1.14 | - | # l'eau des recettes est celle du robinet
+4 TR ROTI DE POULET CUIT CSN | 1 | 2.35 | - | # charcuterie, pas d'ingrédient correspondant
+4 TR BLC PLT DORE FOUR NUTRIB | 1 | 1.73 | - | # charcuterie, pas d'ingrédient correspondant
+ACTIVIA SAVEUR COCO 4X125G | 1 | 1.59 | - | # yaourt aromatisé, les recettes utilisent du nature
+DESSER.POM/POIRE,4X100G | 1 | 1.37 | - | # pomme-poire, l'ingrédient est la compote de pommes
+4 SPEC DE FRUITS POM/KIWI | 1 | 1.75 | - | # contenance absente du ticket
+EMMENTAL RAPE 30%MG 3X70G MR | 1 | 1.89 | emmental | 210 g
+FROM BLANC NAT DELISSE 4X100G | 1 | 0.96 | fromage-blanc | 400 g
+10 OEUF FRAIS MOY,BIO VILLA,10P | 1 | 3.41 | oeuf | 10 pièce
+FILET POULET JNE NEUTRE.720G | 1 | 12.74 | poulet-filet | 720 g
+TRIO DE SESAME | 1 | 2.23 | - | # contenance absente du ticket
+CAROTTE PDP CAT1 BARQUETTE 1 KG | 1 | 1.33 | carotte | 1 kg
+PDT PDP FOUR PUREE POTAG 2KG FI | 1 | 2.99 | pomme-de-terre | 2 kg
+
+@ 2026-07-17 | E.Leclerc Drive Ancenis
+BAVETTE X2 CHARAL,DRIVE,260 G | 1 | 9.93 | boeuf-steak | 260 g
+SUNNY DELIGHT CALIFORNIA | 1 | 2.05 | - | # boisson
+100GX8 CALIN0% NAT | 1 | 2.33 | - | # fromage frais en pots, pas le fromage blanc des recettes
+CREME DESSERT ED LIMITEE 4X125 | 1 | 1.31 | - | # dessert
+CREME VANILLE,4X125G | 1 | 0.89 | - | # dessert
+CREME PRALINEX4, DELISSE, 500G | 1 | 0.89 | - | # dessert
+DESSERT PANACHE SSA 16X100G | 1 | 5.37 | - | # dessert
+4 TR BLANC DE POULET CSN | 2 | 1.81 | - | # charcuterie, pas d'ingrédient correspondant
+4 TR ROTI DE POULET CUIT CSN | 1 | 2.38 | - | # charcuterie, pas d'ingrédient correspondant
+BATONNETS CHOCO NOIR X4 304G | 1 | 3.53 | - | # glace
+SNICKERS GLACE X12 603.6ML 547. | 1 | 4.64 | - | # glace
+BARRE TWIX X6,205G | 1 | 2.72 | - | # confiserie
+CG COOKIE DOUGH BEN/JERRYS.406G | 1 | 3.57 | - | # glace
+NUGGETS PLET M.COQ SACHET 1KG | 1 | 5.76 | - | # plat préparé
+4PAV SAUM 500G PECHE OCEAN | 1 | 10.99 | saumon | 500 g
+BATONNET FACON FISH/CHIPS X13 | 1 | 2.97 | - | # plat préparé
+COLIN ALASKA EXT.CROUSTILL.MSC | 1 | 2.90 | - | # plat préparé
+POIS CARO.EF,N.JARDIN ,3X130 | 1 | 1.69 | - | # mélange petits pois-carottes
+LENTILLE AUVERGNATE,R&R,410G | 2 | 1.19 | - | # plat cuisiné
+POIS CHICHES,NOTRE JARDIN,265G | 2 | 0.75 | pois-chiche | 265 g
+COEURS PALMIER,220G | 1 | 2.25 | - | # pas d'ingrédient correspondant
+THON ENT NAT 1/6 X3 279G NE MR | 2 | 3.99 | thon-boite | 279 g
+CJSG COQUILLETTES SG 400G | 1 | 1.64 | - | # sans gluten : prix non représentatif des coquillettes
+CJSG FUSILLI SANS GLUTEN 400G | 1 | 1.71 | - | # sans gluten : prix non représentatif des fusilli
+CJSG PENNE SANS GLUTEN 400G | 1 | 1.64 | - | # sans gluten : prix non représentatif des penne
+COUSCOUS MOYEN,ETUI REGIA,1KG | 2 | 2.13 | semoule | 1 kg
+HOVE TERRA DELYSSA ZRP 0.75L PE | 1 | 7.47 | huile-olive | 0.75 l
+MAGGI MGASIA SWEET&SOUR SCE 355 | 1 | 3.27 | - | # sauce préparée
+SAUCE TIKKA MASSALA 350G TDM | 1 | 1.81 | - | # sauce préparée
+CAFE NES,NESCAFE,200G | 1 | 5.93 | - | # pas d'ingrédient correspondant
+PETIT ECOLIER POCKET LAIT,250G | 1 | 2.65 | - | # biscuits
+PTT ECOLIER CHOCO,TEND.LU,120G | 1 | 2.01 | - | # biscuits
+PRINCE GRANO LAIT,LU,225G | 1 | 1.58 | - | # biscuits
+PEPITO LAIT MINI,ROLLOS,225G | 1 | 1.83 | - | # biscuits
+DELICHOC NOIR,150G | 2 | 1.88 | - | # biscuits
+COCA COLA PET 1L | 3 | 1.75 | - | # boisson
+LAIT DE COCO BRIQUE 200ML ECO | 2 | 0.67 | lait-coco | 200 ml

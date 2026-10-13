@@ -73,7 +73,9 @@ async function IngredientContent({ params }: Pick<PageProps<"/ingredients/[id]">
               <p className="text-muted text-sm">
                 {price.source === "household"
                   ? `Ton prix${price.storeLabel ? ` (${price.storeLabel})` : ""}.`
-                  : `Prix indicatif : médiane de ${price.sampleSize} relevé${price.sampleSize > 1 ? "s" : ""} Open Prices en France${price.observedTo ? `, le plus récent le ${formatShortDate(price.observedTo)}` : ""}${price.approximate ? ", catégorie approchante" : ""}.`}
+                  : price.source === "receipts"
+                    ? `Prix relevé sur ${price.sampleSize > 1 ? `${price.sampleSize} tickets de caisse (médiane)` : "un ticket de caisse"}${price.observedTo ? `, le plus récent du ${formatShortDate(price.observedTo)}` : ""}.`
+                    : `Prix indicatif : médiane de ${price.sampleSize} relevé${price.sampleSize > 1 ? "s" : ""} Open Prices en France${price.observedTo ? `, le plus récent le ${formatShortDate(price.observedTo)}` : ""}${price.approximate ? ", catégorie approchante" : ""}.`}
               </p>
             </div>
           ) : price?.source === "free" ? (
