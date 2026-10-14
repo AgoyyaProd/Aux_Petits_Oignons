@@ -49,3 +49,8 @@ for name, folder in INDEXES.items():
     assert n == 1, f"bloc {name} introuvable dans images.ts"
     print(f"{name} : {len(entries)} photos")
 TARGET.write_text(src, encoding="utf-8")
+# Mise en forme identique à la CI (format:check).
+import subprocess  # noqa: E402
+
+subprocess.run(["npx", "prettier", "--write", str(TARGET)], cwd=TARGET.parents[2], check=True,
+               stdout=subprocess.DEVNULL)
