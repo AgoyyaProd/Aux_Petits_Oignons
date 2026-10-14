@@ -406,7 +406,8 @@ function EntryCard({
       </div>
 
       {!tile && !entry.cooked ? (
-        <div className="flex shrink-0 items-center gap-1.5">
+        // Téléphone : actions empilées à droite, le titre garde toute la largeur.
+        <div className="flex shrink-0 flex-col items-center gap-1 self-center">
           {canChange ? <SearchButton entry={entry} compact /> : null}
           {canChange ? <ChangeButton entry={entry} page={page} base={base} compact /> : null}
           <EditPanel entry={entry} page={page} base={base} compact alignEnd />
