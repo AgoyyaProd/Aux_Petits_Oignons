@@ -86,7 +86,7 @@ export function PlannerView({
           >
             <WeekGrid page={page} base={base} />
           </RecipePickerProvider>
-          <WeekBalancePanel balance={page.balance} />
+          <WeekBalancePanel balance={page.balance} protein={page.protein} />
           <Regenerate page={page} />
           {plan.isDraft ? <DraftDock page={page} base={base} /> : null}
         </>
@@ -387,8 +387,9 @@ function Regenerate({ page }: { page: PlannerPage }) {
         </h2>
         <p className="text-muted text-sm leading-relaxed">
           Les plats marqués « Gardé » et ceux déjà cuisinés restent ; les autres sont remplacés par
-          une nouvelle proposition, en évitant les plats des deux semaines précédentes. Rien
-          n&apos;est enregistré avant que tu valides.
+          une nouvelle proposition tirée au hasard : tes favoris, tes produits à finir et ton
+          objectif de protéines ont plus de chances, les plats des dernières semaines moins, et un
+          plat jamais servi s&apos;y glisse. Rien n&apos;est enregistré avant que tu valides.
         </p>
       </div>
       <GenerateForm

@@ -11,10 +11,13 @@ import { MAX_PER_FAMILY } from "./variety";
  *  2. budget : on ne choisit un plat que s'il laisse de quoi compléter le menu dans le budget ;
  *  3. anti-gaspillage : plats qui utilisent des produits à consommer en priorité, puis le stock ;
  *  4. variété : pas deux fois la même recette, au plus 2 plats par famille de féculent/protéine,
- *     et si possible aucun plat déjà au menu des deux semaines précédentes ;
- *  5. préférences : les favoris du foyer passent devant (les plats « pas pour nous » ne sont
- *     jamais candidats, filtrés en amont) ;
- *  6. une part de hasard reproductible (graine) pour que « Relancer » propose autre chose.
+ *     et si possible aucun plat du menu de la semaine précédente ;
+ *  5. tirage pondéré (reproductible par la graine) : chaque plat a des chances proportionnelles
+ *     à son poids. Les préférences (favoris, produits à finir, saison, objectifs, protéines)
+ *     augmentent les chances sans rien garantir ; un plat servi il y a 2 à 6 semaines, ou
+ *     écarté récemment avec « Changer », a moins de chances ; au moins un plat jamais servi
+ *     (« découverte ») quand c'est possible. Les plats « pas pour nous » ne sont jamais
+ *     candidats, filtrés en amont.
  */
 
 export interface PlanCandidate {
@@ -45,6 +48,36 @@ export interface PlanCandidate {
   totalMinutes?: number;
   /** Identifiants (slug) des ingrédients obligatoires, pour la saisonnalité. */
   ingredientSlugs?: readonly string[];
+  /** Protéines d'une portion, en grammes ; null ou absent si le calcul n'est pas fiable. */
+  proteinPerServing?: number | null;
+}
+
+/**
+ * Température du tirage : un écart de score de T × ln 2 (≈ 1,4) double les chances d'un plat.
+ * Un favori (+2,5) a ainsi environ 3,5 fois plus de chances qu'un plat ordinaire.
+ */
+export const DRAW_TEMPERATURE = 2;
+
+/**
+ * Mémoire des menus : multiplicateur des chances d'un plat servi il y a n semaines.
+ * La semaine précédente est évitée tant qu'il reste d'autres choix (passe « fraîche »).
+ */
+const HISTORY_FACTOR: Record<number, number> = { 2: 0.15, 3: 0.35, 4: 0.55, 5: 0.75, 6: 0.9 };
+
+/** Un plat écarté avec « Changer » ces dernières semaines a moins de chances. */
+export const SKIPPED_FACTOR = 0.4;
+
+export function historyFactor(weeksAgo: number | undefined): number {
+  if (weeksAgo === undefined) return 1;
+  return HISTORY_FACTOR[weeksAgo] ?? (weeksAgo < 2 ? HISTORY_FACTOR[2]! : 1);
+}
+
+/** Bonus d'un plat selon l'objectif de protéines par part (0 sans objectif ou sans calcul). */
+export function proteinBonus(c: PlanCandidate, targetG: number | null | undefined): number {
+  if (!targetG || c.proteinPerServing === null || c.proteinPerServing === undefined) return 0;
+  if (c.proteinPerServing >= targetG) return 2;
+  if (c.proteinPerServing >= 0.8 * targetG) return 1;
+  return 0;
 }
 
 /** Bonus ou malus de saison d'un candidat pour le mois du menu (0 sans mois connu). */
@@ -65,6 +98,8 @@ export type Objective =
 export interface FoodProfile {
   style?: EatingStyle;
   objectives?: readonly Objective[];
+  /** Objectif de protéines par part, en grammes (null : pas d'objectif). */
+  proteinTargetG?: number | null;
 }
 
 /**
@@ -118,8 +153,12 @@ export interface PlanRequest {
   locked: readonly { recipeId: string; servings: number }[];
   /** Recettes à ne pas proposer (ex. retirées par l'utilisateur). */
   excludeRecipeIds?: readonly string[];
-  /** Recettes déjà au menu récemment : évitées tant qu'il reste d'autres choix. */
+  /** Recettes du menu de la semaine précédente : évitées tant qu'il reste d'autres choix. */
   recentRecipeIds?: readonly string[];
+  /** Semaines écoulées depuis le dernier menu de chaque recette (2 à 6 : moins de chances). */
+  history?: Readonly<Record<string, number>>;
+  /** Recettes écartées récemment avec « Changer » : moins de chances. */
+  skippedRecipeIds?: readonly string[];
   /** Style et objectifs du foyer (préférences douces). */
   profile?: FoodProfile;
   /** Mois du menu (1 à 12) : les plats de saison sont favorisés, ceux hors saison écartés. */
@@ -181,6 +220,33 @@ function respectsVariety(c: PlanCandidate, counts: ReadonlyMap<string, number>):
   return c.varietyKeys.every((k) => (counts.get(k) ?? 0) < MAX_PER_FAMILY);
 }
 
+/**
+ * Poids de tirage de chaque candidat : exp(préférences / T) × mémoire des menus × plats
+ * écartés. Toujours strictement positif : aucun plat compatible n'est impossible.
+ */
+export function drawWeights(
+  candidates: readonly PlanCandidate[],
+  req: Pick<PlanRequest, "profile" | "month" | "history" | "skippedRecipeIds">,
+): Map<string, number> {
+  const objectives = new Set(req.profile?.objectives ?? []);
+  const maxCost = Math.max(0, ...candidates.map((c) => c.costPerServingMillicents ?? 0));
+  const skipped = new Set(req.skippedRecipeIds ?? []);
+  const target = req.profile?.proteinTargetG ?? null;
+  return new Map(
+    candidates.map((c) => {
+      const preference =
+        3 * Math.min(c.priorityUses, 3) +
+        2 * c.stockCoverage +
+        (c.favorite ? FAVORITE_BONUS : 0) +
+        profileBonus(c, objectives, maxCost) +
+        candidateSeasonScore(c, req.month) +
+        proteinBonus(c, target);
+      const memory = historyFactor(req.history?.[c.id]) * (skipped.has(c.id) ? SKIPPED_FACTOR : 1);
+      return [c.id, Math.exp(preference / DRAW_TEMPERATURE) * memory];
+    }),
+  );
+}
+
 export function generatePlan(candidates: readonly PlanCandidate[], req: PlanRequest): PlanResult {
   if (!Number.isInteger(req.mealCount) || req.mealCount < 1 || req.mealCount > 21) {
     throw new DomainError("INVALID_PLAN", "Entre 1 et 21 repas par semaine.");
@@ -193,20 +259,21 @@ export function generatePlan(candidates: readonly PlanCandidate[], req: PlanRequ
   }
 
   const byId = new Map(candidates.map((c) => [c.id, c]));
+  const weight = drawWeights(candidates, req);
+  // Tirage pondéré sans remise (astuce de Gumbel) : clé = log(poids) + bruit de Gumbel ; trier
+  // par clé revient à tirer les plats un à un, chacun avec une chance proportionnelle à son
+  // poids. Bruit tiré dans l'ordre stable des identifiants : le résultat ne dépend que de la
+  // graine, pas de l'ordre reçu.
   const random = seededRandom(req.seed);
-  // Tirage fait dans l'ordre stable des identifiants : le résultat ne dépend pas de l'ordre reçu.
-  const jitter = new Map(
-    [...candidates].sort((a, b) => a.id.localeCompare(b.id)).map((c) => [c.id, random()]),
+  const key = new Map(
+    [...candidates]
+      .sort((a, b) => a.id.localeCompare(b.id))
+      .map((c) => {
+        const u = Math.min(Math.max(random(), 1e-12), 1 - 1e-12);
+        return [c.id, Math.log(weight.get(c.id) ?? 1) - Math.log(-Math.log(u))];
+      }),
   );
-  const objectives = new Set(req.profile?.objectives ?? []);
-  const maxCost = Math.max(0, ...candidates.map((c) => c.costPerServingMillicents ?? 0));
-  const score = (c: PlanCandidate) =>
-    3 * Math.min(c.priorityUses, 3) +
-    2 * c.stockCoverage +
-    (c.favorite ? FAVORITE_BONUS : 0) +
-    profileBonus(c, objectives, maxCost) +
-    candidateSeasonScore(c, req.month) +
-    1.5 * (jitter.get(c.id) ?? 0);
+  const score = (c: PlanCandidate) => key.get(c.id) ?? 0;
   const recent = new Set(req.recentRecipeIds ?? []);
   const flexi = req.profile?.style === "flexitarien";
   const meatCap = flexitarianMeatCap(req.mealCount);
@@ -226,8 +293,29 @@ export function generatePlan(candidates: readonly PlanCandidate[], req: PlanRequ
   const pool = candidates
     .filter((c) => !taken.has(c.id) && !excluded.has(c.id))
     .sort((a, b) => score(b) - score(a) || a.id.localeCompare(b.id));
+  // Découverte : au moins un plat jamais servi parmi les nouveaux plats, s'il y en a un qui
+  // convient (et qu'il reste au moins deux repas à remplir).
+  let needNovel =
+    req.mealCount - entries.length >= 2 &&
+    !entries.some((e) => byId.get(e.recipeId)?.novel) &&
+    pool.some((c) => c.novel);
 
   const costFor = (c: PlanCandidate) => entryCost(c, req.people);
+  // Un plat est abordable s'il laisse de quoi compléter avec les plats chiffrés les moins chers
+  // encore disponibles (sans budget : toujours).
+  const affordable = (c: PlanCandidate, filled: number, among: readonly PlanCandidate[]) => {
+    if (budget === null) return true;
+    const cost = costFor(c);
+    if (cost === null) return false;
+    const slotsAfter = req.mealCount - filled - 1;
+    const others = among
+      .filter((o) => o.id !== c.id)
+      .map(costFor)
+      .filter((v): v is number => v !== null)
+      .sort((a, b) => a - b)
+      .slice(0, Math.max(0, slotsAfter));
+    return spent + cost + others.reduce((s, v) => s + v, 0) <= budget;
+  };
 
   // Passes successives, du plus exigeant au plus souple : on relâche d'abord la nouveauté
   // (plats récents), puis la variété ; avec un budget, un plat sans prix n'arrive qu'en dernier
@@ -271,23 +359,16 @@ export function generatePlan(candidates: readonly PlanCandidate[], req: PlanRequ
       if (available.length === 0) break;
 
       let pick: PlanCandidate | undefined;
-      if (budget === null) {
+      if (needNovel) {
+        needNovel = false;
+        pick = available.find((c) => c.novel && affordable(c, entries.length, available));
+      }
+      if (pick) {
+        // Découverte retenue ci-dessus.
+      } else if (budget === null) {
         pick = available[0];
       } else {
-        const slotsAfter = req.mealCount - entries.length - 1;
-        const knownCosts = available
-          .map(costFor)
-          .filter((c): c is number => c !== null)
-          .sort((a, b) => a - b);
-        // Un plat est abordable s'il laisse de quoi compléter avec les plats les moins chers.
-        pick = available.find((c) => {
-          const cost = costFor(c);
-          if (cost === null) return false;
-          const others = knownCosts.slice();
-          others.splice(others.indexOf(cost), 1);
-          const reserve = others.slice(0, slotsAfter).reduce((s, v) => s + v, 0);
-          return spent + cost + reserve <= budget;
-        });
+        pick = available.find((c) => affordable(c, entries.length, available));
         // Sinon : le moins cher des plats chiffrés, puis seulement un plat non chiffré.
         pick ??= available
           .filter((c) => costFor(c) !== null)
@@ -417,6 +498,9 @@ export function randomReplacement(
     recentRecipeIds = [],
     rejected = [],
     month,
+    profile,
+    history,
+    skippedRecipeIds,
     random = Math.random,
   }: {
     people: number;
@@ -424,6 +508,10 @@ export function randomReplacement(
     recentRecipeIds?: readonly string[];
     rejected?: readonly string[];
     month?: number;
+    /** Préférences, mémoire des menus et plats écartés : pondèrent le tirage. */
+    profile?: FoodProfile;
+    history?: Readonly<Record<string, number>>;
+    skippedRecipeIds?: readonly string[];
     random?: () => number;
   },
 ): string | null {
@@ -471,7 +559,14 @@ export function randomReplacement(
     tiers.find((t) => t.length > 0) ??
     candidates.filter((c) => !inPlan.has(c.id));
   if (pool.length === 0) return null;
+  // Tirage pondéré : à poids égaux, chaque plat a la même chance.
   const sorted = [...pool].sort((a, b) => a.id.localeCompare(b.id));
-  const pick = Math.min(sorted.length - 1, Math.floor(random() * sorted.length));
-  return sorted[pick]!.id;
+  const weights = drawWeights(sorted, { profile, month, history, skippedRecipeIds });
+  const total = sorted.reduce((s, c) => s + weights.get(c.id)!, 0);
+  let target = random() * total;
+  for (const c of sorted) {
+    target -= weights.get(c.id)!;
+    if (target < 0) return c.id;
+  }
+  return sorted[sorted.length - 1]!.id;
 }

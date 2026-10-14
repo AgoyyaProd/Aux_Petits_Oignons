@@ -25,7 +25,7 @@ import { ActionError } from "@/server/errors";
 import { getCurrentContext } from "@/server/modules/auth/session";
 import { firstErrors } from "@/server/modules/households/schema";
 import { createSupabaseServerClient } from "@/server/supabase/server";
-import { recentRecipeIds } from "@/server/modules/recipes/ratings";
+import { menuHistory } from "@/server/modules/recipes/ratings";
 import { loadPlanningCatalog } from "./catalog";
 import {
   discardDraft,
@@ -144,10 +144,10 @@ export async function generatePlanAction(
   const input = parsed.data;
   try {
     const { household, supabase } = await context();
-    const [plan, catalog, recent] = await Promise.all([
+    const [plan, catalog, memory] = await Promise.all([
       readWorking(supabase, household.id, input.week),
       catalogFor(supabase, household),
-      recentRecipeIds(supabase, household.id, input.week),
+      menuHistory(supabase, household.id, input.week),
     ]);
     if (plan && input.version === null) {
       throw new ActionError(
@@ -199,7 +199,9 @@ export async function generatePlanAction(
       people: input.people * pattern.mealsPerCook,
       budgetCents: input.budget,
       locked: locked.map((e) => ({ recipeId: e.recipeId, servings: e.servings })),
-      recentRecipeIds: recent,
+      recentRecipeIds: memory.recent,
+      history: memory.history,
+      skippedRecipeIds: memory.skipped,
       profile: catalog.profile,
       month: monthOf(input.week),
       seed,
@@ -397,13 +399,15 @@ export async function addEntryAction(
   const state = await editEntries(parsed.data, async (entries, plan, pattern) => {
     if (entries.length >= 21) throw new ActionError("invalid", "Au plus 21 plats par semaine.");
     const { household, supabase } = await context();
-    const [catalog, recent] = await Promise.all([
+    const [catalog, memory] = await Promise.all([
       catalogFor(supabase, household),
-      recentRecipeIds(supabase, household.id, input.week),
+      menuHistory(supabase, household.id, input.week),
     ]);
     const cooking = entries.filter((e) => !e.leftover);
     const result = generatePlan(catalog.candidates, {
-      recentRecipeIds: recent,
+      recentRecipeIds: memory.recent,
+      history: memory.history,
+      skippedRecipeIds: memory.skipped,
       profile: catalog.profile,
       month: monthOf(input.week),
       mealCount: cooking.length + 1,
@@ -511,6 +515,7 @@ export async function changeEntryAction(
   const { week, position } = parsed.data;
   let rejected: string[] = [];
   let found = true;
+  let skippedId: string | null = null;
   const state = await editEntries(
     parsed.data,
     async (entries, plan) => {
@@ -518,14 +523,17 @@ export async function changeEntryAction(
       assertNotCooked(plan, position);
       assertNotLeftover(entries, position);
       const { household, supabase } = await context();
-      const [catalog, recent] = await Promise.all([
+      const [catalog, memory] = await Promise.all([
         catalogFor(supabase, household),
-        recentRecipeIds(supabase, household.id, week),
+        menuHistory(supabase, household.id, week),
       ]);
       const next = randomReplacement(catalog.candidates, entries, position - 1, {
         people: entry.servings,
         budgetCents: plan.budgetCents,
-        recentRecipeIds: recent,
+        recentRecipeIds: memory.recent,
+        history: memory.history,
+        skippedRecipeIds: memory.skipped,
+        profile: catalog.profile,
         rejected: plan.rejected,
         month: monthOf(week),
       });
@@ -534,6 +542,7 @@ export async function changeEntryAction(
         return entries;
       }
       rejected = [...plan.rejected.filter((id) => id !== entry.recipeId), entry.recipeId];
+      skippedId = entry.recipeId;
       const old = entry.recipeId;
       return entries.map((e, i) =>
         i === position - 1
@@ -547,6 +556,14 @@ export async function changeEntryAction(
   );
   if (state.status === "success" && !found) {
     return { status: "error", message: "Aucune autre recette compatible à proposer." };
+  }
+  if (state.status === "success" && skippedId) {
+    // Mémoire du tirage : ce plat aura moins de chances pendant quelques semaines.
+    // Sans conséquence si l'écriture échoue : le menu est déjà enregistré.
+    const { household, supabase } = await context();
+    await supabase
+      .from("recipe_skips")
+      .insert({ household_id: household.id, recipe_id: skippedId });
   }
   return state;
 }

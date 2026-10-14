@@ -96,3 +96,36 @@ describe("changer un plat (tirage aléatoire)", () => {
     expect(randomReplacement([c("a")], [e("a")], 0, opts)).toBeNull();
   });
 });
+
+describe("changer un plat : tirage pondéré", () => {
+  it("à préférences égales, chaque plat a la même chance", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < 500; i += 1) {
+      const id = randomReplacement(catalog, [e("a")], 0, { ...opts, random: () => i / 500 })!;
+      counts.set(id, (counts.get(id) ?? 0) + 1);
+    }
+    expect([...counts.values()]).toEqual([100, 100, 100, 100, 100]);
+  });
+
+  it("l'objectif de protéines et les plats écartés pèsent sur le tirage", () => {
+    const cat = [
+      c("a"),
+      c("riche", { proteinPerServing: 35 }),
+      c("pauvre", { proteinPerServing: 10 }),
+      c("ecarte", { proteinPerServing: 10 }),
+    ];
+    const counts = new Map<string, number>();
+    for (let i = 0; i < 1000; i += 1) {
+      const id = randomReplacement(cat, [e("a")], 0, {
+        ...opts,
+        profile: { proteinTargetG: 30 },
+        skippedRecipeIds: ["ecarte"],
+        random: () => i / 1000,
+      })!;
+      counts.set(id, (counts.get(id) ?? 0) + 1);
+    }
+    expect(counts.get("riche")!).toBeGreaterThan(2 * counts.get("pauvre")!);
+    expect(counts.get("pauvre")!).toBeGreaterThan(counts.get("ecarte")!);
+    expect(counts.get("ecarte")!).toBeGreaterThan(0);
+  });
+});

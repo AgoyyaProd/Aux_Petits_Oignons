@@ -239,6 +239,35 @@ export async function saveMealPatternAction(
 }
 
 /**
+ * Objectif de protéines par part (g) du foyer, ou null pour ne pas en avoir.
+ * Une préférence : les plats qui l'atteignent sortent plus souvent au menu.
+ */
+export async function saveProteinTargetAction(
+  householdId: string,
+  grams: number | null,
+): Promise<{ ok: boolean; message: string }> {
+  await requireUser();
+  if (!/^[0-9a-f-]{36}$/.test(householdId)) return { ok: false, message: "Foyer invalide." };
+  if (grams !== null && (!Number.isInteger(grams) || grams < 5 || grams > 100)) {
+    return { ok: false, message: "Choisis un objectif entre 5 et 100 g par part." };
+  }
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.rpc("set_protein_target", {
+    p_household_id: householdId,
+    p_grams: grams as number,
+  });
+  if (error) return { ok: false, message: toActionError(error).message };
+  refresh();
+  return {
+    ok: true,
+    message:
+      grams === null
+        ? "Objectif retiré."
+        : `Objectif enregistré : ${grams} g de protéines par part. Il s'applique aux prochains menus.`,
+  };
+}
+
+/**
  * Questionnaire de bienvenue : tout est enregistré en une transaction (complete_onboarding).
  * La partie foyer n'est envoyée que par le propriétaire ; la base le vérifie aussi.
  */

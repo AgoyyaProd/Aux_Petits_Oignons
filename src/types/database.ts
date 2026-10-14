@@ -155,14 +155,14 @@ isOneToOne: false
                   ]
                 },"household_food_profile": {
                   Row: {
-                    "eating_style": string,"equipment": (string)[] | null,"household_id": string,"objectives": (string)[],"updated_at": string
+                    "eating_style": string,"equipment": (string)[] | null,"household_id": string,"objectives": (string)[],"protein_target_g": number | null,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "eating_style"?: string,"equipment"?: (string)[] | null,"household_id": string,"objectives"?: (string)[],"updated_at"?: string
+                    "eating_style"?: string,"equipment"?: (string)[] | null,"household_id": string,"objectives"?: (string)[],"protein_target_g"?: number | null,"updated_at"?: string
                   }
                   Update: {
-                    "eating_style"?: string,"equipment"?: (string)[] | null,"household_id"?: string,"objectives"?: (string)[],"updated_at"?: string
+                    "eating_style"?: string,"equipment"?: (string)[] | null,"household_id"?: string,"objectives"?: (string)[],"protein_target_g"?: number | null,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -679,6 +679,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"recipe_skips": {
+                  Row: {
+                    "household_id": string,"id": number,"recipe_id": string,"skipped_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "household_id": string,"id"?: never,"recipe_id": string,"skipped_at"?: string
+                  }
+                  Update: {
+                    "household_id"?: string,"id"?: never,"recipe_id"?: string,"skipped_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "recipe_skips_household_id_fkey"
+      columns: ["household_id"]
+isOneToOne: false
+      referencedRelation: "households"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "recipe_skips_recipe_id_fkey"
+      columns: ["recipe_id"]
+isOneToOne: false
+      referencedRelation: "recipes"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"recipe_steps": {
                   Row: {
                     "instruction": string,"position": number,"recipe_id": string
@@ -990,6 +1016,9 @@ isOneToOne: false
                            },
 "set_household_preferences":
 { Args: { "p_allergens": (string)[],"p_diets": (string)[],"p_household_id": string }; Returns: undefined
+                           },
+"set_protein_target":
+{ Args: { "p_grams": number,"p_household_id": string }; Returns: undefined
                            },
 "shopping_finish":
 { Args: { "p_household_id": string,"p_idempotency_key": string,"p_items": Json,"p_week_start": string }; Returns: Json

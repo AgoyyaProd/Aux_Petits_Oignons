@@ -383,6 +383,7 @@ function EntryCard({
             </span>
           ) : null}
           <span>{entry.servings} p.</span>
+          <ProteinTag entry={entry} target={page.protein?.target ?? null} />
           {entry.leftover ? null : (
             <span>
               {entry.missingNames.length ? "≥ " : "≈ "}
@@ -412,6 +413,26 @@ function EntryCard({
         </div>
       ) : null}
     </article>
+  );
+}
+
+/** Protéines d'une part ; avec un objectif, en vert quand il est atteint. */
+function ProteinTag({ entry, target }: { entry: PlannerEntryView; target: number | null }) {
+  if (entry.proteinPerServing === null) return null;
+  const reached = target !== null && entry.proteinPerServing >= target;
+  const label =
+    target === null
+      ? `${entry.proteinPerServing} g de protéines par part`
+      : `${entry.proteinPerServing} g de protéines par part, objectif ${target} g ${reached ? "atteint" : "non atteint"}`;
+  return (
+    <span
+      title={label}
+      aria-label={label}
+      className={`tabular-nums ${reached ? "text-success font-semibold" : ""}`}
+    >
+      {entry.proteinPerServing}
+      {target !== null ? `/${target}` : ""} g prot.
+    </span>
   );
 }
 

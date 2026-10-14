@@ -69,22 +69,29 @@ describe("générateur et saison", () => {
     ingredientSlugs: slugs,
   });
 
-  it("favorise un plat de saison et écarte un plat hors saison", () => {
+  it("favorise nettement un plat de saison face à un plat hors saison", () => {
     const summer = base("a-ete", ["tomate", "courgette"]);
     const winter = base("b-hiver", ["poireau", "chou-vert"]);
     expect(candidateSeasonScore(summer, 1)).toBeLessThan(0);
     expect(candidateSeasonScore(winter, 1)).toBeGreaterThan(0);
     expect(candidateSeasonScore(summer, undefined)).toBe(0);
-    const pick = (month: number) =>
-      generatePlan([summer, winter], {
-        mealCount: 1,
-        people: 2,
-        budgetCents: null,
-        locked: [],
-        month,
-        seed: 1,
-      }).entries[0]!.recipeId;
-    expect(pick(1)).toBe("b-hiver");
-    expect(pick(7)).toBe("a-ete");
+    // Tirage pondéré : sur 200 graines, le plat de saison sort très majoritairement.
+    const share = (month: number, id: string) => {
+      let hits = 0;
+      for (let seed = 0; seed < 200; seed += 1) {
+        const got = generatePlan([summer, winter], {
+          mealCount: 1,
+          people: 2,
+          budgetCents: null,
+          locked: [],
+          month,
+          seed,
+        }).entries[0]!.recipeId;
+        if (got === id) hits += 1;
+      }
+      return hits / 200;
+    };
+    expect(share(1, "b-hiver")).toBeGreaterThan(0.8);
+    expect(share(7, "a-ete")).toBeGreaterThan(0.8);
   });
 });

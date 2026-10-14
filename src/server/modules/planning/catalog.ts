@@ -9,9 +9,15 @@ import {
   type CostLine,
 } from "@/domain/pricing";
 import { checkCompatibility, stockCoverage } from "@/domain/recipes/compatibility";
+import { computeRecipeNutrition } from "@/domain/nutrition";
 import { fromBase } from "@/domain/units";
 import { loadPriceBook, type PriceInfo } from "@/server/modules/prices/price-book";
 import { householdContext, type Supabase } from "@/server/modules/recipes/queries";
+import {
+  NUTRITION_COLUMNS,
+  per100gFrom,
+  type NutritionRow,
+} from "@/server/modules/recipes/nutrition-data";
 import { loadRatings, type Rating } from "@/server/modules/recipes/ratings";
 
 export interface RecipeMeta {
@@ -28,6 +34,8 @@ export interface RecipeMeta {
   mainDish: boolean;
   /** Avis du foyer : 1 on aime, -1 pas pour nous, null sans avis. */
   rating: Rating | null;
+  /** Protéines d'une portion (g), null si le calcul n'est pas fiable. */
+  proteinPerServing: number | null;
 }
 
 export interface PlanningCatalog {
@@ -64,9 +72,30 @@ interface RecipeRow {
       category: string;
       density_g_per_ml: number | null;
       piece_weight_g: number | null;
+      ingredient_nutrition: NutritionRow | null;
     } | null;
   }[];
   recipe_equipment: { equipment_code: string }[];
+}
+
+/** Protéines d'une portion (Ciqual), arrondies au gramme ; null si le calcul n'est pas fiable. */
+function proteinPerServing(
+  rows: RecipeRow["recipe_ingredients"],
+  lines: readonly CostLine[],
+  servings: number,
+): number | null {
+  const nutrition = computeRecipeNutrition(
+    rows.map((l, i) => ({
+      name: l.ingredients?.name ?? "?",
+      optional: l.is_optional,
+      quantity: lines[i]!.quantity,
+      conversions: lines[i]!.conversions,
+      per100g: per100gFrom(l.ingredients?.ingredient_nutrition ?? null),
+    })),
+    servings,
+  );
+  if (!nutrition?.reliable) return null;
+  return Math.round(nutrition.perServing.proteins.value);
 }
 
 /** Catégories comptées comme « végétales » (objectifs plus de légumes, manger mieux). */
@@ -85,7 +114,7 @@ export async function loadPlanningCatalog(
     supabase
       .from("recipes")
       .select(
-        "id, slug, title, servings, prep_minutes, rest_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, quantity_base, dimension, is_optional, ingredients (slug, name, category, density_g_per_ml, piece_weight_g)), recipe_equipment (equipment_code)",
+        `id, slug, title, servings, prep_minutes, rest_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, quantity_base, dimension, is_optional, ingredients (slug, name, category, density_g_per_ml, piece_weight_g, ${NUTRITION_COLUMNS})), recipe_equipment (equipment_code)`,
       )
       .eq("status", "published"),
     supabase.from("recipe_allergens").select("recipe_id, allergen_code"),
@@ -153,6 +182,7 @@ export async function loadPlanningCatalog(
       compatible: compatibility.compatible,
       mainDish: isMainDish(r.tags),
       rating: ratings.get(r.id) ?? null,
+      proteinPerServing: proteinPerServing(rows, lines, r.servings),
     };
     metas.set(r.id, meta);
 
@@ -191,6 +221,7 @@ export async function loadPlanningCatalog(
       novel: !everPlanned.has(r.id),
       totalMinutes: meta.totalMinutes,
       ingredientSlugs: required.flatMap((l) => (l.ingredients?.slug ? [l.ingredients.slug] : [])),
+      proteinPerServing: meta.proteinPerServing,
     });
   }
 

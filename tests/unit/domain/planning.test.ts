@@ -35,6 +35,20 @@ const catalog: PlanCandidate[] = [
 
 const base = { mealCount: 4, people: 2, budgetCents: null, locked: [], seed: 1 };
 
+/** Part des menus (sur 300 graines) qui contiennent la recette `id`. */
+function share(
+  pool: readonly PlanCandidate[],
+  req: Partial<Parameters<typeof generatePlan>[1]>,
+  id: string,
+): number {
+  let hits = 0;
+  for (let seed = 0; seed < 300; seed += 1) {
+    const { entries } = generatePlan(pool, { ...base, ...req, seed });
+    if (entries.some((e) => e.recipeId === id)) hits += 1;
+  }
+  return hits / 300;
+}
+
 describe("générateur de menu", () => {
   it("est déterministe : même demande, même graine, même menu (quel que soit l'ordre reçu)", () => {
     const first = generatePlan(catalog, base);
@@ -103,12 +117,12 @@ describe("générateur de menu", () => {
     expect(result.knownMillicents).toBeLessThanOrEqual(2000 * 1000);
   });
 
-  it("privilégie les plats qui utilisent les produits à consommer en priorité", () => {
+  it("privilégie (sans l'imposer) les plats qui utilisent les produits à consommer", () => {
     const withPriority = catalog.map((c) => (c.id === "e-poisson" ? { ...c, priorityUses: 2 } : c));
-    for (let seed = 0; seed < 10; seed += 1) {
-      const { entries } = generatePlan(withPriority, { ...base, mealCount: 1, seed });
-      expect(entries[0]!.recipeId).toBe("e-poisson");
-    }
+    const p = share(withPriority, { mealCount: 1 }, "e-poisson");
+    expect(p).toBeGreaterThan(0.6);
+    expect(p).toBeLessThan(1);
+    expect(share(catalog, { mealCount: 1 }, "e-poisson")).toBeLessThan(0.3);
   });
 
   it("n'utilise pas les recettes exclues ; signale un catalogue trop petit", () => {
@@ -203,14 +217,52 @@ describe("familles et types de plats", () => {
 describe("favoris et historique", () => {
   const plain = ["p1", "p2", "p3", "p4", "p5", "p6"].map((id) => candidate(id));
 
-  it("un favori est proposé quelle que soit la graine", () => {
+  it("un favori sort bien plus souvent, sans être garanti", () => {
     const withFav = plain.map((c) => (c.id === "p6" ? { ...c, favorite: true } : c));
-    for (let seed = 0; seed < 20; seed += 1) {
-      const ids = generatePlan(withFav, { ...base, mealCount: 2, seed }).entries.map(
+    const fav = share(withFav, { mealCount: 2 }, "p6");
+    const other = share(withFav, { mealCount: 2 }, "p1");
+    expect(fav).toBeGreaterThan(2 * other);
+    expect(fav).toBeLessThan(1);
+    expect(other).toBeGreaterThan(0);
+  });
+
+  it("mémoire progressive : un plat servi il y a 2 semaines sort moins qu'un plat ancien", () => {
+    const history = { p1: 2, p2: 4, p3: 8 };
+    const two = share(plain, { mealCount: 2, history }, "p1");
+    const four = share(plain, { mealCount: 2, history }, "p2");
+    const old = share(plain, { mealCount: 2, history }, "p3");
+    expect(two).toBeLessThan(four);
+    expect(four).toBeLessThan(old);
+    expect(two).toBeGreaterThan(0);
+  });
+
+  it("un plat écarté avec « Changer » a moins de chances", () => {
+    expect(share(plain, { mealCount: 2, skippedRecipeIds: ["p1"] }, "p1")).toBeLessThan(
+      share(plain, { mealCount: 2 }, "p1"),
+    );
+  });
+
+  it("découverte : au moins un plat jamais servi dans chaque nouveau menu", () => {
+    const pool = plain.map((c) => (c.id === "p4" ? { ...c, novel: true } : c));
+    for (let seed = 0; seed < 30; seed += 1) {
+      const ids = generatePlan(pool, { ...base, mealCount: 3, seed }).entries.map(
         (e) => e.recipeId,
       );
-      expect(ids).toContain("p6");
+      expect(ids).toContain("p4");
     }
+  });
+
+  it("objectif de protéines : les plats qui l'atteignent sortent plus souvent", () => {
+    const pool = [
+      candidate("leger", { proteinPerServing: 12 }),
+      candidate("proteine", { proteinPerServing: 34 }),
+      candidate("inconnu", { proteinPerServing: null }),
+    ];
+    const profile = { proteinTargetG: 30 };
+    expect(share(pool, { mealCount: 1, profile }, "proteine")).toBeGreaterThan(0.5);
+    expect(share(pool, { mealCount: 1, profile }, "leger")).toBeGreaterThan(0);
+    // Sans objectif : pas de préférence.
+    expect(share(pool, { mealCount: 1 }, "proteine")).toBeLessThan(0.5);
   });
 
   it("évite les plats des semaines précédentes tant qu'il reste d'autres choix", () => {
@@ -285,42 +337,24 @@ describe("profil alimentaire", () => {
     expect(result.entries).toHaveLength(4);
   });
 
-  it("objectif rapide : les plats de 30 min passent devant", () => {
+  it("objectif rapide : les plats de 30 min sortent plus souvent", () => {
     const pool = [candidate("lent", { totalMinutes: 90 }), candidate("vite", { totalMinutes: 20 })];
-    for (let seed = 0; seed < 10; seed += 1) {
-      const ids = generatePlan(pool, {
-        ...base,
-        mealCount: 1,
-        seed,
-        profile: { objectives: ["rapide"] },
-      }).entries.map((e) => e.recipeId);
-      expect(ids).toEqual(["vite"]);
-    }
+    const p = share(pool, { mealCount: 1, profile: { objectives: ["rapide"] } }, "vite");
+    expect(p).toBeGreaterThan(0.6);
+    expect(p).toBeLessThan(1);
   });
 
-  it("objectif découvrir : un plat jamais fait passe devant", () => {
+  it("objectif découvrir : un plat jamais fait sort plus souvent", () => {
     const pool = [candidate("connu"), candidate("nouveau", { novel: true })];
-    for (let seed = 0; seed < 10; seed += 1) {
-      const ids = generatePlan(pool, {
-        ...base,
-        mealCount: 1,
-        seed,
-        profile: { objectives: ["decouvrir"] },
-      }).entries.map((e) => e.recipeId);
-      expect(ids).toEqual(["nouveau"]);
-    }
+    const p = share(pool, { mealCount: 1, profile: { objectives: ["decouvrir"] } }, "nouveau");
+    expect(p).toBeGreaterThan(0.6);
+    expect(p).toBeLessThan(1);
   });
 
   it("objectif plus de légumes : favorise les plats riches en végétaux", () => {
     const pool = [candidate("pauvre", { plantCount: 0 }), candidate("riche", { plantCount: 4 })];
-    for (let seed = 0; seed < 10; seed += 1) {
-      const ids = generatePlan(pool, {
-        ...base,
-        mealCount: 1,
-        seed,
-        profile: { objectives: ["plus_legumes"] },
-      }).entries.map((e) => e.recipeId);
-      expect(ids).toEqual(["riche"]);
-    }
+    const p = share(pool, { mealCount: 1, profile: { objectives: ["plus_legumes"] } }, "riche");
+    expect(p).toBeGreaterThan(0.6);
+    expect(p).toBeLessThan(1);
   });
 });

@@ -28,7 +28,14 @@ function plural(n: number, one: string, many: string): string {
  * Équilibre du menu : moyennes par portion (Ciqual) et repères hebdomadaires du PNNS.
  * Calculé uniquement sur les repas du menu ; les autres repas de la semaine ne sont pas connus.
  */
-export function WeekBalancePanel({ balance }: { balance: WeekBalance | null }) {
+export function WeekBalancePanel({
+  balance,
+  protein,
+}: {
+  balance: WeekBalance | null;
+  /** Objectif de protéines du foyer : repas mesurés et repas qui l'atteignent. */
+  protein?: { target: number; measured: number; reached: number } | null;
+}) {
   if (!balance || balance.meals === 0) return null;
   const s = balanceStatuses(balance);
   const avg = balance.averagePerPortion;
@@ -77,6 +84,14 @@ export function WeekBalancePanel({ balance }: { balance: WeekBalance | null }) {
         <div className="flex flex-col gap-3">
           <h3 className="text-sm font-semibold">Repères de la semaine</h3>
           <ul className="flex flex-col gap-2">
+            {protein && protein.measured > 0 ? (
+              <Marker
+                status={protein.reached === protein.measured ? "ok" : "low"}
+                label={`Protéines : ${protein.target} g par part`}
+                value={`${protein.reached} repas sur ${protein.measured}`}
+                target="ton objectif (Paramètres)"
+              />
+            ) : null}
             <Marker
               status={s.fish}
               label="Poisson ou fruits de mer"

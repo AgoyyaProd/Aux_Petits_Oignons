@@ -17,23 +17,57 @@ export async function loadRatings(
   return new Map(data.map((r) => [r.recipe_id, r.rating === 1 ? 1 : -1]));
 }
 
-/** Nombre de semaines précédentes dont les plats sont évités par le générateur. */
-export const RECENT_WEEKS = 2;
+/** Semaines de menus prises en compte par la mémoire du tirage. */
+export const HISTORY_WEEKS = 6;
+/** Durée pendant laquelle un plat écarté avec « Changer » a moins de chances. */
+export const SKIP_DAYS = 28;
 
-/** Recettes au menu des semaines précédant `weekStart` (lundi). */
-export async function recentRecipeIds(
+export interface MenuHistory {
+  /** Plats du menu de la semaine précédente : évités tant qu'il reste d'autres choix. */
+  recent: string[];
+  /** Semaines écoulées depuis le dernier menu de chaque recette (2 à 6). */
+  history: Record<string, number>;
+  /** Plats écartés avec « Changer » ces dernières semaines. */
+  skipped: string[];
+}
+
+/** Mémoire des menus du foyer avant la semaine `weekStart` (lundi). */
+export async function menuHistory(
   supabase: Supabase,
   householdId: string,
   weekStart: string,
-): Promise<string[]> {
-  const { data, error } = await supabase
-    .from("meal_plans")
-    .select("meal_plan_entries (recipe_id)")
-    .eq("household_id", householdId)
-    .gte("week_start", addDays(weekStart, -7 * RECENT_WEEKS))
-    .lt("week_start", weekStart);
-  if (error) throw new Error(`Lecture de l'historique impossible : ${error.message}`);
-  return [...new Set(data.flatMap((p) => (p.meal_plan_entries ?? []).map((e) => e.recipe_id)))];
+): Promise<MenuHistory> {
+  const since = new Date(Date.now() - SKIP_DAYS * 86_400_000).toISOString();
+  const [plans, skips] = await Promise.all([
+    supabase
+      .from("meal_plans")
+      .select("week_start, meal_plan_entries (recipe_id)")
+      .eq("household_id", householdId)
+      .gte("week_start", addDays(weekStart, -7 * HISTORY_WEEKS))
+      .lt("week_start", weekStart),
+    supabase
+      .from("recipe_skips")
+      .select("recipe_id")
+      .eq("household_id", householdId)
+      .gte("skipped_at", since),
+  ]);
+  if (plans.error) throw new Error(`Lecture de l'historique impossible : ${plans.error.message}`);
+  if (skips.error) throw new Error(`Lecture de l'historique impossible : ${skips.error.message}`);
+  const history: Record<string, number> = {};
+  for (const p of plans.data) {
+    const weeks = Math.round(
+      (Date.parse(`${weekStart}T00:00:00Z`) - Date.parse(`${p.week_start}T00:00:00Z`)) /
+        (7 * 86_400_000),
+    );
+    for (const e of p.meal_plan_entries ?? []) {
+      history[e.recipe_id] = Math.min(history[e.recipe_id] ?? Infinity, weeks);
+    }
+  }
+  return {
+    recent: Object.keys(history).filter((id) => history[id]! <= 1),
+    history,
+    skipped: [...new Set(skips.data.map((s) => s.recipe_id))],
+  };
 }
 
 /** Historique d'une recette pour le foyer : fois cuisinée, dernière fois, dernière semaine au menu. */

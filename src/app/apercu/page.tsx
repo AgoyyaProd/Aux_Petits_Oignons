@@ -642,6 +642,7 @@ function demoEntry(
     leftover: false,
     leftoverOf: null,
     hasLeftovers: false,
+    proteinPerServing: 18 + ((position * 7) % 17),
     ...extra,
   };
 }

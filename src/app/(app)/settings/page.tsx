@@ -5,6 +5,7 @@ import { AvoidedFoodsForm } from "@/components/settings/avoided-foods-form";
 import { HouseholdForm } from "@/components/settings/household-form";
 import { MembersSection } from "@/components/settings/members-section";
 import { FoodProfileForm } from "@/components/settings/food-profile-form";
+import { ProteinTargetForm } from "@/components/settings/protein-target-form";
 import { ThemeSelect } from "@/components/settings/theme-select";
 import { SignOutButton } from "@/components/pwa/sign-out-button";
 import { AisleOrderForm } from "@/components/settings/aisle-order-form";
@@ -94,6 +95,12 @@ async function SettingsContent() {
           selectedAllergens={settings.selectedAllergens}
           equipmentOptions={settings.equipmentOptions}
           profile={settings.foodProfile}
+        />
+      </Section>
+      <Section title="Objectif de protéines" id="proteines">
+        <ProteinTargetForm
+          householdId={settings.household.id}
+          value={settings.foodProfile.proteinTargetG}
         />
       </Section>
       <Section title="Budget, prix et magasin" id="budget">

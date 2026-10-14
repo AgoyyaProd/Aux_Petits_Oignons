@@ -75,7 +75,7 @@ export async function householdContext(
     supabase.from("ingredients").select("id, parent_id").not("parent_id", "is", null),
     supabase
       .from("household_food_profile")
-      .select("eating_style, objectives, equipment")
+      .select("eating_style, objectives, equipment, protein_target_g")
       .eq("household_id", householdId)
       .maybeSingle(),
     loadFreeIngredientIds(supabase),
@@ -100,6 +100,7 @@ export async function householdContext(
   const foodProfile: FoodProfile = {
     style: (profile.data?.eating_style ?? "omnivore") as EatingStyle,
     objectives: (profile.data?.objectives ?? []) as Objective[],
+    proteinTargetG: profile.data?.protein_target_g ?? null,
   };
   const today = todayIn(timeZone);
   const priority = withParents(

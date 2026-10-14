@@ -45,6 +45,8 @@ export interface PlannerEntryView {
   leftoverOf: string | null;
   /** Ce plat est cuisiné en double : un reste est prévu plus tard. */
   hasLeftovers: boolean;
+  /** Protéines d'une portion (g), null si le calcul n'est pas fiable. */
+  proteinPerServing: number | null;
 }
 
 /**
@@ -100,6 +102,7 @@ export async function getPlannerPage({ week }: { week?: string }) {
         leftover: Boolean(e.leftover),
         leftoverOf: null,
         hasLeftovers: false,
+        proteinPerServing: null,
       };
     }
     const source = e.leftover
@@ -128,6 +131,7 @@ export async function getPlannerPage({ week }: { week?: string }) {
       leftoverOf: source?.day && source.slot ? formatSlot(source.day, source.slot) : null,
       hasLeftovers:
         !e.leftover && plan!.entries.some((o) => o.leftover && o.recipeId === e.recipeId),
+      proteinPerServing: meta.proteinPerServing,
     };
   });
   // Affichage dans l'ordre de la semaine ; la position reste l'identifiant du plat.
@@ -174,6 +178,8 @@ export async function getPlannerPage({ week }: { week?: string }) {
     entries,
     /** Équilibre nutritionnel des repas du menu (repères PNNS). */
     balance,
+    /** Objectif de protéines par part du foyer (g), et repas qui l'atteignent. */
+    protein: proteinSummary(entries, catalog.profile.proteinTargetG ?? null),
     totals: {
       cents: entries.reduce((s, e) => s + e.cents, 0),
       entriesWithMissing: entries.filter((e) => e.missingNames.length > 0).length,
@@ -212,6 +218,16 @@ export async function getPlannerPage({ week }: { week?: string }) {
     prices: { pricedIngredients, lastObservation: lastPrice.data?.observed_to ?? null },
     /** Une clé d'idempotence par formulaire affiché : un double envoi n'agit qu'une fois. */
     newKey: () => randomUUID(),
+  };
+}
+
+function proteinSummary(entries: readonly PlannerEntryView[], target: number | null) {
+  if (target === null) return null;
+  const measured = entries.filter((e) => e.proteinPerServing !== null);
+  return {
+    target,
+    measured: measured.length,
+    reached: measured.filter((e) => e.proteinPerServing! >= target).length,
   };
 }
 

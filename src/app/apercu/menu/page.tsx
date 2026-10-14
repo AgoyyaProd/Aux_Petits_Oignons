@@ -36,6 +36,7 @@ function entry(
     leftover: false,
     leftoverOf: null,
     hasLeftovers: false,
+    proteinPerServing: 18 + ((position * 7) % 17),
     ...extra,
   };
 }
@@ -110,6 +111,7 @@ function demo(draft: boolean): PlannerPage {
       })),
     ),
     candidateCount: 180,
+    protein: { target: 30, measured: 8, reached: 3 },
     choices: [
       ["curry-pois-chiches", "Curry de pois chiches", 35, 142],
       ["gratin-dauphinois", "Gratin dauphinois", 75, 118],
