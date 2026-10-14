@@ -4,6 +4,7 @@ import { DraftGuard } from "@/components/planner/draft-guard";
 import { PlanActionButton } from "@/components/planner/entry-action";
 import { GenerateForm } from "@/components/planner/generate-form";
 import { WeekBalancePanel } from "@/components/planner/week-balance";
+import { RecipePickerProvider } from "@/components/planner/recipe-picker";
 import { WeekGrid, type Base } from "@/components/planner/week-grid";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -77,7 +78,14 @@ export function PlannerView({
         <>
           <Toolbar page={page} base={base} />
           <Summary page={page} />
-          <WeekGrid page={page} base={base} />
+          <RecipePickerProvider
+            choices={page.choices}
+            inPlan={page.entries.map((e) => e.recipeId)}
+            base={base}
+            formKey={page.newKey()}
+          >
+            <WeekGrid page={page} base={base} />
+          </RecipePickerProvider>
           <WeekBalancePanel balance={page.balance} />
           <Regenerate page={page} />
           {plan.isDraft ? <DraftDock page={page} base={base} /> : null}

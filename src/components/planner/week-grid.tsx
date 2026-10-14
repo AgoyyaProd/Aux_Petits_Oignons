@@ -12,6 +12,7 @@ import {
   MinusIcon,
   MoreIcon,
   PlusIcon,
+  SearchIcon,
   ShuffleIcon,
 } from "@/components/ui/icons";
 import { formatCents } from "@/domain/money";
@@ -26,6 +27,7 @@ import {
 } from "@/server/modules/planning/actions";
 import type { PlannerEntryView, PlannerPage } from "@/server/modules/planning/queries";
 import { CloseOpenPanels } from "./close-open-panels";
+import { PickButton } from "./recipe-picker";
 
 /** Semaine affichée et version vue (« d3 » brouillon, « p2 » menu validé). */
 export type Base = { week: string; version: string };
@@ -219,7 +221,10 @@ function MobileDay({
   );
 }
 
-/** Case vide : « + » propose un plat (repas prévu) ; discret si le repas n'est pas prévu. */
+/**
+ * Case vide d'un repas prévu : un plat au hasard, ou « Chercher » pour le choisir soi-même.
+ * Repas non prévu : un « Ajouter » discret.
+ */
 function EmptySlot({
   day,
   slot,
@@ -232,21 +237,36 @@ function EmptySlot({
   base: Base;
 }) {
   const planned = page.slots.find((s) => s.value === `${day}:${slot}`)?.planned ?? true;
-  return (
+  const when = `${formatDay(day)} ${slot === "lunch" ? "midi" : "soir"}`;
+  const random = (
     <PlanActionButton
       action={addEntryAction}
       fields={{ ...base, key: page.newKey(), slot: `${day}:${slot}` }}
-      label={`Proposer un plat pour ${formatDay(day)} ${slot === "lunch" ? "midi" : "soir"}`}
-      pendingLabel="Recherche…"
+      label={`Proposer un plat au hasard pour ${when}`}
+      pendingLabel="Tirage…"
       className={
         planned
-          ? "border-border-strong text-muted hover:border-accent hover:text-accent-strong hover:bg-surface flex min-h-12 w-full items-center justify-center gap-1.5 rounded-xl border border-dashed text-sm font-medium transition-colors lg:min-h-40"
+          ? "hover:text-accent-strong flex min-h-11 items-center justify-center gap-1.5 rounded-lg px-2 text-sm font-medium"
           : "text-muted hover:text-accent-strong hover:border-border-strong focus-visible:border-border-strong flex min-h-12 w-full items-center justify-center gap-1 rounded-xl border border-transparent text-xs opacity-0 transition hover:opacity-100 focus-visible:opacity-100 lg:min-h-40"
       }
     >
-      <PlusIcon size={planned ? 18 : 14} />
-      {planned ? "Proposer un plat" : "Ajouter"}
+      {planned ? <ShuffleIcon size={17} /> : <PlusIcon size={14} />}
+      {planned ? "Au hasard" : "Ajouter"}
     </PlanActionButton>
+  );
+  if (!planned) return random;
+  return (
+    <div className="border-border-strong text-muted flex min-h-12 w-full items-center justify-center gap-1 rounded-xl border border-dashed text-sm lg:min-h-40 lg:flex-col">
+      {random}
+      <PickButton
+        target={{ mode: "add", slot: `${day}:${slot}`, label: when }}
+        label={`Chercher un plat pour ${when}`}
+        className="hover:text-brand flex min-h-11 items-center justify-center gap-1.5 rounded-lg px-2 text-sm font-medium"
+      >
+        <SearchIcon size={17} />
+        Chercher
+      </PickButton>
+    </div>
   );
 }
 
@@ -277,6 +297,24 @@ function ChangeButton({
       <ShuffleIcon size={compact ? 19 : 16} />
       {compact ? null : "Changer"}
     </PlanActionButton>
+  );
+}
+
+/** Bouton « Chercher » : choisir soi-même le plat qui remplace celui-ci. */
+function SearchButton({ entry, compact }: { entry: PlannerEntryView; compact?: boolean }) {
+  return (
+    <PickButton
+      target={{ mode: "replace", position: entry.position, title: entry.title }}
+      label={`Chercher un plat pour remplacer « ${entry.title} »`}
+      className={
+        compact
+          ? iconButtonClasses("text-brand hover:border-brand")
+          : "text-brand inline-flex min-h-8 items-center gap-1 text-xs font-semibold hover:underline"
+      }
+    >
+      <SearchIcon size={compact ? 19 : 13} />
+      {compact ? null : "Chercher"}
+    </PickButton>
   );
 }
 
@@ -359,12 +397,16 @@ function EntryCard({
           </p>
         ) : null}
         {tile && !entry.cooked ? (
-          <EditPanel entry={entry} page={page} base={base} alignEnd={alignEnd} />
+          <div className="mt-auto flex flex-wrap items-start gap-x-3 pt-1">
+            <EditPanel entry={entry} page={page} base={base} alignEnd={alignEnd} />
+            {canChange ? <SearchButton entry={entry} /> : null}
+          </div>
         ) : null}
       </div>
 
       {!tile && !entry.cooked ? (
         <div className="flex shrink-0 items-center gap-1.5">
+          {canChange ? <SearchButton entry={entry} compact /> : null}
           {canChange ? <ChangeButton entry={entry} page={page} base={base} compact /> : null}
           <EditPanel entry={entry} page={page} base={base} compact alignEnd />
         </div>
@@ -417,7 +459,7 @@ function EditPanel({
   const small =
     "border-border bg-surface hover:border-brand inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border px-3 text-sm font-medium";
   return (
-    <details name={EDIT_PANEL} className={`group ${compact ? "" : "mt-auto pt-1"}`}>
+    <details name={EDIT_PANEL} className="group">
       <summary
         aria-label={`Modifier ${entry.title}`}
         className={

@@ -9,6 +9,7 @@ import {
   weekSlots,
   type MealSlot,
 } from "@/domain/planning";
+import { millicentsToCents } from "@/domain/pricing";
 import { todayIn } from "@/lib/dates";
 import { addDays, formatSlot, isMonday, mondayOf } from "@/lib/week";
 import { getCurrentContext } from "@/server/modules/auth/session";
@@ -188,6 +189,26 @@ export async function getPlannerPage({ week }: { week?: string }) {
       planned: isPlannedSlot(ref, weekStart, pattern),
     })),
     candidateCount: catalog.candidates.length,
+    /** Recettes qui conviennent au foyer, pour choisir un plat par la recherche. */
+    choices: catalog.candidates
+      .map((c) => {
+        const meta = catalog.recipes.get(c.id)!;
+        return {
+          id: c.id,
+          slug: meta.slug,
+          title: meta.title,
+          tags: meta.tags,
+          totalMinutes: meta.totalMinutes,
+          /** Coût d'une portion (ingrédients au prix connu), en centimes ; null sans prix. */
+          centsPerServing:
+            c.costPerServingMillicents === null
+              ? null
+              : millicentsToCents(c.costPerServingMillicents),
+          partialPrice: c.missingPrices > 0,
+          favorite: Boolean(c.favorite),
+        };
+      })
+      .sort((a, b) => a.title.localeCompare(b.title, "fr")),
     prices: { pricedIngredients, lastObservation: lastPrice.data?.observed_to ?? null },
     /** Une clé d'idempotence par formulaire affiché : un double envoi n'agit qu'une fois. */
     newKey: () => randomUUID(),

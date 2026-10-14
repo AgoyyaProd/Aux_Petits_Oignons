@@ -20,7 +20,7 @@ import {
 } from "@/domain/planning";
 import { todayIn } from "@/lib/dates";
 import { mondayOf } from "@/lib/week";
-import { randomUUID } from "node:crypto";
+import { randomInt, randomUUID } from "node:crypto";
 import { ActionError } from "@/server/errors";
 import { getCurrentContext } from "@/server/modules/auth/session";
 import { firstErrors } from "@/server/modules/households/schema";
@@ -37,6 +37,8 @@ import {
   type WorkingPlan,
 } from "./repository";
 import {
+  pickAddSchema,
+  replaceSchema,
   entrySchema,
   generateSchema,
   planActionSchema,
@@ -177,7 +179,9 @@ export async function generatePlanAction(
         },
       };
     }
-    const seed = plan ? plan.seed + 1 : 0;
+    // Graine tirée au hasard pour un nouveau menu (avant : 0, donc le même menu chaque
+    // semaine) ; « Relancer » passe à la suivante. Gardée dans le brouillon : reproductible.
+    const seed = plan ? (plan.seed + 1) % 2 ** 30 : randomInt(2 ** 30);
     const pattern = catalog.pattern;
     const today = todayIn(household.timezone);
     // Les plats gardés conservent leur jour (et leurs portions) ; les repas restants sont
@@ -431,6 +435,66 @@ export async function addEntryAction(
     return { status: "error", message: "Plus aucune recette compatible à proposer." };
   }
   return state;
+}
+
+/** La recette choisie doit convenir au foyer et ne pas être déjà au menu. */
+async function assertPickable(recipeId: string, entries: readonly PlanEntry[]) {
+  const { household, supabase } = await context();
+  const catalog = await catalogFor(supabase, household);
+  if (!catalog.candidates.some((c) => c.id === recipeId)) {
+    throw new ActionError("invalid", "Cette recette ne correspond pas aux préférences du foyer.");
+  }
+  if (entries.some((e) => e.recipeId === recipeId)) {
+    throw new ActionError("invalid", "Ce plat est déjà au menu de la semaine.");
+  }
+}
+
+/** Remplace un plat par une recette choisie (recherche). Les restes suivent le nouveau plat. */
+export async function pickEntryAction(
+  _prev: PlannerState,
+  formData: FormData,
+): Promise<PlannerState> {
+  const parsed = replaceSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { status: "error", message: "Requête invalide." };
+  const { position, recipeId } = parsed.data;
+  return editEntries(parsed.data, async (entries, plan) => {
+    const entry = entryAt(entries, position);
+    assertNotCooked(plan, position);
+    assertNotLeftover(entries, position);
+    await assertPickable(recipeId, entries);
+    const old = entry.recipeId;
+    return entries.map((e, i) =>
+      i === position - 1
+        ? { ...e, recipeId, locked: false }
+        : e.leftover && e.recipeId === old
+          ? { ...e, recipeId }
+          : e,
+    );
+  });
+}
+
+/** Ajoute une recette choisie (recherche), dans la case demandée si elle est libre. */
+export async function pickAddAction(
+  _prev: PlannerState,
+  formData: FormData,
+): Promise<PlannerState> {
+  const parsed = pickAddSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success || parsed.data.version === null) {
+    return { status: "error", message: "Requête invalide." };
+  }
+  const input = parsed.data;
+  return editEntries(input, async (entries, plan, pattern) => {
+    if (entries.length >= 21) throw new ActionError("invalid", "Au plus 21 plats par semaine.");
+    await assertPickable(input.recipeId, entries);
+    const { household } = await context();
+    const extra = { recipeId: input.recipeId, servings: plan.people, locked: false };
+    const wanted = input.slot ? parseSlotKey(input.slot, input.week) : null;
+    const free = wanted && !entries.some((e) => e.day === wanted.day && e.slot === wanted.slot);
+    const placed = free
+      ? { ...extra, day: wanted.day, slot: wanted.slot }
+      : autoPlace([...entries, extra], input.week, todayIn(household.timezone), pattern).at(-1)!;
+    return [...entries, placed];
+  });
 }
 
 /**

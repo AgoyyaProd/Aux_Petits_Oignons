@@ -110,6 +110,23 @@ function demo(draft: boolean): PlannerPage {
       })),
     ),
     candidateCount: 180,
+    choices: [
+      ["curry-pois-chiches", "Curry de pois chiches", 35, 142],
+      ["gratin-dauphinois", "Gratin dauphinois", 75, 118],
+      ["poulet-basquaise", "Poulet basquaise", 55, 265],
+      ["risotto-champignons", "Risotto aux champignons", 40, 189],
+      ["salade-lentilles", "Salade de lentilles", 25, 96],
+      ["tarte-poireaux", "Tarte aux poireaux", 50, 131],
+    ].map(([slug, title, minutes, cents], i) => ({
+      id: `10000000-0000-0000-0000-0000000000${String(i + 10)}`,
+      slug,
+      title,
+      tags: [],
+      totalMinutes: minutes,
+      centsPerServing: cents,
+      partialPrice: false,
+      favorite: i === 2,
+    })),
     prices: { pricedIngredients: 200, lastObservation: "2026-10-12" },
     newKey: () => "00000000-0000-4000-8000-000000000000",
   } as unknown as PlannerPage;
