@@ -95,3 +95,41 @@ export async function loadWeekBalance(
     }),
   );
 }
+
+/** Ligne de recette telle que lue avec NUTRITION_COLUMNS (catalogue, menu, recettes). */
+export interface ProteinLine {
+  quantity_base: number | string | null;
+  dimension: "mass" | "volume" | "count" | null;
+  is_optional: boolean;
+  ingredients: {
+    name: string;
+    density_g_per_ml: number | null;
+    piece_weight_g: number | null;
+    ingredient_nutrition: NutritionRow | null;
+  } | null;
+}
+
+/**
+ * Protéines d'une portion (table Ciqual), arrondies au gramme ; null si le calcul n'est pas
+ * fiable (trop d'ingrédients sans valeur ou sans conversion en grammes).
+ */
+export function proteinPerServing(lines: readonly ProteinLine[], servings: number): number | null {
+  const nutrition = computeRecipeNutrition(
+    lines.map((l) => ({
+      name: l.ingredients?.name ?? "?",
+      optional: l.is_optional,
+      quantity:
+        l.quantity_base !== null && l.dimension
+          ? fromBase(String(l.quantity_base), l.dimension)
+          : null,
+      conversions: {
+        densityGPerMl: l.ingredients?.density_g_per_ml ?? null,
+        pieceWeightG: l.ingredients?.piece_weight_g ?? null,
+      },
+      per100g: per100gFrom(l.ingredients?.ingredient_nutrition ?? null),
+    })),
+    servings,
+  );
+  if (!nutrition?.reliable) return null;
+  return Math.round(nutrition.perServing.proteins.value);
+}

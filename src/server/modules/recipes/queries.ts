@@ -25,7 +25,12 @@ import { getCurrentContext } from "@/server/modules/auth/session";
 import { loadPriceBook } from "@/server/modules/prices/price-book";
 import { loadRatings, recipeHistory, type Rating } from "@/server/modules/recipes/ratings";
 import { createSupabaseServerClient } from "@/server/supabase/server";
-import { per100gFrom } from "@/server/modules/recipes/nutrition-data";
+import {
+  NUTRITION_COLUMNS,
+  per100gFrom,
+  proteinPerServing,
+  type ProteinLine,
+} from "@/server/modules/recipes/nutrition-data";
 import { loadFreeIngredientIds } from "@/server/modules/prices/price-book";
 
 export type Supabase = Awaited<ReturnType<typeof createSupabaseServerClient>>;
@@ -176,7 +181,14 @@ export interface RecipeCard {
   difficulty: Difficulty;
   /** Saison ce mois-ci : « in » de saison, « out » hors saison, null sans produit saisonnier. */
   season: SeasonStatus;
+  /** Protéines d'une portion (g, Ciqual) ; null si le calcul n'est pas fiable. */
+  proteinPerServing: number | null;
+  /** Atteint le seuil « riche en protéines » (objectif du foyer, sinon 30 g). */
+  highProtein: boolean;
 }
+
+/** Seuil « riche en protéines » quand le foyer n'a pas d'objectif : grammes par portion. */
+export const HIGH_PROTEIN_G = 30;
 
 /** Seuil « petit budget » : coût estimé par portion. */
 export const SMALL_BUDGET_CENTS = 250;
@@ -195,6 +207,8 @@ export interface CatalogFilters {
   smallBudget?: boolean;
   /** Uniquement les plats de saison ce mois-ci. */
   inSeason?: boolean;
+  /** Uniquement les recettes riches en protéines (seuil : objectif du foyer, sinon 30 g). */
+  highProtein?: boolean;
 }
 
 /**
@@ -211,7 +225,7 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
     supabase
       .from("recipes")
       .select(
-        "id, slug, title, description, servings, prep_minutes, rest_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, is_optional, quantity_base, dimension, ingredients (slug, name, density_g_per_ml, piece_weight_g)), recipe_steps (count), recipe_equipment (equipment_code)",
+        `id, slug, title, description, servings, prep_minutes, rest_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, is_optional, quantity_base, dimension, ingredients (slug, name, density_g_per_ml, piece_weight_g, ${NUTRITION_COLUMNS})), recipe_steps (count), recipe_equipment (equipment_code)`,
       )
       .eq("status", "published")
       .order("title"),
@@ -239,6 +253,7 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
 
   const cards: RecipeCard[] = [];
   let excludedCount = 0;
+  const proteinThreshold = ctx.foodProfile.proteinTargetG ?? HIGH_PROTEIN_G;
 
   for (const r of recipes.data) {
     const lines = r.recipe_ingredients ?? [];
@@ -323,6 +338,9 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
     ) {
       continue;
     }
+    const protein = proteinPerServing(lines as unknown as ProteinLine[], r.servings);
+    const highProtein = protein !== null && protein >= proteinThreshold;
+    if (filters.highProtein && !highProtein) continue;
 
     cards.push({
       id: r.id,
@@ -347,6 +365,8 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
         steps: r.recipe_steps?.[0]?.count ?? 0,
       }),
       season,
+      proteinPerServing: protein,
+      highProtein,
     });
   }
 
@@ -372,6 +392,7 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
       0,
     pantryIsEmpty: ctx.available.size === 0,
     favoriteCount: [...ratings.values()].filter((v) => v === 1).length,
+    proteinThreshold,
   };
 }
 

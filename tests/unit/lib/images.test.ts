@@ -30,7 +30,8 @@ describe("photos des recettes", () => {
         .slice(0, 8);
       expect(version, `${src} : relancer scripts/photo-index.py`).toBe(digest);
     }
-  });
+    // Lit plusieurs centaines de photos : marge pour les machines chargées (CI).
+  }, 30_000);
 
   it("ne propose pas de variante pour une image étrangère", () => {
     expect(recipeImageSmall("/icon.svg")).toBeNull();

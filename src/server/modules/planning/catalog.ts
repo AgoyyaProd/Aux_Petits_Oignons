@@ -9,13 +9,12 @@ import {
   type CostLine,
 } from "@/domain/pricing";
 import { checkCompatibility, stockCoverage } from "@/domain/recipes/compatibility";
-import { computeRecipeNutrition } from "@/domain/nutrition";
 import { fromBase } from "@/domain/units";
 import { loadPriceBook, type PriceInfo } from "@/server/modules/prices/price-book";
 import { householdContext, type Supabase } from "@/server/modules/recipes/queries";
 import {
   NUTRITION_COLUMNS,
-  per100gFrom,
+  proteinPerServing,
   type NutritionRow,
 } from "@/server/modules/recipes/nutrition-data";
 import { loadRatings, type Rating } from "@/server/modules/recipes/ratings";
@@ -76,26 +75,6 @@ interface RecipeRow {
     } | null;
   }[];
   recipe_equipment: { equipment_code: string }[];
-}
-
-/** Protéines d'une portion (Ciqual), arrondies au gramme ; null si le calcul n'est pas fiable. */
-function proteinPerServing(
-  rows: RecipeRow["recipe_ingredients"],
-  lines: readonly CostLine[],
-  servings: number,
-): number | null {
-  const nutrition = computeRecipeNutrition(
-    rows.map((l, i) => ({
-      name: l.ingredients?.name ?? "?",
-      optional: l.is_optional,
-      quantity: lines[i]!.quantity,
-      conversions: lines[i]!.conversions,
-      per100g: per100gFrom(l.ingredients?.ingredient_nutrition ?? null),
-    })),
-    servings,
-  );
-  if (!nutrition?.reliable) return null;
-  return Math.round(nutrition.perServing.proteins.value);
 }
 
 /** Catégories comptées comme « végétales » (objectifs plus de légumes, manger mieux). */
@@ -182,7 +161,7 @@ export async function loadPlanningCatalog(
       compatible: compatibility.compatible,
       mainDish: isMainDish(r.tags),
       rating: ratings.get(r.id) ?? null,
-      proteinPerServing: proteinPerServing(rows, lines, r.servings),
+      proteinPerServing: proteinPerServing(rows, r.servings),
     };
     metas.set(r.id, meta);
 

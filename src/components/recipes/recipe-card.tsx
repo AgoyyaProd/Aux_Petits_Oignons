@@ -75,6 +75,9 @@ export function RecipeCard({ recipe }: { recipe: RecipeCardData }) {
               {coverage.inStock}/{coverage.total} chez toi
             </Badge>
           ) : null}
+          {recipe.highProtein ? (
+            <Badge tone="leaf">{recipe.proteinPerServing} g prot.</Badge>
+          ) : null}
           {recipe.usesPriority ? <Badge tone="urgent">Finit un produit</Badge> : null}
           {recipe.season === "in" ? (
             <Badge tone="leaf">

@@ -56,6 +56,8 @@ export default function DesignPreview() {
     costIsMinimum: false,
     difficulty: "moyenne",
     season: "in",
+    proteinPerServing: 34,
+    highProtein: true,
     ...over,
   });
   const families = [

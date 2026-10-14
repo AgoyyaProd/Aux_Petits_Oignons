@@ -52,6 +52,7 @@ function readParams(sp: Search) {
     useSoon: one(sp.vite) === "1",
     smallBudget: one(sp.budget) === "1",
     inSeason: one(sp.saison) === "1",
+    highProtein: one(sp.proteines) === "1",
     diet: diet === "vegetarian" || diet === "vegan" ? diet : undefined,
   } as const;
 }
@@ -67,6 +68,7 @@ function toParams(f: Filters): URLSearchParams {
   if (f.useSoon) p.set("vite", "1");
   if (f.smallBudget) p.set("budget", "1");
   if (f.inSeason) p.set("saison", "1");
+  if (f.highProtein) p.set("proteines", "1");
   if (f.diet) p.set("regime", f.diet);
   if (f.showExcluded) p.set("exclues", "1");
   return p;
@@ -101,6 +103,11 @@ async function Catalog({ searchParams }: Pick<PageProps<"/recipes">, "searchPara
       label: "De saison",
       active: filters.inSeason,
       next: { ...filters, inSeason: !filters.inSeason },
+    },
+    {
+      label: `Riche en protéines (≥ ${catalog.proteinThreshold} g)`,
+      active: filters.highProtein,
+      next: { ...filters, highProtein: !filters.highProtein },
     },
     {
       label: "Rapide (30 min)",
@@ -195,6 +202,7 @@ async function Catalog({ searchParams }: Pick<PageProps<"/recipes">, "searchPara
         {filters.useSoon ? <input type="hidden" name="vite" value="1" /> : null}
         {filters.smallBudget ? <input type="hidden" name="budget" value="1" /> : null}
         {filters.inSeason ? <input type="hidden" name="saison" value="1" /> : null}
+        {filters.highProtein ? <input type="hidden" name="proteines" value="1" /> : null}
         {filters.diet ? <input type="hidden" name="regime" value={filters.diet} /> : null}
       </form>
 
