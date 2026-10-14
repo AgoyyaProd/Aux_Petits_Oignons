@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { ICONS_VERSION } from "@/lib/icons";
 
 /** Appli installable sur l'écran d'accueil du téléphone (PWA). */
 export default function manifest(): MetadataRoute.Manifest {
@@ -15,10 +16,10 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#142f26",
     categories: ["food", "lifestyle", "productivity"],
     icons: [
-      { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
-      { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+      { src: `/icons/icon-192.png?v=${ICONS_VERSION}`, sizes: "192x192", type: "image/png" },
+      { src: `/icons/icon-512.png?v=${ICONS_VERSION}`, sizes: "512x512", type: "image/png" },
       {
-        src: "/icons/icon-maskable-512.png",
+        src: `/icons/icon-maskable-512.png?v=${ICONS_VERSION}`,
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",

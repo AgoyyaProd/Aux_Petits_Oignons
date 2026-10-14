@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "@fontsource-variable/fraunces/opsz.css";
 import "@fontsource-variable/inter/index.css";
 import "./globals.css";
+import { ICONS_VERSION } from "@/lib/icons";
 import { THEME_SCRIPT } from "@/lib/theme";
 import { ServiceWorkerSetup } from "@/components/pwa/service-worker";
 
@@ -11,9 +12,15 @@ export const metadata: Metadata = {
     "La cuisine du quotidien, bien pensée : garde-manger, menus de la semaine, liste de courses et budget au même endroit.",
   applicationName: "Aux Petits Oignons",
   appleWebApp: { capable: true, title: "Petits Oignons", statusBarStyle: "default" },
+  // ?v= : les navigateurs gardent l'icône d'onglet très longtemps par adresse ; changer
+  // ICONS_VERSION (lib/icons) à chaque nouveau logo force son rechargement.
   icons: {
-    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
-    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
+    icon: [
+      { url: `/icon.svg?v=${ICONS_VERSION}`, type: "image/svg+xml" },
+      { url: `/icons/icon-32.png?v=${ICONS_VERSION}`, sizes: "32x32", type: "image/png" },
+    ],
+    shortcut: [{ url: `/favicon.ico?v=${ICONS_VERSION}` }],
+    apple: [{ url: `/icons/apple-touch-icon.png?v=${ICONS_VERSION}`, sizes: "180x180" }],
   },
 };
 
