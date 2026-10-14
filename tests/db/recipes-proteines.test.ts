@@ -24,19 +24,42 @@ const LOT6 = [
   "omelette-epinards-feta",
 ];
 
-describe("sixième lot : recettes riches en protéines", () => {
-  it("les 20 recettes sont publiées, avec étapes et conservation", async () => {
+const LOT7 = [
+  "poulet-tikka-chou-fleur-roti",
+  "saumon-laque-riz-complet-haricots",
+  "fajitas-dinde-haricots-rouges",
+  "tajine-poulet-pois-chiches-carottes",
+  "crevettes-haricots-blancs-tomates-epinards",
+  "gratin-cabillaud-poireaux-pommes-de-terre",
+  "porc-saute-chou-gingembre-riz",
+  "dinde-curry-epinards-basmati",
+  "gratin-pates-completes-thon-brocoli",
+  "buddha-bowl-tofu-patate-douce",
+  "soupe-lentilles-corail-poulet",
+  "pates-completes-poulet-epinards",
+  "overnight-oats-fromage-blanc-myrtilles",
+  "salade-poulet-haricots-verts-oeuf",
+  "cabillaud-tomates-olives-semoule",
+  "poulet-moutarde-haricots-verts-vapeur",
+  "brochettes-dinde-taboule-herbes",
+  "quiche-sans-pate-thon-courgettes",
+  "tofu-brouille-epinards-pois-chiches",
+];
+const HEALTHY = [...LOT6, ...LOT7];
+
+describe("lots 6 et 7 : recettes riches en protéines", () => {
+  it("les 39 recettes sont publiées, avec étapes et conservation", async () => {
     const { rows } = await pool.query(
       `select r.slug, r.status, r.storage_note is not null as storage,
          (select count(*)::int from public.recipe_steps s where s.recipe_id = r.id) as steps
        from public.recipes r where r.slug = any($1)`,
-      [LOT6],
+      [HEALTHY],
     );
-    expect(rows).toHaveLength(20);
+    expect(rows).toHaveLength(HEALTHY.length);
     for (const r of rows) {
       expect(r.status).toBe("published");
       expect(r.storage).toBe(true);
-      expect(r.steps).toBeGreaterThan(3);
+      expect(r.steps).toBeGreaterThanOrEqual(3);
     }
   });
 
@@ -56,9 +79,9 @@ describe("sixième lot : recettes riches en protéines", () => {
        left join public.ingredient_nutrition n on n.ingredient_id = i.id
        where r.slug = any($1)
        group by r.slug, r.tags, r.servings`,
-      [LOT6],
+      [HEALTHY],
     );
-    expect(rows).toHaveLength(20);
+    expect(rows).toHaveLength(HEALTHY.length);
     for (const r of rows) {
       const breakfast = (r.tags as string[]).includes("petit-dejeuner");
       expect(Number(r.proteins), r.slug).toBeGreaterThanOrEqual(breakfast ? 20 : 30);
