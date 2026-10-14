@@ -275,6 +275,7 @@ const INGREDIENT_PHOTO_VERSIONS: Readonly<Record<string, string>> = {
   "haricot-rouge": "20bb1e32",
   "huile-tournesol": "0a22a865",
   jambon: "768fac5c",
+  lait: "ac38efe8",
   "lentille-corail": "9f85959a",
   "levure-boulangere": "3a0db9ab",
   "levure-chimique": "2233aa56",
