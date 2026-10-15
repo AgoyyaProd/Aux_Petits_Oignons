@@ -13,7 +13,7 @@ beforeAll(async () => {
 });
 
 describe("catalogue de démonstration", () => {
-  it("contient 276 recettes publiées, chacune avec ingrédients et étapes", async () => {
+  it("contient 296 recettes publiées, chacune avec ingrédients et étapes", async () => {
     const { rows } = await pool.query(
       `select count(*)::int as n,
               count(*) filter (where status = 'published' and validated_at is not null)::int as publiees,
@@ -21,7 +21,7 @@ describe("catalogue de démonstration", () => {
               count(*) filter (where not exists (select 1 from public.recipe_steps s where s.recipe_id = r.id))::int as sans_etape
        from public.recipes r where r.source = 'curated'`,
     );
-    expect(rows[0]).toEqual({ n: 276, publiees: 276, sans_ingredient: 0, sans_etape: 0 });
+    expect(rows[0]).toEqual({ n: 296, publiees: 296, sans_ingredient: 0, sans_etape: 0 });
   });
 
   it("chaque quantité est convertie en unité de base par le trigger", async () => {
@@ -137,7 +137,7 @@ describe("visibilité des recettes (RLS)", () => {
           .count,
       ),
     );
-    expect(n).toBe(276);
+    expect(n).toBe(296);
   });
 
   it("un brouillon du catalogue n'est visible que des administrateurs", async () => {
