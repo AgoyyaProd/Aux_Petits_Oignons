@@ -26,8 +26,8 @@ describe("jus de citron en volume", () => {
   });
 
   it("les recettes au jus seul (et les lots 6 et 7) demandent du jus, en volume", async () => {
-    expect(await lines("jus-citron")).toHaveLength(26);
-    expect(await lines("jus-citron-vert")).toHaveLength(17);
+    expect(await lines("jus-citron")).toHaveLength(30);
+    expect(await lines("jus-citron-vert")).toHaveLength(21);
     const { rows } = await pool.query(
       `select count(*)::int n from public.recipe_ingredients ri
        join public.ingredients i on i.id = ri.ingredient_id

@@ -45,10 +45,32 @@ const LOT7 = [
   "quiche-sans-pate-thon-courgettes",
   "tofu-brouille-epinards-pois-chiches",
 ];
-const HEALTHY = [...LOT6, ...LOT7];
+const LOT8 = [
+  "poulet-shawarma-boulgour-yaourt",
+  "keftas-boeuf-dinde-semoule-menthe",
+  "saumon-puree-brocoli-fromage-blanc",
+  "galettes-thon-pois-chiches-salade",
+  "curry-oeufs-lentilles-epinards",
+  "poulet-satay-haricots-verts-riz",
+  "plaque-porc-patate-douce-brocoli",
+  "riz-saute-crevettes-petits-pois-oeuf",
+  "cabillaud-pesto-tomates-cerises-grenailles",
+  "wrap-oeufs-brouilles-epinards",
+  "porridge-proteine-banane-cacahuete",
+  "chili-dinde-haricots-rouges-mais",
+  "parmentier-boeuf-lentilles",
+  "salade-thai-porc-concombre",
+  "salade-pois-chiches-oeufs-feta",
+  "poulet-cajun-mais-patate-douce",
+  "boulettes-dinde-courgettes-pates-completes",
+  "soupe-poulet-nouilles-gingembre",
+  "saumon-fenouil-orange-quinoa",
+  "muffins-oeufs-jambon-legumes",
+];
+const HEALTHY = [...LOT6, ...LOT7, ...LOT8];
 
-describe("lots 6 et 7 : recettes riches en protéines", () => {
-  it("les 39 recettes sont publiées, avec étapes et conservation", async () => {
+describe("lots 6 à 8 : recettes riches en protéines", () => {
+  it("les 59 recettes sont publiées, avec étapes et conservation", async () => {
     const { rows } = await pool.query(
       `select r.slug, r.status, r.storage_note is not null as storage,
          (select count(*)::int from public.recipe_steps s where s.recipe_id = r.id) as steps
