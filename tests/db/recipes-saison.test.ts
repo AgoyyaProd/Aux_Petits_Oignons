@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { recipeSeason } from "@/domain/recipes/season";
 import { pool } from "./helpers";
 
-// Lot 10 : plats équilibrés d'automne et d'hiver, pensés pour le planificateur (saison, budget,
+// Lots 10 et 11 : plats équilibrés d'automne et d'hiver, pensés pour le planificateur (saison, budget,
 // garde-manger). Seuils plus souples que les lots 6 à 9 (protéines) mais légumes exigés.
 const LOT10 = [
   "butternut-rotie-lentilles-vertes-feta",
@@ -27,17 +27,41 @@ const LOT10 = [
   "gratin-poireaux-pommes-de-terre-thon",
 ];
 
+const LOT11 = [
+  "parmentier-potiron-lentilles-vertes",
+  "spaghetti-thon-epinards-citron",
+  "farfalle-poulet-brocoli-parmesan",
+  "poulet-endives-moutarde-riz",
+  "dahl-potiron-lentilles-corail",
+  "veloute-patate-douce-pois-chiches-grilles",
+  "tajine-dinde-carottes-raisins-secs",
+  "filet-porc-pommes-poelees-ecrase-carottes",
+  "cabillaud-poireaux-curry-riz",
+  "saumon-endives-braisees-pommes-de-terre",
+  "boulettes-thon-sauce-tomate-spaghetti",
+  "curry-tofu-patate-douce-epinards",
+  "quiche-legere-poireaux-thon",
+  "salade-lentilles-betterave-oeuf-mache",
+  "bowl-boulgour-pois-chiches-carottes-roties",
+  "blanquette-poulet-legere",
+  "gratin-pates-jambon-poireaux",
+  "dinde-pommes-curry-riz",
+  "oeufs-brouilles-champignons-epinards-tartines",
+  "bowl-yaourt-compote-pomme-avoine-noix",
+];
+const SEASONAL = [...LOT10, ...LOT11];
+
 const VEGETABLE_CATEGORIES = ["legumes", "fruits"];
 
-describe("lot 10 : recettes équilibrées de saison", () => {
-  it("les 20 recettes sont publiées, avec étapes et conservation", async () => {
+describe("lots 10 et 11 : recettes équilibrées de saison", () => {
+  it("les 40 recettes sont publiées, avec étapes et conservation", async () => {
     const { rows } = await pool.query(
       `select r.slug, r.status, r.storage_note is not null as storage,
          (select count(*)::int from public.recipe_steps s where s.recipe_id = r.id) as steps
        from public.recipes r where r.slug = any($1)`,
-      [LOT10],
+      [SEASONAL],
     );
-    expect(rows).toHaveLength(LOT10.length);
+    expect(rows).toHaveLength(SEASONAL.length);
     for (const r of rows) {
       expect(r.status).toBe("published");
       expect(r.storage).toBe(true);
@@ -63,9 +87,9 @@ describe("lot 10 : recettes équilibrées de saison", () => {
        left join public.ingredient_nutrition n on n.ingredient_id = i.id
        where r.slug = any($1)
        group by r.slug, r.tags, r.servings`,
-      [LOT10, VEGETABLE_CATEGORIES],
+      [SEASONAL, VEGETABLE_CATEGORIES],
     );
-    expect(rows).toHaveLength(LOT10.length);
+    expect(rows).toHaveLength(SEASONAL.length);
     for (const r of rows) {
       const breakfast = (r.tags as string[]).includes("petit-dejeuner");
       expect(Number(r.proteins), r.slug).toBeGreaterThanOrEqual(breakfast ? 12 : 20);
@@ -80,9 +104,9 @@ describe("lot 10 : recettes équilibrées de saison", () => {
        join public.recipe_ingredients ri on ri.recipe_id = r.id
        join public.ingredients i on i.id = ri.ingredient_id
        where r.slug = any($1) group by r.slug`,
-      [LOT10],
+      [SEASONAL],
     );
-    expect(rows).toHaveLength(LOT10.length);
+    expect(rows).toHaveLength(SEASONAL.length);
     for (const r of rows) {
       for (const month of [10, 11]) expect(recipeSeason(r.ings, month), r.slug).not.toBe("out");
     }
