@@ -111,6 +111,7 @@ function demo(draft: boolean): PlannerPage {
       })),
     ),
     candidateCount: 180,
+    limits: { equipment: 0, ingredients: 0, tooLong: 0 },
     protein: { target: 30, measured: 8, reached: 3 },
     choices: [
       ["curry-pois-chiches", "Curry de pois chiches", 35, 142],
@@ -128,6 +129,7 @@ function demo(draft: boolean): PlannerPage {
       centsPerServing: cents,
       partialPrice: false,
       favorite: i === 2,
+      warning: i === 5 ? "Demande : four, moule" : null,
     })),
     prices: { pricedIngredients: 200, lastObservation: "2026-10-12" },
     newKey: () => "00000000-0000-4000-8000-000000000000",

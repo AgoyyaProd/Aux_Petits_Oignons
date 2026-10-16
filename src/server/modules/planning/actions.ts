@@ -441,12 +441,21 @@ export async function addEntryAction(
   return state;
 }
 
-/** La recette choisie doit convenir au foyer et ne pas être déjà au menu. */
+/**
+ * La recette choisie doit être un plat principal permis au foyer (jamais d'allergie ni de régime
+ * incompatible ; matériel, aliment non souhaité ou temps : le foyer décide) et pas déjà au menu.
+ */
 async function assertPickable(recipeId: string, entries: readonly PlanEntry[]) {
   const { household, supabase } = await context();
   const catalog = await catalogFor(supabase, household);
-  if (!catalog.candidates.some((c) => c.id === recipeId)) {
-    throw new ActionError("invalid", "Cette recette ne correspond pas aux préférences du foyer.");
+  const allowed =
+    catalog.candidates.some((c) => c.id === recipeId) ||
+    catalog.offProfile.some((c) => c.id === recipeId);
+  if (!allowed) {
+    throw new ActionError(
+      "invalid",
+      "Cette recette ne convient pas au foyer (allergie ou régime).",
+    );
   }
   if (entries.some((e) => e.recipeId === recipeId)) {
     throw new ActionError("invalid", "Ce plat est déjà au menu de la semaine.");

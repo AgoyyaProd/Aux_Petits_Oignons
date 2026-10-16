@@ -27,6 +27,8 @@ export interface PickerChoice {
   centsPerServing: number | null;
   partialPrice: boolean;
   favorite: boolean;
+  /** Raison pour laquelle le plat n'est pas proposé d'office (matériel, aliment, temps). */
+  warning: string | null;
 }
 
 /** Ce que le choix va faire : remplacer un plat, ou ajouter un plat dans une case. */
@@ -40,8 +42,9 @@ const PickerContext = createContext<((target: PickTarget) => void) | null>(null)
 const SHOWN = 60;
 
 /**
- * Une seule fenêtre de recherche pour toute la page : les recettes compatibles avec le foyer
- * ne sont envoyées qu'une fois, chaque bouton « Chercher » ne fait que l'ouvrir.
+ * Une seule fenêtre de recherche pour toute la page : les recettes ne sont envoyées qu'une fois,
+ * chaque bouton « Chercher » ne fait que l'ouvrir. Tout le catalogue de plats est choisissable
+ * (hors allergies et régimes) : ceux qui ne conviennent pas d'office viennent après, signalés.
  */
 export function RecipePickerProvider({
   choices,
@@ -239,14 +242,21 @@ function PickerDialog({
         <ul className="flex-1 overflow-y-auto overscroll-contain px-2 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
           {results.length === 0 ? (
             <li className="text-muted px-3 py-8 text-center text-sm">
-              Aucune recette ne correspond. Les recettes proposées sont celles qui conviennent à ton
-              foyer (allergies, régime, temps, matériel).
+              Aucune recette ne correspond. Les plats qui ne respectent pas tes allergies ou ton
+              régime ne sont jamais proposés.
             </li>
           ) : null}
-          {results.slice(0, SHOWN).map((c) => {
+          {results.slice(0, SHOWN).map((c, i, shown) => {
             const already = taken.has(c.id);
+            const firstOff = c.warning !== null && (i === 0 || shown[i - 1]?.warning === null);
             return (
               <li key={c.id}>
+                {firstOff ? (
+                  <p className="text-muted border-border mt-2 border-t px-2 pt-3 pb-1 text-xs">
+                    Hors de tes réglages (matériel, aliments, temps) : tu peux quand même les
+                    choisir.
+                  </p>
+                ) : null}
                 <button
                   type="submit"
                   name="recipeId"
@@ -280,6 +290,9 @@ function PickerDialog({
                       ) : null}
                       {already ? <span className="font-medium">Déjà au menu</span> : null}
                     </span>
+                    {c.warning ? (
+                      <span className="text-accent-strong text-xs font-medium">{c.warning}</span>
+                    ) : null}
                   </span>
                 </button>
               </li>

@@ -444,7 +444,11 @@ export function OnboardingWizard(props: OnboardingWizardProps) {
           </fieldset>
           <fieldset className="flex flex-col gap-3">
             <legend className="mb-1 font-semibold">Mon matériel</legend>
-            <p className="text-muted -mt-1 text-sm">Décoche ce que tu n&apos;as pas.</p>
+            <p className="text-muted -mt-1 text-sm">
+              Tout est coché : décoche seulement ce que tu n&apos;as vraiment pas. Chaque ustensile
+              décoché retire les recettes qui en ont besoin (les plaques, la poêle et la casserole
+              servent à presque toutes).
+            </p>
             <div className="flex flex-wrap gap-2">
               {props.equipmentOptions.map((e) => (
                 <label key={e.code} className={chip}>

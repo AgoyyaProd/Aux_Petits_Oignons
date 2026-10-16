@@ -2,6 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 import { isMainDish, varietyKeys, type FoodProfile, type PlanCandidate } from "@/domain/planning";
+import { offProfileWarning } from "@/domain/planning/pick";
 import {
   estimateRecipeCost,
   millicentsToCents,
@@ -37,9 +38,30 @@ export interface RecipeMeta {
   proteinPerServing: number | null;
 }
 
+/**
+ * Plat principal que le générateur ne propose pas d'office (matériel non coché, aliment non
+ * souhaité, préparation trop longue), mais que le foyer peut choisir lui-même par la recherche.
+ * Les allergies, les régimes et les plats « pas pour nous » n'en font jamais partie.
+ */
+export interface OffProfileChoice {
+  id: string;
+  costPerServingMillicents: number | null;
+  missingPrices: number;
+  warning: string;
+}
+
+/** Plats principaux écartés par chaque réglage non strict (un plat peut compter plusieurs fois). */
+export interface CatalogLimits {
+  equipment: number;
+  ingredients: number;
+  tooLong: number;
+}
+
 export interface PlanningCatalog {
   recipes: Map<string, RecipeMeta>;
   candidates: PlanCandidate[];
+  offProfile: OffProfileChoice[];
+  limits: CatalogLimits;
   priceBook: Map<string, PriceInfo>;
   /** Style et objectifs du foyer, à transmettre au générateur. */
   profile: FoodProfile;
@@ -124,6 +146,8 @@ export async function loadPlanningCatalog(
   const priceOf = (id: string) => priceBook.get(id)?.unit ?? null;
   const metas = new Map<string, RecipeMeta>();
   const candidates: PlanCandidate[] = [];
+  const offProfile: OffProfileChoice[] = [];
+  const limits: CatalogLimits = { equipment: 0, ingredients: 0, tooLong: 0 };
 
   for (const r of recipes.data as unknown as RecipeRow[]) {
     const rows = r.recipe_ingredients ?? [];
@@ -167,14 +191,42 @@ export async function loadPlanningCatalog(
 
     const tooLong = household.maxPrepMinutes !== null && r.prep_minutes > household.maxPrepMinutes;
     // Un plat « pas pour nous » n'est jamais proposé (il reste consultable dans le catalogue).
-    if (!meta.compatible || !meta.mainDish || tooLong || meta.rating === -1) continue;
+    if (!meta.mainDish || meta.rating === -1) continue;
+    // Allergie ou régime : exclusion stricte, même pour un choix manuel.
+    const strict = compatibility.reasons.some((x) => x.kind === "allergen" || x.kind === "diet");
+    if (strict) continue;
+
+    const estimate = estimateRecipeCost(lines, r.servings, r.servings, priceOf);
+    const costPerServingMillicents =
+      estimate.pricedLines > 0 ? Math.round(estimate.millicents / r.servings) : null;
+
+    if (!meta.compatible || tooLong) {
+      const missingEquipment = compatibility.reasons.flatMap((x) =>
+        x.kind === "equipment" ? x.codes : [],
+      );
+      const avoidedIds = compatibility.reasons.flatMap((x) =>
+        x.kind === "ingredient" ? x.ids : [],
+      );
+      if (missingEquipment.length) limits.equipment += 1;
+      if (avoidedIds.length) limits.ingredients += 1;
+      if (tooLong) limits.tooLong += 1;
+      offProfile.push({
+        id: r.id,
+        costPerServingMillicents,
+        missingPrices: estimate.missing.length,
+        warning: offProfileWarning({
+          missingEquipment,
+          avoidedNames: avoidedIds.map((id) => meta.ingredientNames.get(id) ?? "?"),
+          tooLong,
+        }),
+      });
+      continue;
+    }
 
     const required = rows.filter((l) => !l.is_optional);
-    const estimate = estimateRecipeCost(lines, r.servings, r.servings, priceOf);
     candidates.push({
       id: r.id,
-      costPerServingMillicents:
-        estimate.pricedLines > 0 ? Math.round(estimate.millicents / r.servings) : null,
+      costPerServingMillicents,
       missingPrices: estimate.missing.length,
       priorityUses: new Set(
         required.filter((l) => ctx.priority.has(l.ingredient_id)).map((l) => l.ingredient_id),
@@ -204,7 +256,7 @@ export async function loadPlanningCatalog(
     });
   }
 
-  return { recipes: metas, candidates, priceBook, profile: ctx.foodProfile };
+  return { recipes: metas, candidates, offProfile, limits, priceBook, profile: ctx.foodProfile };
 }
 
 /** Coût d'un plat pour un nombre de portions donné, avec les ingrédients sans prix. */

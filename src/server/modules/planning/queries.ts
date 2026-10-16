@@ -15,6 +15,7 @@ import { addDays, formatSlot, isMonday, mondayOf } from "@/lib/week";
 import { getCurrentContext } from "@/server/modules/auth/session";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 import { costOfEntry, getPlanningCatalog } from "./catalog";
+import { orderChoices } from "@/domain/planning/pick";
 import { readWorking } from "./repository";
 import { loadWeekBalance } from "@/server/modules/recipes/nutrition-data";
 
@@ -195,9 +196,18 @@ export async function getPlannerPage({ week }: { week?: string }) {
       planned: isPlannedSlot(ref, weekStart, pattern),
     })),
     candidateCount: catalog.candidates.length,
-    /** Recettes qui conviennent au foyer, pour choisir un plat par la recherche. */
-    choices: catalog.candidates
-      .map((c) => {
+    /** Plats écartés par le matériel, les aliments non souhaités ou le temps maximal. */
+    limits: catalog.limits,
+    /**
+     * Recettes pour choisir un plat par la recherche : celles qui conviennent au foyer, puis les
+     * autres plats (hors allergies et régimes) avec la raison pour laquelle ils ne sont pas
+     * proposés d'office.
+     */
+    choices: orderChoices(
+      [
+        ...catalog.candidates.map((c) => ({ c, favorite: Boolean(c.favorite), warning: null })),
+        ...catalog.offProfile.map((c) => ({ c, favorite: false, warning: c.warning })),
+      ].map(({ c, favorite, warning }) => {
         const meta = catalog.recipes.get(c.id)!;
         return {
           id: c.id,
@@ -211,10 +221,11 @@ export async function getPlannerPage({ week }: { week?: string }) {
               ? null
               : millicentsToCents(c.costPerServingMillicents),
           partialPrice: c.missingPrices > 0,
-          favorite: Boolean(c.favorite),
+          favorite: favorite || meta.rating === 1,
+          warning: warning as string | null,
         };
-      })
-      .sort((a, b) => a.title.localeCompare(b.title, "fr")),
+      }),
+    ),
     prices: { pricedIngredients, lastObservation: lastPrice.data?.observed_to ?? null },
     /** Une clé d'idempotence par formulaire affiché : un double envoi n'agit qu'une fois. */
     newKey: () => randomUUID(),

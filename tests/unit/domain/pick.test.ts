@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { filterChoices } from "@/domain/planning/pick";
+import {
+  catalogLimitMessage,
+  filterChoices,
+  offProfileWarning,
+  orderChoices,
+} from "@/domain/planning/pick";
 
 const choices = [
   { id: "a", title: "Crème de potiron", tags: ["soupe"], favorite: false, totalMinutes: 40 },
@@ -33,5 +38,41 @@ describe("recherche d'un plat à choisir", () => {
   it("filtres favoris et durée maximale", () => {
     expect(ids(filterChoices(choices, { query: "", favoritesOnly: true }))).toEqual(["b"]);
     expect(ids(filterChoices(choices, { query: "", maxMinutes: 30 }))).toEqual(["c", "d"]);
+  });
+});
+
+describe("recettes hors préférences dans la recherche", () => {
+  it("explique en une ligne ce qui manque", () => {
+    expect(
+      offProfileWarning({ missingEquipment: ["four", "poele"], avoidedNames: [], tooLong: false }),
+    ).toBe("Demande : four, poêle");
+    expect(
+      offProfileWarning({ missingEquipment: [], avoidedNames: ["Poivron"], tooLong: true }),
+    ).toBe("Contient : Poivron · Préparation plus longue que ton maximum");
+  });
+
+  it("place les recettes qui conviennent avant les autres", () => {
+    const sorted = orderChoices([
+      { title: "Brandade", warning: "Demande : four" },
+      { title: "Tajine", warning: null },
+      { title: "Aligot", warning: null },
+    ]);
+    expect(sorted.map((c) => c.title)).toEqual(["Aligot", "Tajine", "Brandade"]);
+  });
+});
+
+describe("alerte de catalogue trop réduit", () => {
+  it("nomme ce qui écarte les plats", () => {
+    expect(catalogLimitMessage(13, { equipment: 270, ingredients: 0, tooLong: 0 })).toBe(
+      "Seulement 13 plats correspondent à tes réglages : le matériel coché en écarte 270.",
+    );
+    expect(catalogLimitMessage(1, { equipment: 5, ingredients: 2, tooLong: 3 })).toBe(
+      "Seulement 1 plat correspond à tes réglages : le matériel coché en écarte 5, les aliments non souhaités 2 et le temps de préparation maximal 3.",
+    );
+  });
+
+  it("se tait quand le choix est suffisant ou que rien n'est en cause", () => {
+    expect(catalogLimitMessage(200, { equipment: 40, ingredients: 0, tooLong: 0 })).toBeNull();
+    expect(catalogLimitMessage(10, { equipment: 0, ingredients: 0, tooLong: 0 })).toBeNull();
   });
 });

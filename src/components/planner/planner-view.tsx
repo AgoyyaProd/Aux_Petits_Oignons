@@ -7,6 +7,7 @@ import { WeekBalancePanel } from "@/components/planner/week-balance";
 import { RecipePickerProvider } from "@/components/planner/recipe-picker";
 import { WeekGrid, type Base } from "@/components/planner/week-grid";
 import { Alert } from "@/components/ui/alert";
+import { catalogLimitMessage } from "@/domain/planning/pick";
 import { Badge } from "@/components/ui/badge";
 import { buttonClasses, iconButtonClasses } from "@/components/ui/button";
 import {
@@ -62,6 +63,8 @@ export function PlannerView({
         <WeekNav page={page} />
       </header>
 
+      <CatalogLimitNotice page={page} />
+
       {validated ? (
         <Alert tone="success">
           Menu validé : ta liste de courses est prête.{" "}
@@ -95,6 +98,21 @@ export function PlannerView({
       )}
       <PriceSourceNote page={page} />
     </div>
+  );
+}
+
+/** Prévient quand les réglages du foyer (souvent le matériel) laissent trop peu de plats. */
+function CatalogLimitNotice({ page }: { page: PlannerPage }) {
+  const message = catalogLimitMessage(page.candidateCount, page.limits);
+  if (!message) return null;
+  return (
+    <Alert tone="warning">
+      {message} Le menu tourne donc sur peu de recettes.{" "}
+      <Link href="/settings#preferences" className="font-semibold underline underline-offset-2">
+        Vérifier mon matériel et mes préférences
+      </Link>
+      {page.plan ? " — ou choisis n'importe quel plat avec « Chercher »." : "."}
+    </Alert>
   );
 }
 

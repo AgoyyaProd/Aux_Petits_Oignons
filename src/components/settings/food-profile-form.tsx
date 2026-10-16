@@ -116,7 +116,7 @@ export function FoodProfileForm(props: Props) {
         <p className="text-muted -mt-1 text-sm">
           {equipmentUnset
             ? "Pas encore renseigné : toutes les recettes sont proposées. Décoche ce que tu n'as pas."
-            : "Les recettes qui demandent un appareil que tu n'as pas ne sont plus proposées."}
+            : "Coche tout ce que tu as dans ta cuisine. Un ustensile décoché retire du menu toutes les recettes qui en ont besoin : sans plaques, poêle ni casserole, il ne reste presque aucun plat."}
         </p>
         <div className="flex flex-wrap gap-2">
           {props.equipmentOptions.map((e) => (
