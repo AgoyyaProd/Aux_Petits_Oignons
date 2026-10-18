@@ -49,6 +49,10 @@ export const RECIPE_TAG_LABEL: Record<string, string> = {
   mijote: "Mijoté",
   boulangerie: "Pains et pâtes",
   monde: "Cuisine du monde",
+  express: "Express (15 min)",
+  "anti-gaspi": "Anti-gaspi",
+  "lunch-box": "À emporter",
+  "peu-de-vaisselle": "Peu de vaisselle",
 };
 
 function fail(what: string, error: { message: string }): never {
