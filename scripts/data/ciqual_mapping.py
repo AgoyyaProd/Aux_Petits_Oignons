@@ -120,6 +120,7 @@ MAPPING: dict[str, tuple[int | None, str | None]] = {
     "riz-etuve": (9101, None),
     "riz-rond": (9100, "Riz blanc cru."),
     "riz-thai": (9119, None),
+    "riz-jasmin": (9119, None),
     "semoule": (9610, None),
     "spaghetti": (9810, None),
     "tagliatelles": (9821, "Pâtes sèches aux œufs."),
