@@ -22,7 +22,7 @@ concurrency:
 jobs:
   e2e:
     name: Écrans principaux (ordinateur et téléphone)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: >-
       github.event_name != 'deployment_status' ||
       (github.event.deployment_status.state == 'success' &&
