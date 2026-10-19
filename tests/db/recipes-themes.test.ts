@@ -116,6 +116,28 @@ const LOTS: Record<string, string[]> = {
     "saumon-micro-ondes-poireau-pommes-de-terre",
     "oeufs-brouilles-micro-ondes-champignons",
   ],
+  soupesLunchBox: [
+    "soupe-lentilles-vertes-lardons-carottes",
+    "minestrone-hiver-haricots-rouges-pates",
+    "veloute-butternut-pois-chiches-feta",
+    "soupe-thai-poulet-coco-nouilles",
+    "soupe-poireaux-pommes-de-terre-jambon",
+    "harira-express-lentilles-pois-chiches",
+    "soupe-poulet-petites-pates-carottes",
+    "soupe-patate-douce-lentilles-gingembre",
+    "salade-pates-poulet-pesto-carottes",
+    "salade-quinoa-pois-chiches-feta",
+    "salade-riz-complet-poulet-cacahuetes",
+    "wraps-poulet-curry-yaourt-carottes",
+    "salade-lentilles-betterave-chevre-noix",
+    "salade-piemontaise-jambon-oeufs",
+    "bento-riz-saumon-soja-brocoli",
+    "muffins-oeufs-jambon-poireau",
+    "chili-haricots-rouges-riz-boite",
+    "salade-boulgour-poulet-carottes-raisins",
+    "gratin-penne-brocoli-jambon",
+    "falafels-four-pois-chiches-yaourt",
+  ],
 };
 // </lots>
 
@@ -264,6 +286,21 @@ describe("lots 12 à 17 : recettes thématiques", () => {
       const used = f.equipment.filter((e) => vessels.has(e));
       expect(used.length, `${f.slug} : ${used.join(", ")}`).toBeLessThanOrEqual(1);
       if (used.length === 0) expect(f.equipment, f.slug).toEqual(["micro_ondes"]);
+      for (const month of [10, 11]) expect(recipeSeason(f.ings, month), f.slug).not.toBe("out");
+    }
+  });
+
+  it("soupes-repas et lunch box : se gardent, de saison en automne", async () => {
+    const all = await facts(lot("soupesLunchBox"));
+    expect(all.size).toBe(lot("soupesLunchBox").length);
+    const { rows } = await pool.query(
+      `select slug, storage_note from public.recipes where slug = any($1)`,
+      [lot("soupesLunchBox")],
+    );
+    const storage = new Map(rows.map((r) => [r.slug as string, r.storage_note as string]));
+    for (const f of all.values()) {
+      expect(f.tags, f.slug).toContain("lunch-box");
+      expect(storage.get(f.slug), f.slug).toMatch(/se gard(e|ent) [2-9] jours/i);
       for (const month of [10, 11]) expect(recipeSeason(f.ings, month), f.slug).not.toBe("out");
     }
   });
