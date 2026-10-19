@@ -40,6 +40,21 @@ TAGS = lot1.TAGS | {"boulangerie", "monde", "express", "anti-gaspi", "lunch-box"
 
 # Ingrédients ajoutés après les lots précédents (migrations 0040 à 0045) et utilisés ici.
 LATER = {
+    "farine-pain": {"dim": "mass", "density": False, "piece": False},
+    "farine-bise": {"dim": "mass", "density": False, "piece": False},
+    "farine-semi-complete": {"dim": "mass", "density": False, "piece": False},
+    "farine-complete": {"dim": "mass", "density": False, "piece": False},
+    "farine-levure": {"dim": "mass", "density": False, "piece": False},
+    "farine-seigle": {"dim": "mass", "density": False, "piece": False},
+    "farine-epeautre": {"dim": "mass", "density": False, "piece": False},
+    "farine-orge": {"dim": "mass", "density": False, "piece": False},
+    "farine-sarrasin": {"dim": "mass", "density": False, "piece": False},
+    "farine-mais": {"dim": "mass", "density": False, "piece": False},
+    "farine-riz": {"dim": "mass", "density": False, "piece": False},
+    "farine-millet": {"dim": "mass", "density": False, "piece": False},
+    "farine-pois-chiche": {"dim": "mass", "density": False, "piece": False},
+    "farine-chataigne": {"dim": "mass", "density": False, "piece": False},
+    "farine-soja": {"dim": "mass", "density": False, "piece": False},
     "pesto-rosso": {"dim": "mass", "density": False, "piece": False},
     "jus-citron": {"dim": "volume", "density": True, "piece": False},
     "jus-citron-vert": {"dim": "volume", "density": True, "piece": False},

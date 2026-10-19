@@ -71,6 +71,21 @@ quinoa product en:quinoa
 pain product en:baguettes
 pain-de-mie product en:sliced-breads
 farine product en:wheat-flours
+farine-pain product en:wheat-flours ~
+farine-bise product en:wheat-flours ~
+farine-semi-complete product en:wheat-flours ~
+farine-complete product en:wheat-flours ~
+farine-levure product en:wheat-flours ~
+farine-seigle none
+farine-epeautre none
+farine-orge none
+farine-sarrasin none
+farine-mais none
+farine-riz none
+farine-millet none
+farine-pois-chiche none
+farine-chataigne none
+farine-soja none
 fecule-mais product en:corn-starch
 flocon-avoine product en:rolled-oats
 chapelure product en:bread-crumbs
