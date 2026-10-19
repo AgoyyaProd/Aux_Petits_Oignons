@@ -50,6 +50,28 @@ const LOTS: Record<string, string[]> = {
     "gratin-pommes-poires-amandes",
     "muffins-pomme-avoine",
   ],
+  express: [
+    "semoule-poulet-epices-carottes",
+    "nouilles-crevettes-gingembre-carottes",
+    "omelette-jambon-champignons-salade",
+    "tortillas-oeufs-haricots-rouges",
+    "salade-thon-pois-chiches-express",
+    "escalopes-dinde-moutarde-semoule",
+    "tartines-sardines-fromage-blanc-salade",
+    "quesadillas-poulet-fromage-salade",
+    "nouilles-tofu-champignons-soja",
+    "couscous-express-pois-chiches-feta",
+    "crevettes-ail-citron-semoule",
+    "oeufs-plat-haricots-rouges-tomate",
+    "poulet-curry-express-semoule",
+    "nouilles-dinde-soja-champignons",
+    "salade-oeufs-mollets-thon-pain",
+    "tagliatelles-jambon-champignons-fromage-blanc",
+    "pois-chiches-sautes-oeufs-pain",
+    "wraps-saumon-fume-fromage-blanc",
+    "crevettes-curry-nouilles-riz",
+    "pizza-poele-tortilla-thon",
+  ],
 };
 // </lots>
 
@@ -152,6 +174,15 @@ describe("lots 12 à 17 : recettes thématiques", () => {
       expect(f.tags, f.slug).toContain("dessert");
       expect(f.kcal, f.slug).toBeLessThanOrEqual(350);
       expect(added.get(f.slug), f.slug).toBeLessThanOrEqual(12);
+    }
+  });
+
+  it("express : 15 minutes au plus, préparation et cuisson comprises", async () => {
+    const all = await facts(lot("express"));
+    expect(all.size).toBe(lot("express").length);
+    for (const f of all.values()) {
+      expect(f.tags, f.slug).toContain("express");
+      expect(f.minutes, f.slug).toBeLessThanOrEqual(15);
     }
   });
 
