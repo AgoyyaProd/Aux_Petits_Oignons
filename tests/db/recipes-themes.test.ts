@@ -94,6 +94,28 @@ const LOTS: Record<string, string[]> = {
     "salade-tiede-lentilles-oeufs-mollets",
     "tortilla-espagnole-pommes-de-terre",
   ],
+  peuDeMateriel: [
+    "one-pot-pates-thon-tomate",
+    "one-pot-pates-poulet-poireau",
+    "gnocchis-poeles-tomate-mozzarella",
+    "riz-sauteuse-poulet-crevettes-paprika",
+    "shakshuka-pois-chiches-oeufs",
+    "saumon-poireaux-pommes-de-terre-poele",
+    "risotto-poulet-champignons-sauteuse",
+    "chili-con-carne-riz-une-cocotte",
+    "dahl-lentilles-corail-carottes-coco",
+    "tajine-poulet-carottes-pois-chiches",
+    "poulet-pommes-de-terre-carottes-un-plat",
+    "saumon-patate-douce-brocoli-plat",
+    "pois-chiches-rotis-butternut-feta",
+    "cabillaud-chapelure-pommes-de-terre-poireau",
+    "tofu-roti-patate-douce-carottes-soja",
+    "clafoutis-sale-poireau-thon",
+    "patates-douces-micro-ondes-haricots-cheddar",
+    "bol-semoule-micro-ondes-thon-betterave",
+    "saumon-micro-ondes-poireau-pommes-de-terre",
+    "oeufs-brouilles-micro-ondes-champignons",
+  ],
 };
 // </lots>
 
@@ -229,6 +251,19 @@ describe("lots 12 à 17 : recettes thématiques", () => {
         f.ings.some((i) => !i.optional && restes.has(i.slug)),
         f.slug,
       ).toBe(true);
+      for (const month of [10, 11]) expect(recipeSeason(f.ings, month), f.slug).not.toBe("out");
+    }
+  });
+
+  it("peu de matériel : un seul récipient de cuisson, ou le micro-ondes seul", async () => {
+    const all = await facts(lot("peuDeMateriel"));
+    expect(all.size).toBe(lot("peuDeMateriel").length);
+    const vessels = new Set(["poele", "casserole", "faitout", "plat_four", "moule"]);
+    for (const f of all.values()) {
+      expect(f.tags, f.slug).toContain("peu-de-vaisselle");
+      const used = f.equipment.filter((e) => vessels.has(e));
+      expect(used.length, `${f.slug} : ${used.join(", ")}`).toBeLessThanOrEqual(1);
+      if (used.length === 0) expect(f.equipment, f.slug).toEqual(["micro_ondes"]);
       for (const month of [10, 11]) expect(recipeSeason(f.ings, month), f.slug).not.toBe("out");
     }
   });
