@@ -28,6 +28,28 @@ const LOTS: Record<string, string[]> = {
     "tagliatelles-poireaux-poulet-citron",
     "galettes-butternut-pois-chiches-salade",
   ],
+  desserts: [
+    "poires-roties-miel-fromage-blanc",
+    "crumble-pommes-avoine-leger",
+    "mousse-fromage-blanc-citron",
+    "clafoutis-pommes-leger",
+    "creme-aux-oeufs-vanille",
+    "banana-bread-avoine",
+    "semoule-au-lait-orange",
+    "verrines-fromage-blanc-pomme-caramelisee",
+    "poelee-pommes-poires-cannelle-yaourt",
+    "gateau-pommes-yaourt-avoine",
+    "mousse-chocolat-fromage-blanc",
+    "brownie-haricots-rouges-chocolat",
+    "glace-banane-cacao",
+    "pommes-farcies-noix-raisins-secs",
+    "cheesecake-fromage-blanc-citron",
+    "mug-cake-banane-cacao",
+    "bouchees-avoine-noix-raisins",
+    "poires-pochees-orange-cannelle",
+    "gratin-pommes-poires-amandes",
+    "muffins-pomme-avoine",
+  ],
 };
 // </lots>
 
@@ -106,6 +128,30 @@ describe("lots 12 à 17 : recettes thématiques", () => {
     const all = await facts(ALL);
     for (const f of all.values()) {
       if (!isBreakfast(f)) expect(f.proteins, f.slug).toBeGreaterThanOrEqual(20);
+    }
+  });
+
+  it("desserts : au plus 350 kcal et 12 g de sucre ajouté par part", async () => {
+    const all = await facts(lot("desserts"));
+    expect(all.size).toBe(lot("desserts").length);
+    const { rows } = await pool.query(
+      `select r.slug, coalesce(sum(case ri.dimension when 'mass' then ri.quantity_base
+           else ri.quantity_base * coalesce(i.density_g_per_ml, 1) end)
+         filter (where i.slug = any($2) and not ri.is_optional), 0) / r.servings as added
+       from public.recipes r
+       join public.recipe_ingredients ri on ri.recipe_id = r.id
+       join public.ingredients i on i.id = ri.ingredient_id
+       where r.slug = any($1) group by r.id`,
+      [
+        lot("desserts"),
+        ["sucre", "sucre-roux", "sucre-glace", "sucre-vanille", "miel", "sirop-erable"],
+      ],
+    );
+    const added = new Map(rows.map((r) => [r.slug as string, Number(r.added)]));
+    for (const f of all.values()) {
+      expect(f.tags, f.slug).toContain("dessert");
+      expect(f.kcal, f.slug).toBeLessThanOrEqual(350);
+      expect(added.get(f.slug), f.slug).toBeLessThanOrEqual(12);
     }
   });
 
