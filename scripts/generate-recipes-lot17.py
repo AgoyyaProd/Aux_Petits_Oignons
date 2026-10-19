@@ -40,6 +40,7 @@ TAGS = lot1.TAGS | {"boulangerie", "monde", "express", "anti-gaspi", "lunch-box"
 
 # Ingrédients ajoutés après les lots précédents (migrations 0040 à 0045) et utilisés ici.
 LATER = {
+    "pesto-rosso": {"dim": "mass", "density": False, "piece": False},
     "jus-citron": {"dim": "volume", "density": True, "piece": False},
     "jus-citron-vert": {"dim": "volume", "density": True, "piece": False},
     "cacahuete-grillee": {"dim": "mass", "density": False, "piece": False},

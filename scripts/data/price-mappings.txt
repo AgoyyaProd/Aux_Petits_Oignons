@@ -139,7 +139,8 @@ concentre-tomate product en:tomato-pastes
 olive product en:olives
 capre product en:capers
 cornichon product en:pickled-gherkins
-pesto product en:pestos
+pesto product en:pestos ~
+pesto-rosso none
 noix product en:walnuts
 amande product en:almonds
 cacahuete product en:peanuts

@@ -41,6 +41,7 @@ MAPPING: dict[str, tuple[int | None, str | None]] = {
     "noix": (15005, None),
     "olive": (13184, None),
     "pesto": (11179, None),
+    "pesto-rosso": (11210, None),
     "sel": (11017, None),
     "tomate-concassee": (20169, "Chair de tomate appertisée."),
     # Épicerie sucrée
