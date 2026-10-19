@@ -72,6 +72,28 @@ const LOTS: Record<string, string[]> = {
     "crevettes-curry-nouilles-riz",
     "pizza-poele-tortilla-thon",
   ],
+  antiGaspi: [
+    "pain-perdu-sale-jambon-emmental",
+    "riz-saute-restes-oeufs-jambon",
+    "gratin-pates-restes-thon-tomate",
+    "soupe-legumes-fatigues-lentilles",
+    "croquettes-pommes-de-terre-thon",
+    "frittata-pates-restes-champignons",
+    "soupe-oignon-pain-rassis-oeuf",
+    "pancakes-bananes-mures-avoine",
+    "crumble-pommes-abimees-avoine",
+    "hachis-parmentier-carottes-restes",
+    "tarte-fond-de-frigo-jambon-poireau",
+    "curry-poulet-legumes-fatigues",
+    "salade-riz-lendemain-thon-oeufs",
+    "galettes-legumes-rapes-yaourt",
+    "boulettes-pain-rassis-boeuf-tomate",
+    "poelee-pommes-de-terre-lardons-oeufs",
+    "pain-perdu-pommes-cannelle",
+    "soupe-nouilles-poulet-fond-frigo",
+    "salade-tiede-lentilles-oeufs-mollets",
+    "tortilla-espagnole-pommes-de-terre",
+  ],
 };
 // </lots>
 
@@ -183,6 +205,31 @@ describe("lots 12 à 17 : recettes thématiques", () => {
     for (const f of all.values()) {
       expect(f.tags, f.slug).toContain("express");
       expect(f.minutes, f.slug).toBeLessThanOrEqual(15);
+    }
+  });
+
+  it("anti-gaspi : recycle un reste ou un produit qui s'abîme, de saison en automne", async () => {
+    const all = await facts(lot("antiGaspi"));
+    expect(all.size).toBe(lot("antiGaspi").length);
+    const restes = new Set([
+      "pain",
+      "riz",
+      "pates",
+      "pomme-de-terre",
+      "lentille-verte",
+      "banane",
+      "pomme",
+      "carotte",
+      "poireau",
+      "champignon",
+    ]);
+    for (const f of all.values()) {
+      expect(f.tags, f.slug).toContain("anti-gaspi");
+      expect(
+        f.ings.some((i) => !i.optional && restes.has(i.slug)),
+        f.slug,
+      ).toBe(true);
+      for (const month of [10, 11]) expect(recipeSeason(f.ings, month), f.slug).not.toBe("out");
     }
   });
 
