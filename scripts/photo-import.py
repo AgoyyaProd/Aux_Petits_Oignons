@@ -46,6 +46,8 @@ ALIASES = {
         "compote-pommes": "compote",
         "creme-fraiche-liquide": "creme-liquide",
         "petits-pois": "petit-pois",
+        "curr": "curry",
+        "canelle": "cannelle",
     },
     "plats": {},
 }
