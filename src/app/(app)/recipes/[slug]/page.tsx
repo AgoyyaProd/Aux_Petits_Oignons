@@ -1,9 +1,10 @@
+import { randomUUID } from "node:crypto";
 import { NutritionPanel } from "@/components/recipes/nutrition-panel";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { CookButton } from "@/components/cooking/cook-button";
+import { CookButton, CookOffMenuButton } from "@/components/cooking/cook-button";
 import { AddToMenuButton } from "@/components/recipes/add-to-menu-button";
 import { CookMode } from "@/components/recipes/cook-mode";
 import { KitchenProvider } from "@/components/recipes/kitchen";
@@ -175,12 +176,23 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
               />
             </div>
           </section>
-        ) : cook?.kind === "cooked" ? (
-          <Alert tone="success">
-            Cuisiné le {formatDateTime(cook.cookedAt, "Europe/Paris")} : ingrédients retirés du
-            garde-manger.
-          </Alert>
-        ) : null}
+        ) : (
+          <section aria-label="Plat cuisiné hors menu" className="flex flex-col gap-2">
+            {cook?.kind === "cooked" ? (
+              <Alert tone="success">
+                Cuisiné le {formatDateTime(cook.cookedAt, "Europe/Paris")} : ingrédients retirés du
+                garde-manger.
+              </Alert>
+            ) : null}
+            <div className="self-start">
+              <CookOffMenuButton
+                recipeId={recipe.id}
+                defaultServings={recipe.servings}
+                formKey={randomUUID()}
+              />
+            </div>
+          </section>
+        )}
 
         <RecipeBody
           recipeId={recipe.id}

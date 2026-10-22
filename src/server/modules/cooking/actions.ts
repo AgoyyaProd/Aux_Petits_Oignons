@@ -26,31 +26,19 @@ export type CookState = {
   missing?: string[];
 };
 
+type Supabase = Awaited<ReturnType<typeof createSupabaseServerClient>>;
+type Household = NonNullable<Awaited<ReturnType<typeof getCurrentContext>>["household"]>;
+
 /**
- * « Cuisiné » : calcule le décompte (domaine, FEFO, sans conversion devinée) à partir du stock
- * actuel, puis l'applique en une opération atomique et idempotente (meal_cook).
+ * Décompte d'un plat (domaine, FEFO, sans conversion devinée) à partir du stock actuel :
+ * lots à retirer et ingrédients manquants. Commun au plat du menu et au plat hors menu.
  */
-export async function cookAction(_prev: CookState, formData: FormData): Promise<CookState> {
-  const { household } = await getCurrentContext();
-  if (!household) return { status: "error", message: "Aucun foyer actif." };
-  const parsed = schema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return { status: "error", message: "Formulaire expiré, recharge la page." };
-  const { week, recipeId, key } = parsed.data;
-  const supabase = await createSupabaseServerClient();
-
-  const plan = await readPlan(supabase, household.id, week);
-  const index =
-    plan?.entries.findIndex(
-      (e, i) => e.recipeId === recipeId && !e.leftover && !plan.cooked.has(i + 1),
-    ) ?? -1;
-  if (!plan || index < 0) {
-    return {
-      status: "error",
-      message: "Ce plat n'est plus à cuisiner dans le menu. Recharge la page.",
-    };
-  }
-  const servings = plan.entries[index]!.servings;
-
+async function prepareCooking(
+  supabase: Supabase,
+  household: Household,
+  recipeId: string,
+  servings: number,
+) {
   const recipe = await supabase
     .from("recipes")
     .select(
@@ -58,7 +46,7 @@ export async function cookAction(_prev: CookState, formData: FormData): Promise<
     )
     .eq("id", recipeId)
     .single();
-  if (recipe.error) return { status: "error", message: toActionError(recipe.error).message };
+  if (recipe.error) return { error: toActionError(recipe.error).message } as const;
 
   const info = new Map<string, IngredientInfo>();
   const lines: RecipeLine[] = [];
@@ -86,7 +74,7 @@ export async function cookAction(_prev: CookState, formData: FormData): Promise<
     .from("ingredients")
     .select("id, parent_id")
     .in("parent_id", [...info.keys()]);
-  if (variants.error) return { status: "error", message: toActionError(variants.error).message };
+  if (variants.error) return { error: toActionError(variants.error).message } as const;
   const parentOf = new Map(variants.data.map((v) => [v.id, v.parent_id!]));
   const ingredientIds = [...info.keys(), ...parentOf.keys()];
   const [pantry, staples, free] = await Promise.all([
@@ -101,8 +89,8 @@ export async function cookAction(_prev: CookState, formData: FormData): Promise<
     supabase.from("household_staples").select("ingredient_id").eq("household_id", household.id),
     loadFreeIngredientIds(supabase),
   ]);
-  if (pantry.error) return { status: "error", message: toActionError(pantry.error).message };
-  if (staples.error) return { status: "error", message: toActionError(staples.error).message };
+  if (pantry.error) return { error: toActionError(pantry.error).message } as const;
+  if (staples.error) return { error: toActionError(staples.error).message } as const;
 
   const lots: CookLot[] = pantry.data.map((p) => ({
     id: p.id,
@@ -131,26 +119,15 @@ export async function cookAction(_prev: CookState, formData: FormData): Promise<
     quantity_base: toBaseString(m.quantity),
     dimension: m.quantity.dimension,
   }));
-  const { data, error } = await supabase.rpc("meal_cook", {
-    p_household_id: household.id,
-    p_week_start: week,
-    p_recipe_id: recipeId,
-    p_servings: servings,
-    p_consumptions: result.consumptions.map((c) => ({
-      item_id: c.lotId,
-      quantity_base: toBaseString(c.quantity),
-      expected_version: c.version,
-    })),
-    p_missing: missing,
-    p_idempotency_key: key,
-  });
-  if (error) {
-    const e = toActionError(error);
-    if (e.kind === "conflict") refresh();
-    return { status: "error", message: e.message };
-  }
+  return { info, result, missing } as const;
+}
 
-  refresh();
+/** Message de fin commun : produits retirés et ingrédients introuvables. */
+function cookedState(
+  data: unknown,
+  prepared: Exclude<Awaited<ReturnType<typeof prepareCooking>>, { error: string }>,
+): CookState {
+  const { info, result } = prepared;
   const consumed = (data as { consumed?: number } | null)?.consumed ?? result.consumptions.length;
   return {
     status: "success",
@@ -162,4 +139,100 @@ export async function cookAction(_prev: CookState, formData: FormData): Promise<
       (m) => `${info.get(m.ingredientId)?.name ?? "?"} (${formatShoppingQuantity(m.quantity)})`,
     ),
   };
+}
+
+const consumptionsOf = (
+  prepared: Exclude<Awaited<ReturnType<typeof prepareCooking>>, { error: string }>,
+) =>
+  prepared.result.consumptions.map((c) => ({
+    item_id: c.lotId,
+    quantity_base: toBaseString(c.quantity),
+    expected_version: c.version,
+  }));
+
+/**
+ * « Cuisiné » : calcule le décompte (domaine, FEFO, sans conversion devinée) à partir du stock
+ * actuel, puis l'applique en une opération atomique et idempotente (meal_cook).
+ */
+export async function cookAction(_prev: CookState, formData: FormData): Promise<CookState> {
+  const { household } = await getCurrentContext();
+  if (!household) return { status: "error", message: "Aucun foyer actif." };
+  const parsed = schema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { status: "error", message: "Formulaire expiré, recharge la page." };
+  const { week, recipeId, key } = parsed.data;
+  const supabase = await createSupabaseServerClient();
+
+  const plan = await readPlan(supabase, household.id, week);
+  const index =
+    plan?.entries.findIndex(
+      (e, i) => e.recipeId === recipeId && !e.leftover && !plan.cooked.has(i + 1),
+    ) ?? -1;
+  if (!plan || index < 0) {
+    return {
+      status: "error",
+      message: "Ce plat n'est plus à cuisiner dans le menu. Recharge la page.",
+    };
+  }
+  const servings = plan.entries[index]!.servings;
+
+  const prepared = await prepareCooking(supabase, household, recipeId, servings);
+  if ("error" in prepared) return { status: "error", message: prepared.error };
+
+  const { data, error } = await supabase.rpc("meal_cook", {
+    p_household_id: household.id,
+    p_week_start: week,
+    p_recipe_id: recipeId,
+    p_servings: servings,
+    p_consumptions: consumptionsOf(prepared),
+    p_missing: prepared.missing,
+    p_idempotency_key: key,
+  });
+  if (error) {
+    const e = toActionError(error);
+    if (e.kind === "conflict") refresh();
+    return { status: "error", message: e.message };
+  }
+
+  refresh();
+  return cookedState(data, prepared);
+}
+
+const offMenuSchema = z.object({
+  recipeId: z.uuid(),
+  servings: z.coerce.number().int().min(1).max(40),
+  key: z.uuid(),
+});
+
+/**
+ * « J'ai cuisiné ce plat » pour une recette hors menu : même décompte que pour un plat du
+ * menu, pour le nombre de portions choisi, sans exiger de menu ni de courses finies.
+ */
+export async function cookOffMenuAction(_prev: CookState, formData: FormData): Promise<CookState> {
+  const { household } = await getCurrentContext();
+  if (!household) return { status: "error", message: "Aucun foyer actif." };
+  const parsed = offMenuSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success)
+    return { status: "error", message: "Indique un nombre de portions entre 1 et 40." };
+  const { recipeId, servings, key } = parsed.data;
+  const supabase = await createSupabaseServerClient();
+
+  const prepared = await prepareCooking(supabase, household, recipeId, servings);
+  if ("error" in prepared) return { status: "error", message: prepared.error };
+
+  const { data, error } = await supabase.rpc("recipe_cook_off_menu", {
+    p_household_id: household.id,
+    p_recipe_id: recipeId,
+    p_servings: servings,
+    p_consumptions: consumptionsOf(prepared),
+    p_missing: prepared.missing,
+    p_idempotency_key: key,
+  });
+  if (error) {
+    const e = toActionError(error);
+    if (e.kind === "conflict") refresh();
+    return { status: "error", message: e.message };
+  }
+
+  refresh();
+  return cookedState(data, prepared);
 }

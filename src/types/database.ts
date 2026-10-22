@@ -413,14 +413,14 @@ isOneToOne: false
                   ]
                 },"meal_cookings": {
                   Row: {
-                    "cooked_at": string,"cooked_by": string | null,"household_id": string,"id": string,"missing": NonNullable<Json>,"operation_id": string,"plan_id": string,"recipe_id": string,"servings": number
+                    "cooked_at": string,"cooked_by": string | null,"household_id": string,"id": string,"missing": NonNullable<Json>,"operation_id": string,"plan_id": string | null,"recipe_id": string,"servings": number
                   }
                   ComputedFields: never
                   Insert: {
-                    "cooked_at"?: string,"cooked_by"?: string | null,"household_id": string,"id"?: string,"missing"?: NonNullable<Json>,"operation_id": string,"plan_id": string,"recipe_id": string,"servings": number
+                    "cooked_at"?: string,"cooked_by"?: string | null,"household_id": string,"id"?: string,"missing"?: NonNullable<Json>,"operation_id": string,"plan_id"?: string | null,"recipe_id": string,"servings": number
                   }
                   Update: {
-                    "cooked_at"?: string,"cooked_by"?: string | null,"household_id"?: string,"id"?: string,"missing"?: NonNullable<Json>,"operation_id"?: string,"plan_id"?: string,"recipe_id"?: string,"servings"?: number
+                    "cooked_at"?: string,"cooked_by"?: string | null,"household_id"?: string,"id"?: string,"missing"?: NonNullable<Json>,"operation_id"?: string,"plan_id"?: string | null,"recipe_id"?: string,"servings"?: number
                   }
                   Relationships: [
                     {
@@ -1004,6 +1004,9 @@ isOneToOne: false
                            },
 "pantry_update_details":
 { Args: { "p_expected_version": number,"p_expires_on": string,"p_expiry_kind": Database["public"]['Enums']["expiry_kind"],"p_item_id": string,"p_location": Database["public"]['Enums']["storage_loc"],"p_opened": boolean }; Returns: Json
+                           },
+"recipe_cook_off_menu":
+{ Args: { "p_consumptions": Json,"p_household_id": string,"p_idempotency_key": string,"p_missing": Json,"p_recipe_id": string,"p_servings": number }; Returns: Json
                            },
 "report_app_error":
 { Args: { "p_digest"?: string,"p_kind": string,"p_message": string,"p_path"?: string,"p_release"?: string }; Returns: undefined
