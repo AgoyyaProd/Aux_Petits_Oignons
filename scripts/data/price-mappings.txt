@@ -158,6 +158,12 @@ pesto product en:pestos ~
 pesto-rosso none
 sauce-teriyaki none
 tomate-sechee none
+sauce-huitre none
+nuoc-mam none
+miso none
+nouilles-oeufs none
+pak-choi none
+pousse-soja none
 noix product en:walnuts
 amande product en:almonds
 cacahuete product en:peanuts
