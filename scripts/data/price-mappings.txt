@@ -164,6 +164,27 @@ miso none
 nouilles-oeufs none
 pak-choi none
 pousse-soja none
+camembert none
+brie none
+maroilles none
+munster none
+reblochon none
+mont-d-or none
+roquefort none
+fourme-ambert none
+gorgonzola none
+raclette none
+beaufort none
+gruyere none
+cantal none
+tomme-savoie none
+saint-nectaire none
+morbier none
+gouda none
+mimolette none
+pecorino none
+burrata none
+mascarpone none
 noix product en:walnuts
 amande product en:almonds
 cacahuete product en:peanuts

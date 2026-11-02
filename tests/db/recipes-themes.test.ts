@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import { recipeSeason } from "@/domain/recipes/season";
 import { pool } from "./helpers";
 
-// Lots 12 à 20 : recettes thématiques (hiver, desserts, express, anti-gaspi, peu de matériel,
-// soupes et lunch box, sauce teriyaki et tomates séchées, asiatique). Listes générées depuis
-// scripts/data/recipes-lot12.py à lot20.py.
+// Lots 12 à 21 : recettes thématiques (hiver, desserts, express, anti-gaspi, peu de matériel,
+// soupes et lunch box, sauce teriyaki et tomates séchées, asiatique, fromages). Listes générées depuis
+// scripts/data/recipes-lot12.py à lot21.py.
 // <lots>
 const LOTS: Record<string, string[]> = {
   hiver: [
@@ -178,6 +178,26 @@ const LOTS: Record<string, string[]> = {
     "nouilles-bouillon-miso-porc-oeuf",
     "tofu-miso-pak-choi-nouilles-riz",
   ],
+  fromages: [
+    "raclette-au-four-pommes-de-terre-jambon-cru",
+    "tartiflette-reblochon-lardons",
+    "mont-d-or-chaud-pommes-de-terre",
+    "truffade-cantal-lardons",
+    "risotto-champignons-beaufort",
+    "gratin-chou-fleur-gruyere-jambon",
+    "gratin-poireaux-mimolette-jambon",
+    "camembert-roti-pommes-de-terre-jambon-cru",
+    "flamiche-maroilles-poireaux",
+    "pommes-de-terre-farcies-munster-jambon",
+    "feuillete-brie-poireaux",
+    "pates-gorgonzola-epinards-noix",
+    "salade-endives-poulet-roquefort-noix",
+    "gnocchis-fourme-ambert-poire-noix",
+    "salade-tiede-lentilles-saint-nectaire-lardons",
+    "burrata-butternut-rotie-lentilles",
+    "pates-cacio-e-pepe-pecorino",
+    "pates-mascarpone-citron-saumon-fume",
+  ],
 };
 // </lots>
 
@@ -236,7 +256,7 @@ async function facts(slugs: string[]): Promise<Map<string, Facts>> {
 
 const isBreakfast = (f: Facts) => f.tags.includes("petit-dejeuner") || f.tags.includes("dessert");
 
-describe("lots 12 à 20 : recettes thématiques", () => {
+describe("lots 12 à 21 : recettes thématiques", () => {
   it("toutes publiées, avec au moins 3 étapes et un conseil de conservation", async () => {
     const { rows } = await pool.query(
       `select r.slug, r.status, r.storage_note is not null as storage,
@@ -401,6 +421,41 @@ describe("lots 12 à 20 : recettes thématiques", () => {
       expect(f.minutes, f.slug).toBeLessThanOrEqual(25);
       expect(
         f.ings.some((i) => !i.optional && i.slug === "tomate-sechee"),
+        f.slug,
+      ).toBe(true);
+      expect(recipeSeason(f.ings, 11), f.slug).not.toBe("out");
+    }
+  });
+
+  it("fromages : chaque plat met en avant un des nouveaux fromages, de saison en novembre", async () => {
+    const cheeses = new Set([
+      "camembert",
+      "brie",
+      "maroilles",
+      "munster",
+      "reblochon",
+      "mont-d-or",
+      "roquefort",
+      "fourme-ambert",
+      "gorgonzola",
+      "raclette",
+      "beaufort",
+      "gruyere",
+      "cantal",
+      "tomme-savoie",
+      "saint-nectaire",
+      "morbier",
+      "gouda",
+      "mimolette",
+      "pecorino",
+      "burrata",
+      "mascarpone",
+    ]);
+    const all = await facts(lot("fromages"));
+    expect(all.size).toBe(lot("fromages").length);
+    for (const f of all.values()) {
+      expect(
+        f.ings.some((i) => !i.optional && cheeses.has(i.slug)),
         f.slug,
       ).toBe(true);
       expect(recipeSeason(f.ings, 11), f.slug).not.toBe("out");
