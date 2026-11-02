@@ -2,8 +2,9 @@ import { describe, expect, it } from "vitest";
 import { recipeSeason } from "@/domain/recipes/season";
 import { pool } from "./helpers";
 
-// Lots 12 à 17 : recettes thématiques (hiver, desserts, express, anti-gaspi, peu de matériel,
-// soupes et lunch box). Listes générées depuis scripts/data/recipes-lot12.py à lot17.py.
+// Lots 12 à 18 : recettes thématiques (hiver, desserts, express, anti-gaspi, peu de matériel,
+// soupes et lunch box, sauce teriyaki et tomates séchées). Listes générées depuis
+// scripts/data/recipes-lot12.py à lot18.py.
 // <lots>
 const LOTS: Record<string, string[]> = {
   hiver: [
@@ -138,6 +139,16 @@ const LOTS: Record<string, string[]> = {
     "gratin-penne-brocoli-jambon",
     "falafels-four-pois-chiches-yaourt",
   ],
+  teriyakiTomatesSechees: [
+    "saumon-teriyaki-riz-jasmin-brocoli",
+    "nouilles-sautees-poulet-teriyaki-chou",
+    "tofu-teriyaki-champignons-riz",
+    "boulettes-boeuf-teriyaki-riz-carottes",
+    "pates-tomates-sechees-feta-epinards",
+    "salade-pois-chiches-poulet-tomates-sechees",
+    "cake-sale-tomates-sechees-jambon-feta",
+    "cabillaud-croute-tomates-sechees-puree",
+  ],
 };
 // </lots>
 
@@ -196,7 +207,7 @@ async function facts(slugs: string[]): Promise<Map<string, Facts>> {
 
 const isBreakfast = (f: Facts) => f.tags.includes("petit-dejeuner") || f.tags.includes("dessert");
 
-describe("lots 12 à 17 : recettes thématiques", () => {
+describe("lots 12 à 18 : recettes thématiques", () => {
   it("toutes publiées, avec au moins 3 étapes et un conseil de conservation", async () => {
     const { rows } = await pool.query(
       `select r.slug, r.status, r.storage_note is not null as storage,
@@ -311,6 +322,18 @@ describe("lots 12 à 17 : recettes thématiques", () => {
     for (const f of all.values()) {
       for (const month of [12, 1, 2]) expect(recipeSeason(f.ings, month), f.slug).not.toBe("out");
       expect(f.vegetables, f.slug).toBeGreaterThanOrEqual(150);
+    }
+  });
+
+  it("sauce teriyaki et tomates séchées : utilisées pour de vrai, de saison en novembre", async () => {
+    const all = await facts(lot("teriyakiTomatesSechees"));
+    expect(all.size).toBe(lot("teriyakiTomatesSechees").length);
+    for (const f of all.values()) {
+      const used = f.ings.filter(
+        (i) => !i.optional && (i.slug === "sauce-teriyaki" || i.slug === "tomate-sechee"),
+      );
+      expect(used, f.slug).toHaveLength(1);
+      expect(recipeSeason(f.ings, 11), f.slug).not.toBe("out");
     }
   });
 });
