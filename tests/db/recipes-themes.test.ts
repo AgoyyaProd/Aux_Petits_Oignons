@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import { recipeSeason } from "@/domain/recipes/season";
 import { pool } from "./helpers";
 
-// Lots 12 à 21 : recettes thématiques (hiver, desserts, express, anti-gaspi, peu de matériel,
-// soupes et lunch box, sauce teriyaki et tomates séchées, asiatique, fromages). Listes générées depuis
-// scripts/data/recipes-lot12.py à lot21.py.
+// Lots 12 à 22 : recettes thématiques (hiver, desserts, express, anti-gaspi, peu de matériel,
+// soupes et lunch box, sauce teriyaki et tomates séchées, asiatique, fromages, flammekueche). Listes générées depuis
+// scripts/data/recipes-lot12.py à lot22.py.
 // <lots>
 const LOTS: Record<string, string[]> = {
   hiver: [
@@ -198,6 +198,14 @@ const LOTS: Record<string, string[]> = {
     "pates-cacio-e-pepe-pecorino",
     "pates-mascarpone-citron-saumon-fume",
   ],
+  flammekueche: [
+    "flammekueche-classique-lardons-oignons",
+    "flammekueche-saumon-fume-oignon-rouge",
+    "flammekueche-gratinee-emmental",
+    "flammekueche-poireaux-chevre",
+    "flammekueche-munster-pommes-de-terre",
+    "flammekueche-forestiere-champignons-lardons",
+  ],
 };
 // </lots>
 
@@ -256,7 +264,7 @@ async function facts(slugs: string[]): Promise<Map<string, Facts>> {
 
 const isBreakfast = (f: Facts) => f.tags.includes("petit-dejeuner") || f.tags.includes("dessert");
 
-describe("lots 12 à 21 : recettes thématiques", () => {
+describe("lots 12 à 22 : recettes thématiques", () => {
   it("toutes publiées, avec au moins 3 étapes et un conseil de conservation", async () => {
     const { rows } = await pool.query(
       `select r.slug, r.status, r.storage_note is not null as storage,
@@ -458,6 +466,19 @@ describe("lots 12 à 21 : recettes thématiques", () => {
         f.ings.some((i) => !i.optional && cheeses.has(i.slug)),
         f.slug,
       ).toBe(true);
+      expect(recipeSeason(f.ings, 11), f.slug).not.toBe("out");
+    }
+  });
+
+  it("flammekueche : pâte maison, fromage blanc, au four, de saison en novembre", async () => {
+    const all = await facts(lot("flammekueche"));
+    expect(all.size).toBe(lot("flammekueche").length);
+    for (const f of all.values()) {
+      const required = new Set(f.ings.filter((i) => !i.optional).map((i) => i.slug));
+      for (const slug of ["farine", "fromage-blanc", "creme-fraiche"]) {
+        expect(required.has(slug), `${f.slug} : ${slug}`).toBe(true);
+      }
+      expect(f.tags, f.slug).toContain("four");
       expect(recipeSeason(f.ings, 11), f.slug).not.toBe("out");
     }
   });
