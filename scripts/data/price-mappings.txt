@@ -185,6 +185,9 @@ mimolette none
 pecorino none
 burrata none
 mascarpone none
+pain-bretzel none
+blanc-dinde none
+roquette none
 noix product en:walnuts
 amande product en:almonds
 cacahuete product en:peanuts
