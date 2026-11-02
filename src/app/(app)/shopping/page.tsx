@@ -130,7 +130,10 @@ function buildExport(
     const todo = a.lines.filter((l) => !l.checked);
     if (!todo.length) continue;
     out.push("", a.label);
-    for (const l of todo) out.push(`- ${l.name} : ${formatShoppingQuantity(l.toBuy)}`);
+    for (const l of todo)
+      out.push(
+        `- ${l.name} : ${formatShoppingQuantity(l.toBuy)}${l.packHint ? ` (${l.packHint})` : ""}`,
+      );
   }
   const todoExtras = extras.filter((e) => !e.checked);
   if (todoExtras.length) {
@@ -356,8 +359,13 @@ function ListView({ page, byRecipe }: { page: ListPage; byRecipe: boolean }) {
                         <span className="flex min-w-0 flex-col gap-0.5">
                           <span className="flex items-baseline justify-between gap-3">
                             <span className="item-name text-base font-semibold">{line.name}</span>
-                            <span className="shrink-0 text-base font-semibold tabular-nums lg:hidden">
+                            <span className="shrink-0 text-right text-base font-semibold tabular-nums lg:hidden">
                               {formatShoppingQuantity(line.toBuy)}
+                              {line.packHint ? (
+                                <span className="text-muted block text-xs font-normal">
+                                  {line.packHint}
+                                </span>
+                              ) : null}
                             </span>
                           </span>
                           <span className="text-muted flex justify-between gap-3 text-sm">
@@ -378,6 +386,11 @@ function ListView({ page, byRecipe }: { page: ListPage; byRecipe: boolean }) {
                         </span>
                         <span className="hidden text-right font-semibold tabular-nums lg:block">
                           {formatShoppingQuantity(line.toBuy)}
+                          {line.packHint ? (
+                            <span className="text-muted block text-xs font-normal">
+                              {line.packHint}
+                            </span>
+                          ) : null}
                         </span>
                         <span
                           className={`hidden text-right tabular-nums lg:block ${line.cents === null ? "text-muted text-sm" : "font-medium"}`}

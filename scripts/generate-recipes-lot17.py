@@ -61,6 +61,8 @@ LATER = {
     "jus-citron-vert": {"dim": "volume", "density": True, "piece": False},
     "cacahuete-grillee": {"dim": "mass", "density": False, "piece": False},
     "fromage-frais": {"dim": "mass", "density": False, "piece": False},
+    "sauce-teriyaki": {"dim": "volume", "density": True, "piece": False},
+    "tomate-sechee": {"dim": "mass", "density": False, "piece": False},
 }
 NEW_INGREDIENTS = {}
 

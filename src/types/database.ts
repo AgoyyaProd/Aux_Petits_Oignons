@@ -371,6 +371,26 @@ isOneToOne: true
       referencedColumns: ["id"]
     }
                   ]
+                },"ingredient_packages": {
+                  Row: {
+                    "ingredient_id": string,"label": string | null,"opened_keep_days": number | null,"quantity_base": number | null,"source": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "ingredient_id": string,"label"?: string | null,"opened_keep_days"?: number | null,"quantity_base"?: number | null,"source": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "ingredient_id"?: string,"label"?: string | null,"opened_keep_days"?: number | null,"quantity_base"?: number | null,"source"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "ingredient_packages_ingredient_id_fkey"
+      columns: ["ingredient_id"]
+isOneToOne: true
+      referencedRelation: "ingredients"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"ingredient_price_sources": {
                   Row: {
                     "approximate": boolean,"ingredient_id": string,"kind": string,"tags": (string)[],"updated_at": string

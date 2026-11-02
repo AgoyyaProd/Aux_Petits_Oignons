@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { costMillicents, millicentsToCents } from "@/domain/pricing";
 import {
   computeShoppingList,
+  packHint,
   purchaseQuantity,
   remapVariantLots,
   type IngredientInfo,
@@ -42,6 +43,8 @@ export interface ShoppingLineView {
   needed: Quantity;
   fromStock: Quantity;
   toBuy: Quantity;
+  /** Format standard correspondant à l'achat (« 1 boîte de 40 cl ») : indicatif. */
+  packHint: string | null;
   /** Coût estimé de l'achat, en centimes ; null si pas de prix. */
   cents: number | null;
   recipes: string[];
@@ -126,6 +129,14 @@ export async function getShoppingPage(week?: string) {
     category.set(i.id, i.category);
   }
 
+  /** Format standard d'un achat, dans la dimension de l'ingrédient (sans conversion). */
+  const packHintFor = (ingredientId: string, buy: Quantity) => {
+    const pack = catalog.packages.get(ingredientId);
+    const dimension = info.get(ingredientId)?.defaultDimension;
+    if (!pack || pack.size === null || !pack.label || !dimension) return null;
+    return packHint(buy, { size: pack.size, label: pack.label, dimension });
+  };
+
   // Chaque plat est daté de son jour au planning (ou d'aujourd'hui s'il n'est pas placé) :
   // un produit du garde-manger ne compte que s'il sera encore bon ce jour-là.
   const titles = new Map<string, string>();
@@ -209,6 +220,7 @@ export async function getShoppingPage(week?: string) {
       needed: line.needed,
       fromStock: line.fromStock,
       toBuy: buy,
+      packHint: packHintFor(line.ingredientId, buy),
       cents: cost === null ? null : millicentsToCents(cost),
       recipes: line.mealIds.map((id) => titles.get(id) ?? "?"),
       checked: checked.has(`${line.ingredientId}|${line.dimension}`),

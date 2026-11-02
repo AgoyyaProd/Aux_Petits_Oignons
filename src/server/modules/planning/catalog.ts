@@ -1,7 +1,13 @@
 import "server-only";
 import { cache } from "react";
 import { createSupabaseServerClient } from "@/server/supabase/server";
-import { isMainDish, varietyKeys, type FoodProfile, type PlanCandidate } from "@/domain/planning";
+import {
+  isMainDish,
+  varietyKeys,
+  type FoodProfile,
+  type PackInfo,
+  type PlanCandidate,
+} from "@/domain/planning";
 import { offProfileWarning } from "@/domain/planning/pick";
 import {
   estimateRecipeCost,
@@ -65,6 +71,8 @@ export interface PlanningCatalog {
   priceBook: Map<string, PriceInfo>;
   /** Style et objectifs du foyer, à transmettre au générateur. */
   profile: FoodProfile;
+  /** Formats standards (paquets) et conservation après ouverture, par ingrédient. */
+  packages: Map<string, PackInfo>;
 }
 
 export interface HouseholdForPlanning {
@@ -91,6 +99,7 @@ interface RecipeRow {
       slug: string;
       name: string;
       category: string;
+      default_dimension: "mass" | "volume" | "count";
       density_g_per_ml: number | null;
       piece_weight_g: number | null;
       ingredient_nutrition: NutritionRow | null;
@@ -111,21 +120,36 @@ export async function loadPlanningCatalog(
   supabase: Supabase,
   household: HouseholdForPlanning,
 ): Promise<PlanningCatalog> {
-  const [recipes, allergens, conflicts, ctx, priceBook, ratings, planned] = await Promise.all([
-    supabase
-      .from("recipes")
-      .select(
-        `id, slug, title, servings, prep_minutes, rest_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, quantity_base, dimension, is_optional, ingredients (slug, name, category, density_g_per_ml, piece_weight_g, ${NUTRITION_COLUMNS})), recipe_equipment (equipment_code)`,
-      )
-      .eq("status", "published"),
-    supabase.from("recipe_allergens").select("recipe_id, allergen_code"),
-    supabase.from("recipe_diet_conflicts").select("recipe_id, diet_code"),
-    householdContext(supabase, household.id, household.timezone),
-    loadPriceBook(supabase, household.id),
-    loadRatings(supabase, household.id),
-    // Recettes déjà mises au menu par le foyer (objectif « découvrir »).
-    supabase.from("meal_plan_entries").select("recipe_id").eq("household_id", household.id),
-  ]);
+  const [recipes, allergens, conflicts, ctx, priceBook, ratings, planned, packs] =
+    await Promise.all([
+      supabase
+        .from("recipes")
+        .select(
+          `id, slug, title, servings, prep_minutes, rest_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, quantity_base, dimension, is_optional, ingredients (slug, name, category, default_dimension, density_g_per_ml, piece_weight_g, ${NUTRITION_COLUMNS})), recipe_equipment (equipment_code)`,
+        )
+        .eq("status", "published"),
+      supabase.from("recipe_allergens").select("recipe_id, allergen_code"),
+      supabase.from("recipe_diet_conflicts").select("recipe_id, diet_code"),
+      householdContext(supabase, household.id, household.timezone),
+      loadPriceBook(supabase, household.id),
+      loadRatings(supabase, household.id),
+      // Recettes déjà mises au menu par le foyer (objectif « découvrir »).
+      supabase.from("meal_plan_entries").select("recipe_id").eq("household_id", household.id),
+      supabase
+        .from("ingredient_packages")
+        .select("ingredient_id, quantity_base, label, opened_keep_days"),
+    ]);
+  if (packs.error) throw new Error(packs.error.message);
+  const packages = new Map<string, PackInfo>(
+    packs.data.map((p) => [
+      p.ingredient_id,
+      {
+        size: p.quantity_base === null ? null : Number(p.quantity_base),
+        keepDays: p.opened_keep_days,
+        label: p.label,
+      },
+    ]),
+  );
   if (planned.error) throw new Error(planned.error.message);
   const everPlanned = new Set(planned.data.map((p) => p.recipe_id));
   if (recipes.error) throw new Error(`Lecture des recettes impossible : ${recipes.error.message}`);
@@ -253,10 +277,27 @@ export async function loadPlanningCatalog(
       totalMinutes: meta.totalMinutes,
       ingredientSlugs: required.flatMap((l) => (l.ingredients?.slug ? [l.ingredients.slug] : [])),
       proteinPerServing: meta.proteinPerServing,
+      // Paquets : quantité par portion, dans l'unité de base du format (sinon ignorée).
+      packUses: required.flatMap((l) => {
+        const pack = packages.get(l.ingredient_id);
+        if (!pack || l.quantity_base === null) return [];
+        if (pack.size !== null && l.dimension !== l.ingredients?.default_dimension) return [];
+        return [
+          { ingredientId: l.ingredient_id, perServing: Number(l.quantity_base) / r.servings },
+        ];
+      }),
     });
   }
 
-  return { recipes: metas, candidates, offProfile, limits, priceBook, profile: ctx.foodProfile };
+  return {
+    recipes: metas,
+    candidates,
+    offProfile,
+    limits,
+    priceBook,
+    profile: ctx.foodProfile,
+    packages,
+  };
 }
 
 /** Coût d'un plat pour un nombre de portions donné, avec les ingrédients sans prix. */

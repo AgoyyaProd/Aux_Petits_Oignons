@@ -14,7 +14,13 @@ describe("valeurs nutritionnelles (Ciqual)", () => {
        left join public.ingredient_nutrition n on n.ingredient_id = i.id
        where n.ingredient_id is null order by 1`,
     );
-    expect(rows.map((r) => r.slug)).toEqual(["ciboulette", "moule", "pate-curry", "poulet-entier"]);
+    expect(rows.map((r) => r.slug)).toEqual([
+      "ciboulette",
+      "moule",
+      "pate-curry",
+      "poulet-entier",
+      "tomate-sechee",
+    ]);
   });
 
   it("garde les valeurs Ciqual sans les deviner", async () => {

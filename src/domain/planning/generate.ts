@@ -50,6 +50,105 @@ export interface PlanCandidate {
   ingredientSlugs?: readonly string[];
   /** Protéines d'une portion, en grammes ; null ou absent si le calcul n'est pas fiable. */
   proteinPerServing?: number | null;
+  /**
+   * Ingrédients obligatoires vendus en paquet (ou fragiles), avec la quantité par portion
+   * dans leur unité de base : pour finir un paquet entamé par un autre plat de la semaine.
+   */
+  packUses?: readonly PackUse[];
+}
+
+/** Quantité d'un ingrédient vendu en paquet utilisée par une portion d'un plat. */
+export interface PackUse {
+  ingredientId: string;
+  /** Par portion, dans l'unité de base de l'ingrédient (g, ml ou pièce). */
+  perServing: number;
+}
+
+/**
+ * Format standard d'un produit : taille du paquet (unité de base) et nombre de jours pour le
+ * finir une fois ouvert. Sans taille : produit fragile sans format (herbes fraîches).
+ */
+export interface PackInfo {
+  size: number | null;
+  keepDays: number | null;
+  /** Libellé du paquet (ex. « boîte de 40 cl ») ; null sans format. */
+  label?: string | null;
+}
+
+/** Fenêtre de réutilisation d'un produit fragile sans durée connue (herbes fraîches). */
+export const FRESH_REUSE_DAYS = 3;
+
+/**
+ * Bonus de score pour finir un paquet entamé : du même ordre qu'un favori quand le plat
+ * finit tout le reste. Cumulé sur deux ingrédients au plus.
+ */
+export const PACK_BONUS = 2.5;
+
+/** Un plat déjà placé dans la semaine, pour les paquets qu'il entame. */
+export interface PlacedMeal {
+  candidate: PlanCandidate | undefined;
+  servings: number;
+  day?: string | null;
+}
+
+function daysBetween(a: string, b: string): number {
+  return Math.abs(Date.parse(`${a}T00:00:00Z`) - Date.parse(`${b}T00:00:00Z`)) / 86_400_000;
+}
+
+/** Reste d'un paquet après un besoin donné (0 si les paquets tombent juste). */
+export function packLeftover(need: number, size: number): number {
+  if (need <= 0) return 0;
+  const packs = Math.ceil(need / size - 1e-9);
+  const left = packs * size - need;
+  return left > size * 0.02 ? left : 0;
+}
+
+/**
+ * Bonus « finir le paquet » d'un candidat placé au jour `day` avec `servings` portions, face
+ * aux plats déjà placés. Pour chaque ingrédient en paquet partagé avec un plat placé dans la
+ * fenêtre de conservation après ouverture : le premier des deux plats (par jour) entame le
+ * paquet, le second en finit une part (au plus tout le reste). Sans format, un produit
+ * fragile réutilisé dans les jours qui suivent compte pour moitié. Sans jour connu, la
+ * fenêtre est supposée respectée. Fonction pure et déterministe.
+ */
+export function packSynergy(
+  c: PlanCandidate,
+  servings: number,
+  day: string | null | undefined,
+  placed: readonly PlacedMeal[],
+  packages: ReadonlyMap<string, PackInfo>,
+): number {
+  const gains: number[] = [];
+  for (const use of c.packUses ?? []) {
+    const pack = packages.get(use.ingredientId);
+    if (!pack) continue;
+    const window = pack.keepDays ?? FRESH_REUSE_DAYS;
+    let best = 0;
+    for (const other of placed) {
+      const otherUse = other.candidate?.packUses?.find((u) => u.ingredientId === use.ingredientId);
+      if (!otherUse || other.candidate?.id === c.id) continue;
+      if (day && other.day && daysBetween(day, other.day) > window) continue;
+      if (pack.size === null) {
+        best = Math.max(best, 0.5);
+        continue;
+      }
+      const mine = use.perServing * servings;
+      const theirs = otherUse.perServing * other.servings;
+      // Sans jour, le plat déjà placé est supposé le premier.
+      const iAmFirst = Boolean(day && other.day && day < other.day);
+      const [opener, finisher] = iAmFirst ? [mine, theirs] : [theirs, mine];
+      const left = packLeftover(opener, pack.size);
+      if (left > 0) best = Math.max(best, Math.min(1, finisher / left));
+    }
+    if (best > 0) gains.push(best);
+  }
+  return (
+    PACK_BONUS *
+    gains
+      .sort((a, b) => b - a)
+      .slice(0, 2)
+      .reduce((s, g) => s + g, 0)
+  );
 }
 
 /**
@@ -150,7 +249,14 @@ export interface PlanRequest {
   people: number;
   budgetCents: number | null;
   /** Plats gardés (verrouillés) : ils comptent dans le nombre de repas et le budget. */
-  locked: readonly { recipeId: string; servings: number }[];
+  locked: readonly { recipeId: string; servings: number; day?: string | null }[];
+  /** Formats standards des produits vendus en paquet, par ingrédient. */
+  packages?: ReadonlyMap<string, PackInfo>;
+  /**
+   * Jour prévu de chaque nouveau plat, dans l'ordre où ils sont choisis (null : sans jour) :
+   * sert à respecter la conservation après ouverture des paquets entamés.
+   */
+  slotDays?: readonly (string | null)[];
   /** Recettes à ne pas proposer (ex. retirées par l'utilisateur). */
   excludeRecipeIds?: readonly string[];
   /** Recettes du menu de la semaine précédente : évitées tant qu'il reste d'autres choix. */
@@ -276,6 +382,7 @@ export function generatePlan(candidates: readonly PlanCandidate[], req: PlanRequ
   const score = (c: PlanCandidate) => key.get(c.id) ?? 0;
   const recent = new Set(req.recentRecipeIds ?? []);
   const flexi = req.profile?.style === "flexitarien";
+  const packages = req.packages ?? new Map<string, PackInfo>();
   const meatCap = flexitarianMeatCap(req.mealCount);
 
   const entries: PlanEntry[] = req.locked.map((l) => ({
@@ -357,6 +464,25 @@ export function generatePlan(candidates: readonly PlanCandidate[], req: PlanRequ
           (!pass.pricedOnly || c.costPerServingMillicents !== null),
       );
       if (available.length === 0) break;
+      // Paquets entamés : un plat qui finit le reste d'un plat déjà placé (dans sa durée de
+      // conservation après ouverture) gagne des chances. Le bonus s'ajoute au log du poids.
+      if (packages.size > 0) {
+        const day = req.slotDays?.[entries.length - req.locked.length] ?? null;
+        const placed: PlacedMeal[] = entries.map((e, i) => ({
+          candidate: byId.get(e.recipeId),
+          servings: e.servings,
+          day: i < req.locked.length ? req.locked[i]!.day : req.slotDays?.[i - req.locked.length],
+        }));
+        const adjusted = new Map(
+          available.map((c) => [
+            c.id,
+            score(c) + packSynergy(c, req.people, day, placed, packages) / DRAW_TEMPERATURE,
+          ]),
+        );
+        available.sort(
+          (a, b) => adjusted.get(b.id)! - adjusted.get(a.id)! || a.id.localeCompare(b.id),
+        );
+      }
 
       let pick: PlanCandidate | undefined;
       if (needNovel) {
@@ -501,6 +627,7 @@ export function randomReplacement(
     profile,
     history,
     skippedRecipeIds,
+    packages,
     random = Math.random,
   }: {
     people: number;
@@ -512,6 +639,8 @@ export function randomReplacement(
     profile?: FoodProfile;
     history?: Readonly<Record<string, number>>;
     skippedRecipeIds?: readonly string[];
+    /** Formats standards : un plat qui finit un paquet entamé par le menu a plus de chances. */
+    packages?: ReadonlyMap<string, PackInfo>;
     random?: () => number;
   },
 ): string | null {
@@ -562,6 +691,15 @@ export function randomReplacement(
   // Tirage pondéré : à poids égaux, chaque plat a la même chance.
   const sorted = [...pool].sort((a, b) => a.id.localeCompare(b.id));
   const weights = drawWeights(sorted, { profile, month, history, skippedRecipeIds });
+  if (packages && packages.size > 0) {
+    const placed: PlacedMeal[] = others
+      .filter((e) => !e.leftover)
+      .map((e) => ({ candidate: byId.get(e.recipeId), servings: e.servings, day: e.day }));
+    for (const c of sorted) {
+      const bonus = packSynergy(c, people, current.day, placed, packages);
+      if (bonus > 0) weights.set(c.id, weights.get(c.id)! * Math.exp(bonus / DRAW_TEMPERATURE));
+    }
+  }
   const total = sorted.reduce((s, c) => s + weights.get(c.id)!, 0);
   let target = random() * total;
   for (const c of sorted) {

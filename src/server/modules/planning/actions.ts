@@ -198,7 +198,13 @@ export async function generatePlanAction(
       mealCount: locked.length + groups.length,
       people: input.people * pattern.mealsPerCook,
       budgetCents: input.budget,
-      locked: locked.map((e) => ({ recipeId: e.recipeId, servings: e.servings })),
+      locked: locked.map((e) => ({
+        recipeId: e.recipeId,
+        servings: e.servings,
+        day: keptPlaced.find((k) => k.recipeId === e.recipeId && !k.leftover)?.day ?? null,
+      })),
+      packages: catalog.packages,
+      slotDays: groups.map((g) => g[0]?.day ?? null),
       recentRecipeIds: memory.recent,
       history: memory.history,
       skippedRecipeIds: memory.skipped,
@@ -413,7 +419,9 @@ export async function addEntryAction(
       mealCount: cooking.length + 1,
       people: plan.people,
       budgetCents: plan.budgetCents,
-      locked: cooking.map((e) => ({ recipeId: e.recipeId, servings: e.servings })),
+      locked: cooking.map((e) => ({ recipeId: e.recipeId, servings: e.servings, day: e.day })),
+      packages: catalog.packages,
+      slotDays: [slotParam ? (parseSlotKey(slotParam, input.week)?.day ?? null) : null],
       seed: plan.seed + entries.length,
     });
     const extra = result.entries[cooking.length];
@@ -545,6 +553,7 @@ export async function changeEntryAction(
         profile: catalog.profile,
         rejected: plan.rejected,
         month: monthOf(week),
+        packages: catalog.packages,
       });
       if (!next) {
         found = false;

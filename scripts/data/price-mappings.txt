@@ -156,6 +156,8 @@ capre product en:capers
 cornichon product en:pickled-gherkins
 pesto product en:pestos ~
 pesto-rosso none
+sauce-teriyaki none
+tomate-sechee none
 noix product en:walnuts
 amande product en:almonds
 cacahuete product en:peanuts
