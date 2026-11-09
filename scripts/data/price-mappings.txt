@@ -128,6 +128,7 @@ oeuf product en:eggs
 lait product en:semi-skimmed-milks
 lait-vegetal product en:plant-based-milk-alternatives
 lait-coco product en:coconut-milks
+creme product en:fermented-creams en:unfermented-creams ~
 creme-fraiche product en:fermented-creams
 creme-liquide product en:unfermented-creams
 yaourt product en:plain-yogurts

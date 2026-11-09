@@ -54,12 +54,12 @@ describe("sauce teriyaki et tomates séchées", () => {
 });
 
 describe("formats standards des produits", () => {
-  it("25 produits, dont le lait de coco en boîte de 40 cl à finir en 3 jours", async () => {
+  it("26 produits, dont le lait de coco en boîte de 40 cl à finir en 3 jours", async () => {
     const { rows } = await pool.query(
       `select i.slug, p.quantity_base, p.label, p.opened_keep_days
        from public.ingredient_packages p join public.ingredients i on i.id = p.ingredient_id`,
     );
-    expect(rows).toHaveLength(25);
+    expect(rows).toHaveLength(26);
     expect(rows.find((r) => r.slug === "lait-coco")).toEqual({
       slug: "lait-coco",
       quantity_base: "400.000",
@@ -107,7 +107,7 @@ describe("formats standards des produits", () => {
       eve,
       async (db) => (await db.query("select 1 from public.ingredient_packages")).rowCount,
     );
-    expect(seen).toBe(25);
+    expect(seen).toBe(26);
     const code = await expectPgError(
       asUser(eve, (db) => db.query("update public.ingredient_packages set opened_keep_days = 30")),
     );

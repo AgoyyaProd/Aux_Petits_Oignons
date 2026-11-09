@@ -482,7 +482,7 @@ describe("lots 12 à 23 : recettes thématiques", () => {
     expect(all.size).toBe(lot("flammekueche").length);
     for (const f of all.values()) {
       const required = new Set(f.ings.filter((i) => !i.optional).map((i) => i.slug));
-      for (const slug of ["farine", "fromage-blanc", "creme-fraiche"]) {
+      for (const slug of ["farine", "fromage-blanc", "creme"]) {
         expect(required.has(slug), `${f.slug} : ${slug}`).toBe(true);
       }
       expect(f.tags, f.slug).toContain("four");

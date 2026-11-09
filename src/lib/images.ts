@@ -316,6 +316,7 @@ const INGREDIENT_PHOTO_VERSIONS: Readonly<Record<string, string>> = {
   cornichon: "d7c815fb",
   "coulis-tomate": "b8eb4b3b",
   courgette: "6f9023cc",
+  creme: "19869eb6",
   "creme-fraiche": "19869eb6",
   "creme-liquide": "19869eb6",
   crevette: "ec342c73",

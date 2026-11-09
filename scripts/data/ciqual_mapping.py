@@ -235,6 +235,7 @@ MAPPING: dict[str, tuple[int | None, str | None]] = {
     "huile-sesame": (17400, None),
     "huile-tournesol": (17440, None),
     # Œufs et produits laitiers
+    "creme": (19417, "Crème 30 % MG fluide, quasi identique à l'épaisse."),
     "creme-fraiche": (19410, "Crème 30 % MG épaisse."),
     "creme-liquide": (19417, "Crème 30 % MG fluide."),
     "fromage-blanc": (19646, "Nature, 2-3 % MG."),

@@ -93,6 +93,7 @@ LATER = {
     "pain-bretzel": {"dim": "mass", "density": False, "piece": False},
     "blanc-dinde": {"dim": "mass", "density": False, "piece": False},
     "roquette": {"dim": "mass", "density": False, "piece": False},
+    "creme": {"dim": "volume", "density": True, "piece": False},
 }
 NEW_INGREDIENTS = {}
 
