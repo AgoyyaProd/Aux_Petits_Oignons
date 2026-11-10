@@ -23,7 +23,7 @@ ANTIPASTO TOMA.SECHE,SACLA,280G | 1 | 2.76 | tomate-sechee | 280 g
 SCE TERIYAKI POULET,MAGGI,355G | 1 | 3.52 | sauce-teriyaki | 355 g
 EAU DE SOURCE,CRISTALIN,6X1.5L | 1 | 1.14 | - | # l'eau des recettes est celle du robinet
 BAG. TRADIROUGE 3+1 OFR,1KG | 1 | 2.76 | pain | 1 kg
-POTIMARRON BIO | 1 | 2.19 | - | # poids absent du ticket (non précisé)
+POTIMARRON BIO | 1 | 2.19 | potiron | 1.6 kg # poids précisé par l'utilisateur ; le référentiel range le potimarron sous potiron (migration 0081)
 PATATE DOUCE | 1 | 1.71 | patate-douce | 1 kg # barquette 1 kg, précisé par l'utilisateur
 GRAINES DE SESAME APIHA 120G | 1 | 2.05 | graine-sesame | 120 g
 TOMATE ECO+ FILET 1 KG | 1 | 1.99 | tomate | 1 kg

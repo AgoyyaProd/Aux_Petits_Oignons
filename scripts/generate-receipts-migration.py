@@ -30,7 +30,11 @@ def known_slugs() -> set[str]:
         text = sql.read_text(encoding="utf-8")
         if "into public.ingredients" not in text:
             continue
-        slugs.update(re.findall(r"\(\s*'([a-z0-9]+(?:-[a-z0-9]+)*)',\s*'(?:[^']|'')+'", text))
+        # (slug, nom) : un nom n'est jamais lui-même un slug ; les couples (synonyme, slug) des
+        # tables de synonymes sont ainsi écartés (« potimarron » est un synonyme de potiron).
+        slugs.update(
+            re.findall(r"\(\s*'([a-z0-9]+(?:-[a-z0-9]+)*)',\s*'(?![a-z0-9]+(?:-[a-z0-9]+)*')(?:[^']|'')+'", text)
+        )
     return slugs
 
 
