@@ -204,3 +204,26 @@ describe("cohérence des descriptions", () => {
     expect(rows).toEqual([]);
   });
 });
+
+describe("écritures du référentiel (politiques découpées, 0076)", () => {
+  it("l'administrateur écrit, modifie et supprime ; un utilisateur ordinaire, non", async () => {
+    const lambda = await createUser("lambda-referentiel");
+    const write = (user: TestUser) =>
+      asUser(user, async (db) => {
+        await db.query(
+          `insert into public.ingredient_aliases (alias_normalized, ingredient_id)
+           select 'alias de test 0076', id from public.ingredients where slug = 'sel'`,
+        );
+        const upd = await db.query(
+          `update public.ingredient_aliases set alias_normalized = 'alias de test 0076 bis'
+           where alias_normalized = 'alias de test 0076'`,
+        );
+        const del = await db.query(
+          "delete from public.ingredient_aliases where alias_normalized = 'alias de test 0076 bis'",
+        );
+        return [upd.rowCount, del.rowCount];
+      });
+    expect(await write(admin)).toEqual([1, 1]);
+    expect(await expectPgError(write(lambda))).toBe("42501");
+  });
+});

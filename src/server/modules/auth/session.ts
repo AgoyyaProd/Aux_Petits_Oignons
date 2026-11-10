@@ -3,15 +3,24 @@ import { redirect } from "next/navigation";
 import { cache } from "react";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 
+export interface CurrentUser {
+  id: string;
+  email: string | null;
+}
+
 /**
- * Utilisateur courant, vérifié auprès de Supabase Auth (getUser, pas getSession :
- * un cookie seul n'est pas une preuve). Mémorisé pour la durée d'une requête.
+ * Utilisateur courant, d'après le jeton de session vérifié (getClaims : signature contrôlée,
+ * pas getSession, car un cookie seul n'est pas une preuve). Même vérification que le proxy
+ * et que la base (RLS), sans appel réseau au service d'authentification à chaque page quand
+ * les clés de signature sont asymétriques. Mémorisé pour la durée d'une requête.
  */
-export const getCurrentUser = cache(async () => {
+export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data.user) return null;
-  return data.user;
+  const { data, error } = await supabase.auth.getClaims();
+  const sub = data?.claims?.sub;
+  if (error || typeof sub !== "string" || !sub) return null;
+  const email = data.claims.email;
+  return { id: sub, email: typeof email === "string" ? email : null };
 });
 
 /** À appeler en tête de toute page ou action protégée. */

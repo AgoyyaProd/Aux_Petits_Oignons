@@ -122,6 +122,12 @@ async function prepareCooking(
   return { info, result, missing } as const;
 }
 
+function consumedMessage(consumed: number): string {
+  return consumed > 0
+    ? `Bon appétit ! ${consumed} produit${consumed > 1 ? "s" : ""} retiré${consumed > 1 ? "s" : ""} du garde-manger.`
+    : "Bon appétit ! Rien à retirer du garde-manger.";
+}
+
 /** Message de fin commun : produits retirés et ingrédients introuvables. */
 function cookedState(
   data: unknown,
@@ -131,10 +137,7 @@ function cookedState(
   const consumed = (data as { consumed?: number } | null)?.consumed ?? result.consumptions.length;
   return {
     status: "success",
-    message:
-      consumed > 0
-        ? `Bon appétit ! ${consumed} produit${consumed > 1 ? "s" : ""} retiré${consumed > 1 ? "s" : ""} du garde-manger.`
-        : "Bon appétit ! Rien à retirer du garde-manger.",
+    message: consumedMessage(consumed),
     missing: result.missing.map(
       (m) => `${info.get(m.ingredientId)?.name ?? "?"} (${formatShoppingQuantity(m.quantity)})`,
     ),
@@ -161,6 +164,24 @@ export async function cookAction(_prev: CookState, formData: FormData): Promise<
   if (!parsed.success) return { status: "error", message: "Formulaire expiré, recharge la page." };
   const { week, recipeId, key } = parsed.data;
   const supabase = await createSupabaseServerClient();
+
+  // Même formulaire envoyé deux fois : la première cuisson est déjà enregistrée (le plat
+  // n'est plus « à cuisiner »). On renvoie son résultat au lieu d'une erreur.
+  const replay = await supabase
+    .from("stock_operations")
+    .select("result")
+    .eq("household_id", household.id)
+    .eq("idempotency_key", key)
+    .eq("kind", "cooking")
+    .maybeSingle();
+  if (replay.error) return { status: "error", message: toActionError(replay.error).message };
+  if (replay.data?.result) {
+    const consumed = (replay.data.result as { consumed?: number }).consumed ?? 0;
+    return {
+      status: "success",
+      message: consumedMessage(consumed),
+    };
+  }
 
   const plan = await readPlan(supabase, household.id, week);
   const index =

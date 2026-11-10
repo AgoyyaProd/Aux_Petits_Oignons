@@ -5,14 +5,14 @@ import {
   computeShoppingList,
   packHint,
   purchaseQuantity,
-  remapVariantLots,
+  splitVariantLots,
   type IngredientInfo,
   type PlannedMealInput,
   type ShoppingWarning,
   type StockLot,
 } from "@/domain/shopping";
 import { mealDateFor } from "@/domain/planning";
-import { fromBase, type Dimension, type Quantity } from "@/domain/units";
+import { fromBase, scale, type Dimension, type Quantity } from "@/domain/units";
 import { AISLES, orderedAisles } from "@/lib/categories";
 import { todayIn } from "@/lib/dates";
 import { addDays, isMonday, mondayOf } from "@/lib/week";
@@ -183,11 +183,23 @@ export async function getShoppingPage(week?: string) {
   const parentOf = new Map(
     ingredients.data!.filter((i) => i.parent_id).map((i) => [i.id, i.parent_id!]),
   );
-  const required = new Set(meals.flatMap((m) => m.recipe.lines.map((l) => l.ingredientId)));
+  // Seuls les ingrédients obligatoires réservent du stock (un facultatif ne s'achète pas).
+  // Une variante demandée garde la part de son propre besoin ; le reste sert au parent.
+  const required = new Set<string>();
+  const variantDemand = new Map<string, Quantity[]>();
+  for (const m of meals) {
+    for (const l of m.recipe.lines) {
+      if (l.optional) continue;
+      required.add(l.ingredientId);
+      if (!parentOf.has(l.ingredientId)) continue;
+      const need = scale(l.quantity, m.servings, m.recipe.servings);
+      variantDemand.set(l.ingredientId, [...(variantDemand.get(l.ingredientId) ?? []), need]);
+    }
+  }
   const result = computeShoppingList({
     meals,
     ingredients: info,
-    stock: remapVariantLots(stock, parentOf, required),
+    stock: splitVariantLots(stock, parentOf, required, variantDemand),
     cupboard: new Set([...staples.data.map((s) => s.ingredient_id), ...free]),
   });
 

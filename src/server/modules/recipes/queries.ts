@@ -24,6 +24,7 @@ import { todayIn } from "@/lib/dates";
 import { getCurrentContext } from "@/server/modules/auth/session";
 import { loadPriceBook } from "@/server/modules/prices/price-book";
 import { loadRatings, recipeHistory, type Rating } from "@/server/modules/recipes/ratings";
+import { fetchAll } from "@/server/supabase/fetch-all";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 import {
   NUTRITION_COLUMNS,
@@ -225,32 +226,55 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
   const month = monthOf(todayIn(household.timezone));
   const supabase = await createSupabaseServerClient();
 
-  const [recipes, allergens, conflicts, ctx, names, ratings, priceBook] = await Promise.all([
-    supabase
-      .from("recipes")
-      .select(
-        `id, slug, title, description, servings, prep_minutes, rest_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, is_optional, quantity_base, dimension, ingredients (slug, name, density_g_per_ml, piece_weight_g, ${NUTRITION_COLUMNS})), recipe_steps (count), recipe_equipment (equipment_code)`,
-      )
-      .eq("status", "published")
-      .order("title"),
-    supabase.from("recipe_allergens").select("recipe_id, allergen_code"),
-    supabase.from("recipe_diet_conflicts").select("recipe_id, diet_code"),
-    householdContext(supabase, household.id, household.timezone),
-    labels(supabase),
-    loadRatings(supabase, household.id),
-    loadPriceBook(supabase, household.id),
-  ]);
-  if (recipes.error) fail("des recettes", recipes.error);
-  if (allergens.error) fail("des allergènes de recettes", allergens.error);
-  if (conflicts.error) fail("des régimes de recettes", conflicts.error);
+  // Recettes, allergènes et régimes dépassent la limite de lignes de l'API : lus page par page.
+  const [recipeRows, allergenRows, conflictRows, ctx, names, ratings, priceBook] =
+    await Promise.all([
+      fetchAll(
+        (from, to) =>
+          supabase
+            .from("recipes")
+            .select(
+              `id, slug, title, description, servings, prep_minutes, rest_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, is_optional, quantity_base, dimension, ingredients (slug, name, density_g_per_ml, piece_weight_g, ${NUTRITION_COLUMNS})), recipe_steps (count), recipe_equipment (equipment_code)`,
+            )
+            .eq("status", "published")
+            .order("title")
+            .order("id")
+            .range(from, to),
+        "des recettes",
+      ),
+      fetchAll(
+        (from, to) =>
+          supabase
+            .from("recipe_allergens")
+            .select("recipe_id, allergen_code")
+            .order("recipe_id")
+            .order("allergen_code")
+            .range(from, to),
+        "des allergènes de recettes",
+      ),
+      fetchAll(
+        (from, to) =>
+          supabase
+            .from("recipe_diet_conflicts")
+            .select("recipe_id, diet_code")
+            .order("recipe_id")
+            .order("diet_code")
+            .range(from, to),
+        "des régimes de recettes",
+      ),
+      householdContext(supabase, household.id, household.timezone),
+      labels(supabase),
+      loadRatings(supabase, household.id),
+      loadPriceBook(supabase, household.id),
+    ]);
 
   const allergensByRecipe = groupBy(
-    allergens.data,
+    allergenRows,
     (r) => r.recipe_id,
     (r) => r.allergen_code,
   );
   const conflictsByRecipe = groupBy(
-    conflicts.data,
+    conflictRows,
     (r) => r.recipe_id,
     (r) => r.diet_code,
   );
@@ -259,7 +283,7 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
   let excludedCount = 0;
   const proteinThreshold = ctx.foodProfile.proteinTargetG ?? HIGH_PROTEIN_G;
 
-  for (const r of recipes.data) {
+  for (const r of recipeRows) {
     const lines = r.recipe_ingredients ?? [];
     const recipeConflicts = conflictsByRecipe.get(r.id) ?? [];
     const compatibility = checkCompatibility(

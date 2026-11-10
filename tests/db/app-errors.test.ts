@@ -52,4 +52,30 @@ describe("journal des erreurs", () => {
       ),
     ).toBe("42501");
   });
+
+  it("les signalements anonymes ont leur propre quota : ils ne masquent pas ceux des connectés", async () => {
+    await pool.query(
+      `insert into public.app_errors (kind, message, signed_in)
+       select 'client', 'spam', false from generate_series(1, 200)`,
+    );
+    await asUser(
+      null,
+      (db) => db.query("select public.report_app_error('client', 'anonyme', 'd3')"),
+      {
+        role: "anon",
+        commit: true,
+      },
+    );
+    await asUser(
+      lou,
+      (db) => db.query("select public.report_app_error('client', 'connecté', 'd4')"),
+      {
+        commit: true,
+      },
+    );
+    const { rows } = await pool.query(
+      "select digest, signed_in from public.app_errors where digest in ('d3', 'd4') order by digest",
+    );
+    expect(rows).toEqual([{ digest: "d4", signed_in: true }]);
+  });
 });

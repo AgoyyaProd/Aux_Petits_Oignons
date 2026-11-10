@@ -1,5 +1,6 @@
 import "server-only";
 import { cache } from "react";
+import { fetchAll } from "@/server/supabase/fetch-all";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 import {
   isMainDish,
@@ -120,21 +121,55 @@ export async function loadPlanningCatalog(
   supabase: Supabase,
   household: HouseholdForPlanning,
 ): Promise<PlanningCatalog> {
-  const [recipes, allergens, conflicts, ctx, priceBook, ratings, planned, packs] =
+  // Recettes, allergènes et régimes dépassent la limite de lignes de l'API : lus page par page.
+  const [recipeRows, allergenRows, conflictRows, ctx, priceBook, ratings, plannedRows, packs] =
     await Promise.all([
-      supabase
-        .from("recipes")
-        .select(
-          `id, slug, title, servings, prep_minutes, rest_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, quantity_base, dimension, is_optional, ingredients (slug, name, category, default_dimension, density_g_per_ml, piece_weight_g, ${NUTRITION_COLUMNS})), recipe_equipment (equipment_code)`,
-        )
-        .eq("status", "published"),
-      supabase.from("recipe_allergens").select("recipe_id, allergen_code"),
-      supabase.from("recipe_diet_conflicts").select("recipe_id, diet_code"),
+      fetchAll(
+        (from, to) =>
+          supabase
+            .from("recipes")
+            .select(
+              `id, slug, title, servings, prep_minutes, rest_minutes, cook_minutes, tags, recipe_ingredients (ingredient_id, quantity_base, dimension, is_optional, ingredients (slug, name, category, default_dimension, density_g_per_ml, piece_weight_g, ${NUTRITION_COLUMNS})), recipe_equipment (equipment_code)`,
+            )
+            .eq("status", "published")
+            .order("id")
+            .range(from, to),
+        "des recettes",
+      ),
+      fetchAll(
+        (from, to) =>
+          supabase
+            .from("recipe_allergens")
+            .select("recipe_id, allergen_code")
+            .order("recipe_id")
+            .order("allergen_code")
+            .range(from, to),
+        "des allergènes de recettes",
+      ),
+      fetchAll(
+        (from, to) =>
+          supabase
+            .from("recipe_diet_conflicts")
+            .select("recipe_id, diet_code")
+            .order("recipe_id")
+            .order("diet_code")
+            .range(from, to),
+        "des régimes de recettes",
+      ),
       householdContext(supabase, household.id, household.timezone),
       loadPriceBook(supabase, household.id),
       loadRatings(supabase, household.id),
       // Recettes déjà mises au menu par le foyer (objectif « découvrir »).
-      supabase.from("meal_plan_entries").select("recipe_id").eq("household_id", household.id),
+      fetchAll(
+        (from, to) =>
+          supabase
+            .from("meal_plan_entries")
+            .select("recipe_id")
+            .eq("household_id", household.id)
+            .order("id")
+            .range(from, to),
+        "des menus passés",
+      ),
       supabase
         .from("ingredient_packages")
         .select("ingredient_id, quantity_base, label, opened_keep_days"),
@@ -150,19 +185,14 @@ export async function loadPlanningCatalog(
       },
     ]),
   );
-  if (planned.error) throw new Error(planned.error.message);
-  const everPlanned = new Set(planned.data.map((p) => p.recipe_id));
-  if (recipes.error) throw new Error(`Lecture des recettes impossible : ${recipes.error.message}`);
-  if (allergens.error) throw new Error(allergens.error.message);
-  if (conflicts.error) throw new Error(conflicts.error.message);
-
+  const everPlanned = new Set(plannedRows.map((p) => p.recipe_id));
   const allergensBy = new Map<string, string[]>();
-  for (const a of allergens.data) {
+  for (const a of allergenRows) {
     if (!a.recipe_id || !a.allergen_code) continue;
     allergensBy.set(a.recipe_id, [...(allergensBy.get(a.recipe_id) ?? []), a.allergen_code]);
   }
   const conflictsBy = new Map<string, string[]>();
-  for (const d of conflicts.data) {
+  for (const d of conflictRows) {
     if (!d.recipe_id || !d.diet_code) continue;
     conflictsBy.set(d.recipe_id, [...(conflictsBy.get(d.recipe_id) ?? []), d.diet_code]);
   }
@@ -173,7 +203,7 @@ export async function loadPlanningCatalog(
   const offProfile: OffProfileChoice[] = [];
   const limits: CatalogLimits = { equipment: 0, ingredients: 0, tooLong: 0 };
 
-  for (const r of recipes.data as unknown as RecipeRow[]) {
+  for (const r of recipeRows as unknown as RecipeRow[]) {
     const rows = r.recipe_ingredients ?? [];
     const lines: CostLine[] = rows.map((l) => ({
       ingredientId: l.ingredient_id,

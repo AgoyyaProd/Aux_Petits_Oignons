@@ -11,6 +11,7 @@ import {
 import type { Dimension } from "@/domain/units";
 import type { Database, Json } from "@/types/database";
 import { fetchFrenchObservations, type SourceKind } from "./open-prices";
+import { fetchAll } from "@/server/supabase/fetch-all";
 
 type Client = SupabaseClient<Database>;
 
@@ -77,20 +78,26 @@ interface ReceiptRow {
  */
 export async function syncReceiptPrices(supabase: Client, now = new Date()): Promise<Set<string>> {
   const since = isoDaysAgo(WINDOW_DAYS, now);
-  const [lines, existing] = await Promise.all([
-    supabase
-      .from("receipt_prices")
-      .select(
-        "ingredient_id, purchased_on, pack_quantity, pack_unit, cents, ingredients (default_dimension, density_g_per_ml, piece_weight_g)",
-      )
-      .gte("purchased_on", since),
+  // Les lignes de tickets d'une année dépassent vite la limite de lignes de l'API.
+  const [lineRows, existing] = await Promise.all([
+    fetchAll(
+      (from, to) =>
+        supabase
+          .from("receipt_prices")
+          .select(
+            "ingredient_id, purchased_on, pack_quantity, pack_unit, cents, ingredients (default_dimension, density_g_per_ml, piece_weight_g)",
+          )
+          .gte("purchased_on", since)
+          .order("id")
+          .range(from, to),
+      "des tickets de caisse",
+    ),
     supabase.from("reference_prices").select("ingredient_id").eq("source", "receipts"),
   ]);
-  if (lines.error) throw new Error(`Tickets de caisse : ${lines.error.message}`);
   if (existing.error) throw new Error(`Tickets de caisse : ${existing.error.message}`);
 
   const byIngredient = new Map<string, { values: number[]; dates: string[] }>();
-  for (const row of lines.data as unknown as ReceiptRow[]) {
+  for (const row of lineRows as unknown as ReceiptRow[]) {
     const ing = row.ingredients;
     if (!ing) continue;
     const value = receiptUnitPrice(
@@ -106,7 +113,7 @@ export async function syncReceiptPrices(supabase: Client, now = new Date()): Pro
   }
 
   const dimensions = new Map(
-    (lines.data as unknown as ReceiptRow[]).map((r) => [
+    (lineRows as unknown as ReceiptRow[]).map((r) => [
       r.ingredient_id,
       r.ingredients!.default_dimension,
     ]),

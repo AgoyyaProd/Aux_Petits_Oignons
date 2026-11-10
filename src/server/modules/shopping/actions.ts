@@ -139,15 +139,23 @@ export async function finishShoppingAction(
   if (error) return { status: "error", message: toActionError(error).message };
 
   // Les lignes rangées sont couvertes par le stock : leurs coches n'ont plus lieu d'être.
+  // Une requête par dimension (au plus trois) au lieu d'une par ligne.
+  const byDimension = new Map<"mass" | "volume" | "count", string[]>();
   for (const line of lines) {
-    await supabase
-      .from("shopping_checks")
-      .delete()
-      .eq("household_id", household.id)
-      .eq("week_start", week)
-      .eq("ingredient_id", line.ingredientId)
-      .eq("dimension", line.dimension as "mass" | "volume" | "count");
+    const d = line.dimension as "mass" | "volume" | "count";
+    byDimension.set(d, [...(byDimension.get(d) ?? []), line.ingredientId]);
   }
+  await Promise.all(
+    [...byDimension].map(([dimension, ids]) =>
+      supabase
+        .from("shopping_checks")
+        .delete()
+        .eq("household_id", household.id)
+        .eq("week_start", week)
+        .eq("dimension", dimension)
+        .in("ingredient_id", ids),
+    ),
+  );
   refresh();
   const n = (data as { put_away?: { count?: number } | null } | null)?.put_away?.count ?? 0;
   return {
@@ -235,20 +243,45 @@ export async function addManyExtrasAction(
     return { status: "error", message: "Rien à ajouter." };
   }
   const supabase = await createSupabaseServerClient();
+  // Une lecture des articles déjà présents, puis une seule insertion pour les nouveaux.
+  const present = await supabase
+    .from("shopping_extras")
+    .select("ingredient_id")
+    .eq("household_id", ctx.household.id)
+    .eq("week_start", ctx.week)
+    .in(
+      "ingredient_id",
+      items.map((i) => i.ingredientId),
+    );
+  if (present.error) return { status: "error", message: toActionError(present.error).message };
+  const already = new Set(present.data.map((p) => p.ingredient_id));
+  const fresh = [...new Map(items.map((i) => [i.ingredientId, i])).values()].filter(
+    (i) => !already.has(i.ingredientId),
+  );
+  const rows = fresh.map((item) => ({
+    household_id: ctx.household.id,
+    week_start: ctx.week,
+    label: item.label,
+    quantity_text: item.quantity || null,
+    ingredient_id: item.ingredientId,
+    source_recipe_id: recipeId.success ? recipeId.data : null,
+  }));
   let added = 0;
-  for (const item of items) {
-    const { error } = await supabase.from("shopping_extras").insert({
-      household_id: ctx.household.id,
-      week_start: ctx.week,
-      label: item.label,
-      quantity_text: item.quantity || null,
-      ingredient_id: item.ingredientId,
-      source_recipe_id: recipeId.success ? recipeId.data : null,
-    });
-    if (error && error.code !== UNIQUE_VIOLATION) {
+  if (rows.length) {
+    const { error } = await supabase.from("shopping_extras").insert(rows);
+    if (!error) added = rows.length;
+    else if (error.code !== UNIQUE_VIOLATION) {
       return { status: "error", message: toActionError(error).message };
+    } else {
+      // Ajout simultané depuis un autre appareil : on retombe sur un ajout ligne à ligne.
+      for (const row of rows) {
+        const one = await supabase.from("shopping_extras").insert(row);
+        if (one.error && one.error.code !== UNIQUE_VIOLATION) {
+          return { status: "error", message: toActionError(one.error).message };
+        }
+        if (!one.error) added += 1;
+      }
     }
-    if (!error) added += 1;
   }
   refresh();
   return {
@@ -294,10 +327,16 @@ export async function checkAllAction(formData: FormData): Promise<void> {
   if (!household) return;
   const parsed = checkAllSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return;
+  let raw: unknown;
+  try {
+    raw = JSON.parse(parsed.data.lines);
+  } catch {
+    return;
+  }
   const lines = z
     .array(z.object({ i: z.uuid(), d: z.enum(["mass", "volume", "count"]) }))
     .max(200)
-    .safeParse(JSON.parse(parsed.data.lines));
+    .safeParse(raw);
   if (!lines.success) return;
   const supabase = await createSupabaseServerClient();
   if (lines.data.length) {

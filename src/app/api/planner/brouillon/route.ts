@@ -7,8 +7,9 @@ import { createSupabaseServerClient } from "@/server/supabase/server";
 
 /**
  * Abandon du brouillon de menu quand on quitte la page sans valider (fermeture de l'onglet,
- * rechargement, navigation) : appelé par navigator.sendBeacon. Même origine uniquement ;
- * la RLS limite la suppression au foyer de l'utilisateur.
+ * rechargement, navigation) : appelé par navigator.sendBeacon, qui envoie toujours l'en-tête
+ * Origin. Même origine exigée (pas de requête forgée depuis un autre site) ; la RLS limite
+ * la suppression au foyer de l'utilisateur.
  */
 export async function POST(request: NextRequest) {
   const origin = request.headers.get("origin");
@@ -16,7 +17,7 @@ export async function POST(request: NextRequest) {
     new URL(publicEnv().NEXT_PUBLIC_SITE_URL).origin,
     request.nextUrl.origin,
   ]);
-  if (origin && !allowed.has(origin)) return new NextResponse(null, { status: 403 });
+  if (!origin || !allowed.has(origin)) return new NextResponse(null, { status: 403 });
 
   const user = await getCurrentUser();
   if (!user) return new NextResponse(null, { status: 401 });

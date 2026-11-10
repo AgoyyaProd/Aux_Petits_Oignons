@@ -240,6 +240,30 @@ describe("invitations", () => {
     );
     expect(code).toBe(PG.invalidParameter);
   });
+
+  it("une adresse non confirmée ne peut pas accepter une invitation, même la bonne", async () => {
+    const eve = await createUser("eve-non-confirmee", { confirmed: false });
+    const token = await asUser(
+      alice,
+      async (db) =>
+        (
+          await db.query("select public.create_household_invitation($1, $2) as t", [
+            alice.householdId,
+            eve.email,
+          ])
+        ).rows[0].t as string,
+      { commit: true },
+    );
+    const code = await expectPgError(
+      asUser(eve, (db) => db.query("select public.accept_household_invitation($1)", [token])),
+    );
+    expect(code).toBe(PG.invalidParameter);
+    const { rowCount } = await pool.query(
+      "select 1 from public.household_members where household_id = $1 and user_id = $2",
+      [alice.householdId, eve.id],
+    );
+    expect(rowCount).toBe(0);
+  });
 });
 
 describe("accès anonyme et tables réservées", () => {

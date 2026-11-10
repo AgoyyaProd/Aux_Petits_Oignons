@@ -15,14 +15,21 @@ export interface TestUser {
   householdId: string;
 }
 
-/** Crée un utilisateur comme le ferait Supabase Auth ; le trigger d'inscription s'exécute. */
-export async function createUser(label: string): Promise<TestUser> {
+/**
+ * Crée un utilisateur comme le ferait Supabase Auth ; le trigger d'inscription s'exécute.
+ * Adresse confirmée par défaut, comme tout compte qui a pu se connecter.
+ */
+export async function createUser(
+  label: string,
+  { confirmed = true }: { confirmed?: boolean } = {},
+): Promise<TestUser> {
   const email = `${label}-${randomUUID().slice(0, 8)}@test.local`;
   const { rows } = await pool.query<{ id: string }>(
-    `insert into auth.users (id, email, raw_user_meta_data)
-     values (gen_random_uuid(), $1, jsonb_build_object('display_name', $2::text))
+    `insert into auth.users (id, email, raw_user_meta_data, email_confirmed_at)
+     values (gen_random_uuid(), $1, jsonb_build_object('display_name', $2::text),
+             case when $3::boolean then now() end)
      returning id`,
-    [email, label],
+    [email, label, confirmed],
   );
   const id = rows[0]!.id;
   const profile = await pool.query<{ active_household_id: string }>(
