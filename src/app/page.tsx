@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import type { ReactNode } from "react";
 import { Logo } from "@/components/brand/logo";
+import { PUBLIC_FOOTER_LINKS, SiteFooter } from "@/components/layout/site-footer";
 import { BrandBadge, BrandElement, TexturedMark } from "@/components/brand/shapes";
 import { RecipeVisual } from "@/components/recipes/recipe-visual";
 import { ImageSlot } from "@/components/ui/image-slot";
@@ -298,31 +299,7 @@ export default function HomePage() {
         </section>
       </main>
 
-      <footer className="border-border border-t">
-        <div className="text-muted mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-8 text-sm sm:px-6">
-          <Logo size={44} />
-          <p>
-            Prix indicatifs :{" "}
-            <a
-              href="https://prices.openfoodfacts.org"
-              className="underline"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Open Prices
-            </a>{" "}
-            (licence ODbL).
-          </p>
-          <nav aria-label="Compte" className="flex gap-5">
-            <Link href="/login" className="hover:text-foreground">
-              Se connecter
-            </Link>
-            <Link href="/signup" className="hover:text-foreground">
-              Créer un compte
-            </Link>
-          </nav>
-        </div>
-      </footer>
+      <SiteFooter links={PUBLIC_FOOTER_LINKS} />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
 import { BrandElement } from "@/components/brand/shapes";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { PUBLIC_FOOTER_LINKS, SiteFooter } from "@/components/layout/site-footer";
 
 /** Connexion et inscription : un formulaire court, centré, sur fond crème. */
 export default function AuthLayout({ children }: LayoutProps<"/">) {
@@ -37,6 +38,7 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
           {children}
         </div>
       </main>
+      <SiteFooter links={PUBLIC_FOOTER_LINKS} className="relative" />
     </div>
   );
 }

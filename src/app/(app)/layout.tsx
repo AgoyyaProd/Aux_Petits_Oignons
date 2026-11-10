@@ -7,6 +7,7 @@ import { iconButtonClasses } from "@/components/ui/button";
 import { SearchIcon } from "@/components/ui/icons";
 import { getCurrentContext } from "@/server/modules/auth/session";
 import { OfflineBanner } from "@/components/pwa/offline-banner";
+import { APP_FOOTER_LINKS, SiteFooter } from "@/components/layout/site-footer";
 
 /**
  * Coquille de l'application, statique et prérendue :
@@ -60,9 +61,14 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             </Link>
           </div>
         </header>
-        <main className="mx-auto w-full max-w-[120rem] flex-1 px-4 pt-6 pb-28 sm:px-6 lg:px-12 lg:pt-12 lg:pb-20 xl:px-16 print:p-0">
+        <main className="mx-auto w-full max-w-[120rem] flex-1 px-4 pt-6 pb-12 sm:px-6 lg:px-12 lg:pt-12 lg:pb-16 xl:px-16 print:p-0">
           {children}
         </main>
+        {/* Sur téléphone, la marge du bas laisse la place à la barre d'onglets fixe. */}
+        <SiteFooter
+          links={APP_FOOTER_LINKS}
+          className="pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0"
+        />
       </div>
 
       <div className="print:hidden">
