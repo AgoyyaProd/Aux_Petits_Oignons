@@ -8,6 +8,7 @@ import {
   BookIcon,
   CalendarIcon,
   HomeIcon,
+  LeafIcon,
   PantryIcon,
   SettingsIcon,
   UserIcon,
@@ -15,7 +16,7 @@ import {
 } from "@/components/ui/icons";
 
 type Icon = ComponentType<SVGProps<SVGSVGElement> & { size?: number }>;
-interface NavItem {
+export interface NavItem {
   href: string;
   label: string;
   icon: Icon;
@@ -34,6 +35,17 @@ export const SIDEBAR: readonly NavItem[] = [
   { href: "/settings", label: "Mes préférences", icon: SettingsIcon },
 ];
 
+/**
+ * Barre latérale des visiteurs (non connectés) : la même barre, avec les rubriques de la page
+ * d'accueil publique. Les rubriques du compte exigent une connexion.
+ */
+export const VISITOR_SIDEBAR: readonly NavItem[] = [
+  { href: "/", label: "Accueil", icon: HomeIcon },
+  { href: "/#recettes", label: "Nos recettes", icon: BookIcon },
+  { href: "/#fonctionnement", label: "Comment ça marche", icon: CalendarIcon },
+  { href: "/#engagements", label: "Nos engagements", icon: LeafIcon },
+];
+
 /** Onglets (téléphone) : cinq entrées à portée de pouce. */
 const TABS: readonly NavItem[] = [
   { href: "/dashboard", label: "Accueil", icon: HomeIcon },
@@ -50,6 +62,9 @@ const TABS: readonly NavItem[] = [
 
 function isActive(pathname: string | null, item: NavItem) {
   if (pathname === null) return false;
+  // Ancre de la page d'accueil : jamais « active » (on ne suit pas le défilement).
+  if (item.href.includes("#")) return false;
+  if (item.href === "/") return pathname === "/";
   return [item.href, ...(item.also ?? [])].some(
     (href) => pathname === href || pathname.startsWith(`${href}/`),
   );
@@ -59,19 +74,25 @@ function isActive(pathname: string | null, item: NavItem) {
  * usePathname() lit l'URL de la requête : avec les Cache Components, ces composants sont
  * rendus dans un <Suspense> dont le repli est la version « Shell » (sans entrée active).
  */
-export function SideNav() {
-  return <SideNavShell pathname={usePathname()} />;
+export function SideNav({ items = SIDEBAR }: { items?: readonly NavItem[] }) {
+  return <SideNavShell pathname={usePathname()} items={items} />;
 }
 export function TabBar() {
   return <TabBarShell pathname={usePathname()} />;
 }
 
 /** Rubriques de la barre latérale : l'entrée active est sur fond vert pâle, icône terracotta. */
-export function SideNavShell({ pathname }: { pathname: string | null }) {
+export function SideNavShell({
+  pathname,
+  items = SIDEBAR,
+}: {
+  pathname: string | null;
+  items?: readonly NavItem[];
+}) {
   return (
     <nav aria-label="Navigation principale">
       <ul className="flex flex-col gap-1">
-        {SIDEBAR.map((it) => {
+        {items.map((it) => {
           const active = isActive(pathname, it);
           const Icon = it.icon;
           return (

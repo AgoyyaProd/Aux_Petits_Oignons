@@ -1,44 +1,36 @@
-import Link from "next/link";
-import { Logo } from "@/components/brand/logo";
 import { BrandElement } from "@/components/brand/shapes";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { PUBLIC_FOOTER_LINKS, SiteFooter } from "@/components/layout/site-footer";
+import { SiteShell } from "@/components/layout/site-shell";
 
-/** Connexion et inscription : un formulaire court, centré, sur fond crème. */
+/**
+ * Connexion et inscription : dans la coquille commune du site (version visiteur), un
+ * formulaire court et centré, entouré des formes du logo.
+ */
 export default function AuthLayout({ children }: LayoutProps<"/">) {
   return (
-    <div className="relative flex flex-1 flex-col overflow-hidden">
-      {/* Décor : les trois formes du logo autour du formulaire. */}
-      <BrandElement
-        name="leaf"
-        priority
-        sizes="256px"
-        className="absolute top-24 -left-16 hidden w-64 -rotate-12 md:block"
-      />
-      <BrandElement
-        name="dot"
-        priority
-        sizes="176px"
-        className="absolute top-1/3 -right-12 hidden w-44 md:block"
-      />
-      <BrandElement
-        name="slice"
-        priority
-        sizes="320px"
-        className="absolute -bottom-16 left-[12%] hidden w-80 rotate-3 md:block"
-      />
-      <header className="relative mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-5 sm:px-6">
-        <Link href="/" aria-label="Aux Petits Oignons, accueil">
-          <Logo size={40} />
-        </Link>
-        <ThemeToggle />
-      </header>
-      <main className="relative mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 pb-16">
-        <div className="bg-surface border-border flex flex-col gap-6 rounded-2xl border p-6 sm:p-8">
+    <SiteShell member={false}>
+      <div className="relative isolate flex min-h-[70dvh] items-center justify-center py-6">
+        <BrandElement
+          name="leaf"
+          priority
+          sizes="224px"
+          className="absolute top-0 left-[8%] -z-10 hidden w-56 -rotate-12 md:block"
+        />
+        <BrandElement
+          name="dot"
+          priority
+          sizes="160px"
+          className="absolute top-1/3 right-[6%] -z-10 hidden w-40 md:block"
+        />
+        <BrandElement
+          name="slice"
+          priority
+          sizes="288px"
+          className="absolute bottom-0 left-[18%] -z-10 hidden w-72 rotate-3 md:block"
+        />
+        <div className="bg-surface border-border flex w-full max-w-md flex-col gap-6 rounded-2xl border p-6 sm:p-8">
           {children}
         </div>
-      </main>
-      <SiteFooter links={PUBLIC_FOOTER_LINKS} className="relative" />
-    </div>
+      </div>
+    </SiteShell>
   );
 }

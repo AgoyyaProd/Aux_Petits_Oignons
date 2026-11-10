@@ -1,86 +1,30 @@
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
-import { Logo } from "@/components/brand/logo";
-import { PageShapes } from "@/components/brand/page-shapes";
-import { SideNav, SideNavShell, TabBar, TabBarShell } from "@/components/layout/app-nav";
-import { iconButtonClasses } from "@/components/ui/button";
-import { SearchIcon } from "@/components/ui/icons";
+import { SiteShell } from "@/components/layout/site-shell";
 import { getCurrentContext } from "@/server/modules/auth/session";
-import { OfflineBanner } from "@/components/pwa/offline-banner";
-import { APP_FOOTER_LINKS, SiteFooter } from "@/components/layout/site-footer";
 
 /**
- * Coquille de l'application, statique et prérendue :
- *  - ordinateur (lg) : barre latérale claire (logo, rubriques, compte en bas) ;
- *  - téléphone et tablette : en-tête léger, cinq onglets en bas.
- * Les données de session arrivent derrière des frontières Suspense ; chaque page vérifie
- * elle-même la session via getCurrentContext() (le proxy n'est qu'un confort).
+ * Coquille de l'application : la coquille commune du site (voir SiteShell), version membre.
+ * Chaque page vérifie elle-même la session via getCurrentContext() (le proxy n'est qu'un
+ * confort).
  */
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="relative isolate flex min-h-full flex-1 flex-col">
-      <Suspense fallback={null}>
-        <PageShapes />
-      </Suspense>
-      <div className="flex flex-1">
-        <aside className="border-border bg-surface sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-8 border-r px-4 py-6 lg:flex print:hidden">
-          <Link
-            href="/dashboard"
-            aria-label="Aux Petits Oignons, accueil"
-            className="self-start px-2"
-          >
-            <Logo size={52} />
-          </Link>
-          <div className="flex-1 overflow-y-auto">
-            <Suspense fallback={<SideNavShell pathname={null} />}>
-              <SideNav />
-            </Suspense>
-          </div>
-          <Link
-            href="/settings"
-            className="border-border hover:bg-surface-muted flex items-center gap-3 rounded-xl border p-2.5 transition-colors"
-          >
-            <Suspense fallback={<AccountCardFallback />}>
-              <AccountCard />
-            </Suspense>
-          </Link>
-        </aside>
-
-        <div className="flex min-w-0 flex-1 flex-col">
-          <OfflineBanner />
-          <header className="border-border bg-background/95 sticky top-0 z-20 border-b backdrop-blur lg:hidden print:hidden">
-            <div className="flex w-full items-center justify-between gap-4 px-4 py-2.5 sm:px-6">
-              <Link href="/dashboard" aria-label="Aux Petits Oignons, accueil" className="shrink-0">
-                <Logo size={40} />
-              </Link>
-              <Link
-                href="/recipes"
-                aria-label="Rechercher une recette"
-                className={iconButtonClasses()}
-              >
-                <SearchIcon size={20} />
-              </Link>
-            </div>
-          </header>
-          <main className="mx-auto w-full max-w-[120rem] flex-1 px-4 pt-6 pb-12 sm:px-6 lg:px-12 lg:pt-12 lg:pb-16 xl:px-16 print:p-0">
-            {children}
-          </main>
-        </div>
-      </div>
-
-      {/* Toute la largeur, sous la barre latérale. Sur téléphone, la marge du bas laisse la
-          place à la barre d'onglets fixe. */}
-      <SiteFooter
-        links={APP_FOOTER_LINKS}
-        className="pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0"
-      />
-
-      <div className="print:hidden">
-        <Suspense fallback={<TabBarShell pathname={null} />}>
-          <TabBar />
-        </Suspense>
-      </div>
-    </div>
+    <SiteShell
+      member
+      account={
+        <Link
+          href="/settings"
+          className="border-border hover:bg-surface-muted flex items-center gap-3 rounded-xl border p-2.5 transition-colors"
+        >
+          <Suspense fallback={<AccountCardFallback />}>
+            <AccountCard />
+          </Suspense>
+        </Link>
+      }
+    >
+      {children}
+    </SiteShell>
   );
 }
 

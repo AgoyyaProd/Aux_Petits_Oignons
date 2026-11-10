@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import type { ReactNode } from "react";
-import { Logo } from "@/components/brand/logo";
-import { PUBLIC_FOOTER_LINKS, SiteFooter } from "@/components/layout/site-footer";
+import { SiteShell } from "@/components/layout/site-shell";
 import { BrandBadge, BrandElement, TexturedMark } from "@/components/brand/shapes";
 import { RecipeVisual } from "@/components/recipes/recipe-visual";
 import { ImageSlot } from "@/components/ui/image-slot";
@@ -56,44 +54,16 @@ function duration(m: number): string {
     : `${m / 60}\u00a0h`;
 }
 
-/** Page publique, statique (prérendue). Un utilisateur connecté est redirigé par le proxy. */
+/**
+ * Page publique, statique (prérendue), dans la coquille commune du site (version visiteur).
+ * Un utilisateur connecté est redirigé par le proxy.
+ */
 export default function HomePage() {
   return (
-    <div className="flex flex-1 flex-col">
-      <header className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
-        <Link href="/" aria-label="Aux Petits Oignons, accueil">
-          <Logo size={54} />
-        </Link>
-        <nav aria-label="Rubriques" className="hidden items-center gap-1 text-[0.9375rem] lg:flex">
-          {[
-            ["#recettes", "Recettes"],
-            ["#fonctionnement", "Menus"],
-            ["#courses", "Courses"],
-            ["#engagements", "Nos engagements"],
-          ].map(([href, label]) => (
-            <a
-              key={href}
-              href={href}
-              className="text-muted hover:text-foreground px-3 py-2 font-medium"
-            >
-              {label}
-            </a>
-          ))}
-        </nav>
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <Link href="/login" className={buttonClasses("secondary")}>
-            Se connecter
-          </Link>
-          <Link href="/signup" className={buttonClasses("forest", "max-sm:hidden")}>
-            Créer un compte
-          </Link>
-        </div>
-      </header>
-
-      <main className="flex flex-col gap-20 pb-20 lg:gap-28">
+    <SiteShell member={false}>
+      <div className="flex flex-col gap-20 lg:gap-28">
         {/* Hero */}
-        <section className="mx-auto w-full max-w-7xl px-4 sm:px-6">
+        <section className="mx-auto w-full max-w-7xl">
           <div className="bg-surface-muted relative grid overflow-hidden rounded-3xl lg:grid-cols-[1fr_1.1fr]">
             <BrandElement
               name="dot"
@@ -176,7 +146,7 @@ export default function HomePage() {
         <section
           id="recettes"
           aria-labelledby="recettes-titre"
-          className="mx-auto flex w-full max-w-7xl scroll-mt-6 flex-col gap-8 px-4 sm:px-6"
+          className="mx-auto flex w-full max-w-7xl scroll-mt-20 flex-col gap-8 lg:scroll-mt-12"
         >
           <div className="flex flex-wrap items-end justify-between gap-4">
             <h2 id="recettes-titre" className="type-page">
@@ -218,7 +188,7 @@ export default function HomePage() {
         <section
           id="fonctionnement"
           aria-labelledby="fonctionnement-titre"
-          className="mx-auto w-full max-w-7xl scroll-mt-6 px-4 sm:px-6"
+          className="mx-auto w-full max-w-7xl scroll-mt-20 lg:scroll-mt-12"
         >
           <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:items-center">
             <div className="flex flex-col gap-8">
@@ -249,7 +219,7 @@ export default function HomePage() {
         <section
           id="engagements"
           aria-labelledby="gaspi-titre"
-          className="mx-auto w-full max-w-7xl scroll-mt-6 px-4 sm:px-6"
+          className="mx-auto w-full max-w-7xl scroll-mt-20 lg:scroll-mt-12"
         >
           <div
             id="courses"
@@ -285,7 +255,7 @@ export default function HomePage() {
         </section>
 
         {/* Appel à l'inscription */}
-        <section className="mx-auto flex w-full max-w-3xl flex-col items-center gap-6 px-4 text-center sm:px-6">
+        <section className="mx-auto flex w-full max-w-3xl flex-col items-center gap-6 text-center">
           <TexturedMark className="w-28" sizes="112px" />
           <h2 className="type-page">La cuisine du quotidien, bien pensée.</h2>
           <p className="text-muted max-w-md">
@@ -297,10 +267,8 @@ export default function HomePage() {
             <ArrowRightIcon size={18} />
           </Link>
         </section>
-      </main>
-
-      <SiteFooter links={PUBLIC_FOOTER_LINKS} />
-    </div>
+      </div>
+    </SiteShell>
   );
 }
 
