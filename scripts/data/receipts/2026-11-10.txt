@@ -1,0 +1,56 @@
+# Tickets de caisse transmis le 10/11/2026 (2 tickets, application E.Leclerc).
+# Recopiés tels qu'imprimés ; seules les lignes alimentaires sont reprises, sans aucune donnée
+# personnelle (ni nom, ni code-barres du ticket, ni moyen de paiement). Le magasin n'est pas
+# indiqué sur ces tickets. Produits d'hygiène et d'entretien et sacs non recopiés.
+#
+# Format :
+#   @ <date AAAA-MM-JJ> | <magasin>
+#   <libellé du ticket> | <nombre d'articles> | <prix d'un article en €> | <ingrédient> | <contenance>
+# Ingrédient « - » : ligne non reprise dans les prix (raison en commentaire après « # »).
+# Contenance : <nombre> <g|kg|ml|cl|l|pièce>, telle qu'imprimée sur le ticket ; jamais devinée.
+# PNE : poids net égoutté (celui des légumineuses du référentiel).
+
+@ 2026-10-05 | E.Leclerc (magasin non indiqué)
+SPAGHETTI PLAT,PANZANI,500G | 1 | 1.00 | spaghetti | 500 g
+PAIN SANDW NATUR,EPI D'OR,550G | 1 | 1.13 | pain-de-mie | 550 g
+CACAHUETES NON SALEES,TOKA,200 | 1 | 0.76 | - | # contenance tronquée (unité absente) et grillées ou non inconnu
+KIT POUR BURRITOS | 1 | 2.79 | - | # kit de plat préparé
+HARICOTS RGES 3X125G PNE | 1 | 1.91 | haricot-rouge | 375 g
+MAGGI BOUIL VOLAILLE DEGRAISSE | 1 | 1.47 | - | # contenance absente du ticket
+BOUILLON KUB LEGUME-25%SEL,120G | 1 | 1.45 | bouillon-legumes | 120 g
+ANTIPASTO TOMA.SECHE,SACLA,280G | 1 | 2.76 | tomate-sechee | 280 g
+SCE TERIYAKI POULET,MAGGI,355G | 1 | 3.52 | sauce-teriyaki | 355 g
+EAU DE SOURCE,CRISTALIN,6X1.5L | 1 | 1.14 | - | # l'eau des recettes est celle du robinet
+BAG. TRADIROUGE 3+1 OFR,1KG | 1 | 2.76 | pain | 1 kg
+POTIMARRON BIO | 1 | 2.19 | - | # poids absent du ticket
+PATATE DOUCE | 1 | 1.71 | - | # poids absent du ticket
+GRAINES DE SESAME APIHA 120G | 1 | 2.05 | graine-sesame | 120 g
+TOMATE ECO+ FILET 1 KG | 1 | 1.99 | tomate | 1 kg
+SUCRINE BICOLORE 3 PIECES CAT 1 | 1 | 1.49 | - | # sucrine, plus petite qu'une salade : prix par pièce non comparable
+BPARIS JBN ETOUFFEE CSNI 4T 140 | 1 | 2.18 | jambon | 4 pièce
+8 DELIDOUX NATURE 20%MG,800G | 1 | 1.79 | - | # fromage frais en pots, pas le fromage blanc des recettes
+GRANA PADANO RAPE LES CROISES | 1 | 1.49 | - | # contenance absente du ticket
+MOZZARELLA RAPEE 22% MG 150G | 1 | 1.39 | mozzarella | 150 g
+KRAFT.CHED.RAPE.150G | 1 | 2.34 | cheddar | 150 g
+HACHE 5%MG 100% VBF,500G | 1 | 8.09 | boeuf-hache | 500 g
+2FILET POULET BLANC S/AT,,300G | 1 | 4.05 | poulet-filet | 300 g
+FILET SAUMON | 1 | 6.48 | - | # poids absent du ticket
+
+@ 2026-11-02 | E.Leclerc (magasin non indiqué)
+PATES MACARONI, PANZANI, 500G | 1 | 0.89 | macaronis | 500 g
+MUSCADE MOULUE.42G | 1 | 2.20 | muscade | 42 g
+POIS CHICHES 3X130G PNE NJARD | 1 | 1.65 | pois-chiche | 390 g
+PETALES A LA CREVETTE ASC TDM | 1 | 0.65 | - | # biscuits apéritifs
+NOUILLES DE RIZ 250G TDM | 1 | 1.44 | nouilles-riz | 250 g
+SIROP FRAISE MAISON GUIOT 70CL | 1 | 3.16 | - | # boisson
+EAU DE SOURCE,CRISTALIN,6X1.5L | 1 | 1.14 | - | # l'eau des recettes est celle du robinet
+TROPICANA ESS MULTIVITAMINE,1L | 1 | 2.46 | - | # jus multivitaminé, pas le jus d'orange des recettes
+CHOU ROUGE | 1 | 1.32 | - | # poids absent du ticket
+CERNEAUX NOIX BRQ,125G | 1 | 1.91 | noix | 125 g
+PATATE DOUCE PDP BARQUETTE 1KG | 1 | 1.39 | patate-douce | 1 kg
+SUCRINE BICOLORE 3 PIECES CAT 1 | 1 | 1.49 | - | # sucrine, plus petite qu'une salade : prix par pièce non comparable
+COURGE BUTTERNUT | 1 | 1.99 | - | # poids absent du ticket
+4 YAOURTS NATURE,DELISSE,500G | 2 | 0.65 | yaourt | 4 pièce
+BEURRE BRETAGNE 1/2 SEL 250G | 2 | 2.65 | beurre | 250 g
+PAVE DE PORC SANS OS A GRILLER | 1 | 5.43 | - | # poids absent du ticket
+FILET SAUMON | 1 | 7.20 | - | # poids absent du ticket

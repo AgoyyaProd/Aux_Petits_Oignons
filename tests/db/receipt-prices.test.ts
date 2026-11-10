@@ -22,11 +22,11 @@ const insertLine = (user: TestUser, label: string) =>
   );
 
 describe("relevés de tickets de caisse", () => {
-  it("le premier lot est chargé, sans donnée personnelle", async () => {
+  it("les lots sont chargés, sans donnée personnelle", async () => {
     const { rows } = await pool.query(
       `select count(*)::int n, count(distinct store_label)::int stores from public.receipt_prices`,
     );
-    expect(rows[0]).toEqual({ n: 26, stores: 3 });
+    expect(rows[0]).toEqual({ n: 48, stores: 4 });
     const columns = await pool.query(
       `select column_name from information_schema.columns
        where table_schema = 'public' and table_name = 'receipt_prices' order by ordinal_position`,
