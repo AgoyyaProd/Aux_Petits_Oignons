@@ -332,6 +332,7 @@ const INGREDIENT_PHOTO_VERSIONS: Readonly<Record<string, string>> = {
   "gelee-groseille": "e61270fb",
   gingembre: "acfa6a31",
   "graine-sesame": "05a515cc",
+  "grana-padano": "ca7314e1",
   "haricot-rouge": "20bb1e32",
   harissa: "e734ad80",
   "herbes-provence": "b9f3d041",

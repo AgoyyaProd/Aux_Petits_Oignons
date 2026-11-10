@@ -116,4 +116,43 @@ describe("variantes d'ingrédients", () => {
     });
     expect(rows[0].diets).toContain("vegan");
   });
+  it("grana padano : variante du parmesan ; pavé et filet mignon : variantes de « porc »", async () => {
+    const { rows } = await pool.query(
+      `select c.slug, p.slug as parent from public.ingredients c
+       join public.ingredients p on p.id = c.parent_id
+       where p.slug in ('parmesan', 'porc') order by 1`,
+    );
+    expect(rows).toEqual([
+      { slug: "grana-padano", parent: "parmesan" },
+      { slug: "porc-filet", parent: "porc" },
+      { slug: "porc-pave", parent: "porc" },
+    ]);
+    const lines = await pool.query(
+      `select i.slug, count(*)::int as n from public.recipe_ingredients ri
+       join public.ingredients i on i.id = ri.ingredient_id
+       where i.slug in ('porc', 'porc-filet', 'porc-pave', 'grana-padano') group by 1`,
+    );
+    expect(lines.rows.map((l) => l.slug)).toEqual(["porc"]);
+    const data = await pool.query(
+      `select i.slug, n.ciqual_code, s.kind, s.approximate,
+         array(select d.diet_code from public.ingredient_diet_conflicts d where d.ingredient_id = i.id order by 1) as diets,
+         array(select a.allergen_code from public.ingredient_allergens a where a.ingredient_id = i.id) as allergens
+       from public.ingredients i
+       join public.ingredient_nutrition n on n.ingredient_id = i.id
+       join public.ingredient_price_sources s on s.ingredient_id = i.id
+       where i.slug in ('grana-padano', 'porc', 'porc-pave') order by 1`,
+    );
+    expect(data.rows).toMatchObject([
+      {
+        slug: "grana-padano",
+        ciqual_code: 12123,
+        kind: "none",
+        allergens: ["milk"],
+        diets: ["vegan"],
+      },
+      { slug: "porc", ciqual_code: 28204, approximate: true },
+      { slug: "porc-pave", ciqual_code: 28302, kind: "none" },
+    ]);
+    for (const r of data.rows.slice(1)) expect(r.diets).toContain("no_pork");
+  });
 });

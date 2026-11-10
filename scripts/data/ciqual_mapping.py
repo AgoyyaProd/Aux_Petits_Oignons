@@ -165,6 +165,7 @@ MAPPING: dict[str, tuple[int | None, str | None]] = {
     "feta": (12066, None),
     "mozzarella": (19590, None),
     "parmesan": (12120, None),
+    "grana-padano": (12123, None),
     "ricotta": (19585, None),
     # Fruits (chair crue)
     "abricot": (13000, None),
@@ -265,6 +266,8 @@ MAPPING: dict[str, tuple[int | None, str | None]] = {
     "merguez": (30151, None),
     "porc-cote": (28100, None),
     "porc-filet": (28204, None),
+    "porc": (28204, "Celle du filet mignon (ingrédient commun filet mignon ou pavé)."),
+    "porc-pave": (28302, "Échine crue : le pavé sans os à griller est le plus souvent taillé dans l'échine."),
     "poulet-cuisse": (36002, "Viande et peau ; le poids à la pièce inclut l'os."),
     "poulet-entier": (None, "Poids avec carcasse : valeur non comparable."),
     "poulet-filet": (36017, None),

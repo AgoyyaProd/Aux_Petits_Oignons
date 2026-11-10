@@ -30,7 +30,7 @@ TOMATE ECO+ FILET 1 KG | 1 | 1.99 | tomate | 1 kg
 SUCRINE BICOLORE 3 PIECES CAT 1 | 1 | 1.49 | salade | 3 pièce # comptée comme salade, choix de l'utilisateur
 BPARIS JBN ETOUFFEE CSNI 4T 140 | 1 | 2.18 | jambon | 4 pièce
 8 DELIDOUX NATURE 20%MG,800G | 1 | 1.79 | fromage-blanc | 800 g # fromage blanc, précisé par l'utilisateur
-GRANA PADANO RAPE LES CROISES | 1 | 1.49 | - | # 130 g (précisé par l'utilisateur), mais grana padano ≠ parmesan : prix non représentatif
+GRANA PADANO RAPE LES CROISES | 1 | 1.49 | grana-padano | 130 g # poids précisé par l'utilisateur (migration 0080)
 MOZZARELLA RAPEE 22% MG 150G | 1 | 1.39 | mozzarella | 150 g
 KRAFT.CHED.RAPE.150G | 1 | 2.34 | cheddar | 150 g
 HACHE 5%MG 100% VBF,500G | 1 | 8.09 | boeuf-hache | 500 g
@@ -53,5 +53,5 @@ SUCRINE BICOLORE 3 PIECES CAT 1 | 1 | 1.49 | salade | 3 pièce # comptée comme 
 COURGE BUTTERNUT | 1 | 1.99 | butternut | 1.2 kg # poids précisé par l'utilisateur
 4 YAOURTS NATURE,DELISSE,500G | 2 | 0.65 | yaourt | 4 pièce
 BEURRE BRETAGNE 1/2 SEL 250G | 2 | 2.65 | beurre | 250 g
-PAVE DE PORC SANS OS A GRILLER | 1 | 5.43 | - | # 700 g (précisé par l'utilisateur), mais ni côte ni filet mignon : pas d'ingrédient correspondant
+PAVE DE PORC SANS OS A GRILLER | 1 | 5.43 | porc-pave | 700 g # poids précisé par l'utilisateur (migration 0080)
 FILET SAUMON | 1 | 7.20 | saumon | 500 g # poids précisé par l'utilisateur
