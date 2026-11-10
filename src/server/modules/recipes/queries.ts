@@ -1,4 +1,5 @@
 import "server-only";
+import { connection } from "next/server";
 import {
   checkCompatibility,
   matchesSearch,
@@ -21,7 +22,7 @@ import type { EatingStyle, FoodProfile, Objective } from "@/domain/planning";
 import { withParents } from "@/domain/shopping";
 import { fromBase } from "@/domain/units";
 import { todayIn } from "@/lib/dates";
-import { getCurrentContext } from "@/server/modules/auth/session";
+import { getOptionalContext } from "@/server/modules/auth/session";
 import { loadPriceBook } from "@/server/modules/prices/price-book";
 import { loadRatings, recipeHistory, type Rating } from "@/server/modules/recipes/ratings";
 import { fetchAll } from "@/server/supabase/fetch-all";
@@ -131,6 +132,50 @@ export async function householdContext(
   return { constraints, available, priority, staple, foodProfile };
 }
 
+/** Historique vide (visiteur). */
+const NO_HISTORY: Awaited<ReturnType<typeof recipeHistory>> = {
+  cookedCount: 0,
+  lastCookedAt: null,
+  plannedWeeks: 0,
+  lastPlannedWeek: null,
+};
+
+/**
+ * Visiteur sans compte : aucune contrainte, rien en stock, rien à finir. Le catalogue est le
+ * même pour tous ; seuls les prix indicatifs s'appliquent.
+ */
+function guestContext(): Awaited<ReturnType<typeof householdContext>> {
+  return {
+    constraints: {
+      diets: new Set(),
+      allergens: new Set(),
+      avoidedIngredientIds: new Set(),
+      equipment: null,
+    },
+    available: new Set(),
+    priority: new Set(),
+    staple: new Set(),
+    foodProfile: { style: "omnivore", objectives: [], proteinTargetG: null },
+  };
+}
+
+/**
+ * Qui consulte le catalogue : un foyer (ses contraintes, son stock, ses avis), ou un visiteur
+ * (guest). undefined : connecté mais sans foyer actif.
+ */
+async function viewer() {
+  // Rendu à la demande : la date du jour et la session ne se figent pas au prérendu.
+  await connection();
+  const context = await getOptionalContext();
+  if (!context) return { guest: true as const, household: null, timeZone: "Europe/Paris" };
+  if (!context.household) return undefined;
+  return {
+    guest: false as const,
+    household: context.household,
+    timeZone: context.household.timezone,
+  };
+}
+
 /** Libellés des allergènes et régimes, pour expliquer une exclusion. */
 export async function labels(supabase: Supabase) {
   const [allergens, diets, equipment] = await Promise.all([
@@ -221,9 +266,10 @@ export interface CatalogFilters {
  * (exclusion stricte), trié : compatibles d'abord, puis meilleure couverture par le stock.
  */
 export async function getRecipeCatalog(filters: CatalogFilters) {
-  const { household } = await getCurrentContext();
-  if (!household) return null;
-  const month = monthOf(todayIn(household.timezone));
+  const who = await viewer();
+  if (!who) return null;
+  const { household } = who;
+  const month = monthOf(todayIn(who.timeZone));
   const supabase = await createSupabaseServerClient();
 
   // Recettes, allergènes et régimes dépassent la limite de lignes de l'API : lus page par page.
@@ -262,10 +308,10 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
             .range(from, to),
         "des régimes de recettes",
       ),
-      householdContext(supabase, household.id, household.timezone),
+      household ? householdContext(supabase, household.id, household.timezone) : guestContext(),
       labels(supabase),
-      loadRatings(supabase, household.id),
-      loadPriceBook(supabase, household.id),
+      household ? loadRatings(supabase, household.id) : new Map<string, Rating>(),
+      loadPriceBook(supabase, household?.id ?? null),
     ]);
 
   const allergensByRecipe = groupBy(
@@ -419,6 +465,7 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
         ctx.constraints.avoidedIngredientIds.size >
       0,
     pantryIsEmpty: ctx.available.size === 0,
+    guest: who.guest,
     favoriteCount: [...ratings.values()].filter((v) => v === 1).length,
     proteinThreshold,
   };
@@ -484,6 +531,8 @@ export interface RecipeDetail {
   cost: { cents: number; missingNames: string[] } | null;
   rating: Rating | null;
   history: Awaited<ReturnType<typeof recipeHistory>>;
+  /** Visiteur sans compte : ni stock, ni avis, ni menu. */
+  guest: boolean;
   difficulty: Difficulty;
   /** Matériel requis (déduit des étapes), en libellés. */
   equipmentLabels: string[];
@@ -495,8 +544,9 @@ export interface RecipeDetail {
 }
 
 export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
-  const { household } = await getCurrentContext();
-  if (!household) return null;
+  const who = await viewer();
+  if (!who) return null;
+  const { household } = who;
   const supabase = await createSupabaseServerClient();
 
   const { data: r, error } = await supabase
@@ -512,16 +562,18 @@ export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
   const [allergens, conflicts, ctx, names, priceBook, rating, history] = await Promise.all([
     supabase.from("recipe_allergens").select("allergen_code").eq("recipe_id", r.id),
     supabase.from("recipe_diet_conflicts").select("diet_code").eq("recipe_id", r.id),
-    householdContext(supabase, household.id, household.timezone),
+    household ? householdContext(supabase, household.id, household.timezone) : guestContext(),
     labels(supabase),
-    loadPriceBook(supabase, household.id),
-    supabase
-      .from("recipe_ratings")
-      .select("rating")
-      .eq("household_id", household.id)
-      .eq("recipe_id", r.id)
-      .maybeSingle(),
-    recipeHistory(supabase, household.id, r.id),
+    loadPriceBook(supabase, household?.id ?? null),
+    household
+      ? supabase
+          .from("recipe_ratings")
+          .select("rating")
+          .eq("household_id", household.id)
+          .eq("recipe_id", r.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+    household ? recipeHistory(supabase, household.id, r.id) : Promise.resolve(NO_HISTORY),
   ]);
   if (allergens.error) fail("des allergènes", allergens.error);
   if (rating.error) fail("de l'avis", rating.error);
@@ -579,6 +631,7 @@ export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
     toRemoveNames: compatibility.toRemove.map((id) => ingredientNames.get(id) ?? "?"),
     rating: rating.data ? (rating.data.rating === 1 ? 1 : -1) : null,
     history,
+    guest: who.guest,
     difficulty: recipeDifficulty({
       prepMinutes: r.prep_minutes,
       cookMinutes: r.cook_minutes,
@@ -588,7 +641,7 @@ export async function getRecipe(slug: string): Promise<RecipeDetail | null> {
       .filter(([code]) => equipmentCodes.includes(code))
       .map(([, label]) => label),
     ...(() => {
-      const month = monthOf(todayIn(household.timezone));
+      const month = monthOf(todayIn(who.timeZone));
       const seasonal = lines.map((l) => ({
         slug: l.ingredients?.slug ?? "",
         optional: l.is_optional,

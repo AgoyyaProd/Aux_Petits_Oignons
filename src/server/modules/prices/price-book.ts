@@ -25,16 +25,19 @@ export interface PriceInfo {
  */
 export async function loadPriceBook(
   supabase: Supabase,
-  householdId: string,
+  /** null : visiteur sans compte, prix indicatifs seulement. */
+  householdId: string | null,
 ): Promise<Map<string, PriceInfo>> {
   const [reference, household, sources, variants] = await Promise.all([
     supabase
       .from("reference_prices")
       .select("ingredient_id, source, dimension, cents_per_ref, sample_size, observed_to"),
-    supabase
-      .from("household_prices")
-      .select("ingredient_id, dimension, cents_per_ref, store_label, observed_on")
-      .eq("household_id", householdId),
+    householdId
+      ? supabase
+          .from("household_prices")
+          .select("ingredient_id, dimension, cents_per_ref, store_label, observed_on")
+          .eq("household_id", householdId)
+      : Promise.resolve({ data: [], error: null }),
     supabase.from("ingredient_price_sources").select("ingredient_id, approximate"),
     supabase.from("ingredients").select("id, parent_id").not("parent_id", "is", null),
   ]);

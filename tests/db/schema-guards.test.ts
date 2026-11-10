@@ -16,14 +16,42 @@ describe("garde-fous du schéma public", () => {
     expect(rows.map((r) => r.table)).toEqual([]);
   });
 
-  it("anon n'a aucun privilège de table", async () => {
+  // Catalogue public (0082) : anon lit le référentiel des recettes, et rien d'autre.
+  const ANON_READABLE = [
+    "allergens",
+    "diets",
+    "equipment",
+    "ingredient_allergens",
+    "ingredient_diet_conflicts",
+    "ingredient_nutrition",
+    "ingredient_price_sources",
+    "ingredients",
+    "recipe_allergens",
+    "recipe_diet_conflicts",
+    "recipe_equipment",
+    "recipe_ingredients",
+    "recipe_steps",
+    "reference_prices",
+  ];
+
+  it("anon ne fait que lire le catalogue de recettes", async () => {
     const { rows } = await pool.query<{ table: string; privilege: string }>(
       `select table_name as table, privilege_type as privilege
        from information_schema.role_table_grants
        where table_schema = 'public' and grantee = 'anon'
        order by 1, 2`,
     );
-    expect(rows).toEqual([]);
+    expect(rows).toEqual(ANON_READABLE.map((table) => ({ table, privilege: "SELECT" })));
+    // recipes : colonnes choisies seulement (pas validated_by, identifiant d'un compte).
+    const cols = await pool.query<{ column: string; privilege: string }>(
+      `select column_name as column, privilege_type as privilege
+       from information_schema.role_column_grants
+       where table_schema = 'public' and grantee = 'anon' and table_name = 'recipes'
+       order by 1`,
+    );
+    expect(cols.rows.every((c) => c.privilege === "SELECT")).toBe(true);
+    expect(cols.rows.map((c) => c.column)).not.toContain("validated_by");
+    expect(cols.rows.map((c) => c.column)).not.toContain("ai_generation_id");
   });
 
   const ANON_ALLOWED = new Set(["report_app_error"]);

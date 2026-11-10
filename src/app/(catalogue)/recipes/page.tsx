@@ -84,7 +84,7 @@ export default function RecipesPage({ searchParams }: PageProps<"/recipes">) {
     <div className="flex flex-col gap-7">
       <PageHeader
         title="Nos recettes"
-        description="Des plats du quotidien, filtrés selon tes préférences. Celles qui utilisent ce que tu as passent en premier."
+        description="Des plats du quotidien, chiffrés et détaillés. Avec un compte, elles sont filtrées selon tes préférences et celles qui utilisent ce que tu as passent en premier."
       />
       <Suspense fallback={<PageSkeleton rows={4} />}>
         <Catalog searchParams={searchParams} />
@@ -98,7 +98,7 @@ async function Catalog({ searchParams }: Pick<PageProps<"/recipes">, "searchPara
   const catalog = await getRecipeCatalog(filters);
   if (!catalog) return <p className="text-muted">Aucun foyer actif.</p>;
 
-  const chips: { label: string; active: boolean; next: Filters }[] = [
+  const allChips: { label: string; active: boolean; next: Filters; member?: true }[] = [
     {
       label: "De saison",
       active: filters.inSeason,
@@ -115,16 +115,19 @@ async function Catalog({ searchParams }: Pick<PageProps<"/recipes">, "searchPara
       next: { ...filters, maxMinutes: filters.maxMinutes === 30 ? undefined : 30 },
     },
     {
+      member: true,
       label: catalog.favoriteCount ? `Favoris (${catalog.favoriteCount})` : "Favoris",
       active: filters.favoritesOnly,
       next: { ...filters, favoritesOnly: !filters.favoritesOnly },
     },
     {
+      member: true,
       label: "Avec mes ingrédients",
       active: filters.withStock,
       next: { ...filters, withStock: !filters.withStock },
     },
     {
+      member: true,
       label: "À consommer rapidement",
       active: filters.useSoon,
       next: { ...filters, useSoon: !filters.useSoon },
@@ -145,6 +148,8 @@ async function Catalog({ searchParams }: Pick<PageProps<"/recipes">, "searchPara
       next: { ...filters, smallBudget: !filters.smallBudget },
     },
   ];
+  // Visiteur : pas de favoris ni de garde-manger, ces filtres n'ont pas de sens.
+  const chips = catalog.guest ? allChips.filter((c) => !c.member) : allChips;
   const anyFilter = toParams(filters).size > 0;
 
   return (
@@ -236,6 +241,8 @@ async function Catalog({ searchParams }: Pick<PageProps<"/recipes">, "searchPara
         </ul>
       </nav>
 
+      {catalog.guest ? <GuestInvite /> : null}
+
       {catalog.hasConstraints && catalog.excludedCount > 0 && !filters.showExcluded ? (
         <Alert tone="info">
           {catalog.excludedCount} recette{catalog.excludedCount > 1 ? "s" : ""} masquée
@@ -281,7 +288,7 @@ async function Catalog({ searchParams }: Pick<PageProps<"/recipes">, "searchPara
       ) : (
         <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
           {catalog.cards.map((recipe) => (
-            <RecipeCard key={recipe.id} recipe={recipe} />
+            <RecipeCard key={recipe.id} recipe={recipe} guest={catalog.guest} />
           ))}
         </ul>
       )}
@@ -312,5 +319,23 @@ function FilterSelect({
         {children}
       </select>
     </label>
+  );
+}
+
+/** Visiteur : ce qu'un compte ajoute au catalogue. */
+function GuestInvite() {
+  return (
+    <div className="bg-surface-muted flex flex-wrap items-center justify-between gap-4 rounded-2xl p-5">
+      <p className="max-w-2xl leading-relaxed">
+        <span className="font-semibold">Avec un compte gratuit,</span>{" "}
+        <span className="text-muted">
+          les recettes tiennent compte de tes allergies et de ton régime, de ce que tu as chez toi,
+          et s&apos;ajoutent à ton menu et à ta liste de courses.
+        </span>
+      </p>
+      <Link href="/signup" className={buttonClasses("forest")}>
+        Créer un compte
+      </Link>
+    </div>
   );
 }

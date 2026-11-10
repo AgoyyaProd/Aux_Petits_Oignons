@@ -15,6 +15,7 @@ import { RecipeFacts } from "@/components/recipes/recipe-facts";
 import { RecipeVisual } from "@/components/recipes/recipe-visual";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { buttonClasses } from "@/components/ui/button";
 import { ChevronLeftIcon, FridgeIcon, LeafIcon } from "@/components/ui/icons";
 import { DIFFICULTY_RULE } from "@/domain/recipes/difficulty";
 import { isInCurrentPlan } from "@/server/modules/planning/queries";
@@ -42,7 +43,10 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
   const recipe = await getRecipe(slug);
   if (!recipe) notFound();
 
-  const [cook, inMenu] = await Promise.all([getCookStatus(recipe.id), isInCurrentPlan(recipe.id)]);
+  // Visiteur : ni menu ni garde-manger à consulter.
+  const [cook, inMenu] = recipe.guest
+    ? [null, false]
+    : await Promise.all([getCookStatus(recipe.id), isInCurrentPlan(recipe.id)]);
 
   return (
     <KitchenProvider baseServings={recipe.servings}>
@@ -50,7 +54,7 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
         <nav aria-label="Fil d'Ariane" className="text-muted -mb-4 text-sm lg:-mb-6">
           <ol className="flex flex-wrap items-center gap-1.5">
             <li>
-              <Link href="/dashboard" className="hover:text-foreground">
+              <Link href={recipe.guest ? "/" : "/dashboard"} className="hover:text-foreground">
                 Accueil
               </Link>
             </li>
@@ -122,7 +126,19 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
               equipmentLabels={recipe.equipmentLabels}
               allergenLabels={recipe.allergenLabels}
             />
-            {!recipe.exclusionLabel ? (
+            {recipe.guest ? (
+              <div className="flex flex-wrap items-start gap-3">
+                <Link href="/signup" className={buttonClasses("primary")}>
+                  Créer un compte pour l&apos;ajouter à mon menu
+                </Link>
+                <CookMode
+                  title={recipe.title}
+                  steps={recipe.steps}
+                  ingredients={recipe.ingredients}
+                  stepDetails={recipe.stepDetails}
+                />
+              </div>
+            ) : !recipe.exclusionLabel ? (
               <div className="flex flex-wrap items-start gap-3">
                 <AddToMenuButton recipeId={recipe.id} variant="primary" />
                 <FavoriteButton
@@ -139,13 +155,15 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
                 />
               </div>
             ) : null}
-            <details className="text-sm">
-              <summary className="text-muted cursor-pointer">Avis et historique</summary>
-              <div className="mt-3 flex flex-col gap-2">
-                <RatingButtons recipeId={recipe.id} rating={recipe.rating} />
-                <History history={recipe.history} />
-              </div>
-            </details>
+            {recipe.guest ? null : (
+              <details className="text-sm">
+                <summary className="text-muted cursor-pointer">Avis et historique</summary>
+                <div className="mt-3 flex flex-col gap-2">
+                  <RatingButtons recipeId={recipe.id} rating={recipe.rating} />
+                  <History history={recipe.history} />
+                </div>
+              </details>
+            )}
           </div>
         </header>
 
@@ -162,7 +180,7 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
           </Alert>
         ) : null}
 
-        {cook?.kind === "ready" ? (
+        {recipe.guest ? null : cook?.kind === "ready" ? (
           <section aria-label="Plat du menu" className="flex flex-col gap-2">
             <p className="text-sm font-semibold">
               Ce plat est au menu de la semaine. Une fois préparé :
@@ -201,6 +219,7 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
           stepDetails={recipe.stepDetails}
           baseServings={recipe.servings}
           inMenu={inMenu}
+          guest={recipe.guest}
         />
 
         <NutritionPanel nutrition={recipe.nutrition} />

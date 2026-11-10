@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonClasses } from "@/components/ui/button";
 import { CheckIcon, MinusIcon, PlusIcon } from "@/components/ui/icons";
 import { formatRecipeQuantity } from "@/lib/format-quantity";
 import { StepTimerButtons, useKitchen } from "@/components/recipes/kitchen";
@@ -35,6 +35,7 @@ export function RecipeBody({
   stepDetails,
   baseServings,
   inMenu,
+  guest = false,
 }: {
   recipeId: string;
   ingredients: Ingredient[];
@@ -43,6 +44,8 @@ export function RecipeBody({
   baseServings: number;
   /** La recette est au menu : ses ingrédients sont déjà dans la liste calculée. */
   inMenu: boolean;
+  /** Visiteur sans compte : ni stock, ni liste de courses. */
+  guest?: boolean;
 }) {
   const [tab, setTab] = useState<"ingredients" | "steps">("ingredients");
   // Portions partagées avec le mode cuisine et les étapes (voir KitchenProvider).
@@ -91,9 +94,11 @@ export function RecipeBody({
           <section className="flex flex-col gap-4" aria-label="Ingrédients">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-muted text-sm">
-                {missing.length === 0
-                  ? "Tout est chez toi."
-                  : `${required.length - missing.length} sur ${required.length} chez toi.`}
+                {guest
+                  ? `${required.length} ingrédient${required.length > 1 ? "s" : ""}.`
+                  : missing.length === 0
+                    ? "Tout est chez toi."
+                    : `${required.length - missing.length} sur ${required.length} chez toi.`}
               </p>
               <div className="flex items-center gap-2" role="group" aria-label="Nombre de portions">
                 <StepButton
@@ -121,6 +126,7 @@ export function RecipeBody({
               base={baseServings}
               recipeId={recipeId}
               canAdd={!inMenu}
+              guest={guest}
             />
             {optional.length ? (
               <>
@@ -131,54 +137,68 @@ export function RecipeBody({
                   base={baseServings}
                   recipeId={recipeId}
                   canAdd={!inMenu}
+                  guest={guest}
                 />
               </>
             ) : null}
           </section>
 
-          <aside className="bg-surface-muted flex flex-col gap-3 rounded-2xl p-5">
-            <p className="font-display text-lg font-semibold">Ajouter à ma liste de courses</p>
-            {inMenu ? (
+          {guest ? (
+            <aside className="bg-surface-muted flex flex-col gap-3 rounded-2xl p-5">
+              <p className="font-display text-lg font-semibold">Tes courses, toutes prêtes</p>
               <p className="text-muted text-sm leading-relaxed">
-                Cette recette est au menu : ses ingrédients manquants sont déjà dans ta liste de
-                courses.
+                Avec un compte, ce que tu as déjà est coché et le reste part sur ta liste de courses
+                en un geste.
               </p>
-            ) : missing.length === 0 ? (
-              <p className="text-muted text-sm">Rien à acheter : tout est chez toi.</p>
-            ) : (
-              <form action={addAll} className="flex flex-col gap-3">
-                <input type="hidden" name="recipeId" value={recipeId} />
-                <input
-                  type="hidden"
-                  name="items"
-                  value={JSON.stringify(
-                    missing.map((i) => ({
-                      ingredientId: i.ingredientId,
-                      label: i.name,
-                      quantity: qty(i, servings, baseServings).slice(0, 40),
-                    })),
-                  )}
-                />
-                <p className="text-muted text-sm">
-                  {missing.length} ingrédient{missing.length > 1 ? "s" : ""} manquant
-                  {missing.length > 1 ? "s" : ""} pour {servings} personne
-                  {servings > 1 ? "s" : ""}.
+              <Link href="/signup" className={buttonClasses("forest")}>
+                Créer un compte
+              </Link>
+            </aside>
+          ) : (
+            <aside className="bg-surface-muted flex flex-col gap-3 rounded-2xl p-5">
+              <p className="font-display text-lg font-semibold">Ajouter à ma liste de courses</p>
+              {inMenu ? (
+                <p className="text-muted text-sm leading-relaxed">
+                  Cette recette est au menu : ses ingrédients manquants sont déjà dans ta liste de
+                  courses.
                 </p>
-                <Button type="submit" variant="forest" disabled={addingAll}>
-                  {addingAll ? "Ajout…" : "Tout ajouter"}
-                </Button>
-                <p aria-live="polite" className="text-sm font-medium">
-                  {allState.message ?? ""}
-                </p>
-              </form>
-            )}
-            <Link
-              href="/shopping"
-              className="text-accent-strong text-sm font-semibold hover:underline"
-            >
-              Voir ma liste
-            </Link>
-          </aside>
+              ) : missing.length === 0 ? (
+                <p className="text-muted text-sm">Rien à acheter : tout est chez toi.</p>
+              ) : (
+                <form action={addAll} className="flex flex-col gap-3">
+                  <input type="hidden" name="recipeId" value={recipeId} />
+                  <input
+                    type="hidden"
+                    name="items"
+                    value={JSON.stringify(
+                      missing.map((i) => ({
+                        ingredientId: i.ingredientId,
+                        label: i.name,
+                        quantity: qty(i, servings, baseServings).slice(0, 40),
+                      })),
+                    )}
+                  />
+                  <p className="text-muted text-sm">
+                    {missing.length} ingrédient{missing.length > 1 ? "s" : ""} manquant
+                    {missing.length > 1 ? "s" : ""} pour {servings} personne
+                    {servings > 1 ? "s" : ""}.
+                  </p>
+                  <Button type="submit" variant="forest" disabled={addingAll}>
+                    {addingAll ? "Ajout…" : "Tout ajouter"}
+                  </Button>
+                  <p aria-live="polite" className="text-sm font-medium">
+                    {allState.message ?? ""}
+                  </p>
+                </form>
+              )}
+              <Link
+                href="/shopping"
+                className="text-accent-strong text-sm font-semibold hover:underline"
+              >
+                Voir ma liste
+              </Link>
+            </aside>
+          )}
         </div>
       ) : (
         <section role="tabpanel" id="panel-steps" aria-labelledby="tab-steps" className="max-w-3xl">
@@ -257,46 +277,60 @@ function IngredientRows({
   base,
   recipeId,
   canAdd,
+  guest,
 }: {
   items: Ingredient[];
   servings: number;
   base: number;
   recipeId: string;
   canAdd: boolean;
+  guest: boolean;
 }) {
   return (
     <ul className="border-border bg-surface divide-border divide-y rounded-2xl border">
       {items.map((item) => (
         <li key={item.ingredientId} className="flex min-h-14 items-center gap-3 px-4 py-2">
-          <span
-            aria-hidden="true"
-            className={[
-              "flex size-7 shrink-0 items-center justify-center rounded-full",
-              item.inStock ? "bg-leaf-soft text-success" : "bg-accent-soft text-accent-strong",
-            ].join(" ")}
-          >
-            {item.inStock ? (
-              <CheckIcon size={15} strokeWidth={2.4} />
-            ) : (
-              <span className="bg-accent size-2.5 rounded-full" />
-            )}
-          </span>
-          <span className="flex min-w-0 flex-1 flex-col">
-            <Link
-              href={`/ingredients/${item.ingredientId}`}
-              className="font-medium hover:underline"
+          {guest ? null : (
+            <span
+              aria-hidden="true"
+              className={[
+                "flex size-7 shrink-0 items-center justify-center rounded-full",
+                item.inStock ? "bg-leaf-soft text-success" : "bg-accent-soft text-accent-strong",
+              ].join(" ")}
             >
-              {item.name}
-            </Link>
-            <span className="text-muted text-xs">
-              {item.inStock ? (item.inCupboard ? "Dans ton placard" : "Chez toi") : "À acheter"}
-              {item.note ? `, ${item.note}` : ""}
+              {item.inStock ? (
+                <CheckIcon size={15} strokeWidth={2.4} />
+              ) : (
+                <span className="bg-accent size-2.5 rounded-full" />
+              )}
             </span>
+          )}
+          <span className="flex min-w-0 flex-1 flex-col">
+            {guest ? (
+              <span className="font-medium">{item.name}</span>
+            ) : (
+              <Link
+                href={`/ingredients/${item.ingredientId}`}
+                className="font-medium hover:underline"
+              >
+                {item.name}
+              </Link>
+            )}
+            {guest ? (
+              item.note ? (
+                <span className="text-muted text-xs">{item.note}</span>
+              ) : null
+            ) : (
+              <span className="text-muted text-xs">
+                {item.inStock ? (item.inCupboard ? "Dans ton placard" : "Chez toi") : "À acheter"}
+                {item.note ? `, ${item.note}` : ""}
+              </span>
+            )}
           </span>
           <span className="shrink-0 text-sm font-semibold tabular-nums">
             {qty(item, servings, base)}
           </span>
-          {canAdd && !item.inStock ? (
+          {guest ? null : canAdd && !item.inStock ? (
             <AddOne item={item} quantity={qty(item, servings, base)} recipeId={recipeId} />
           ) : (
             <span className="size-11 shrink-0" aria-hidden="true" />

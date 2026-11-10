@@ -41,7 +41,7 @@ export const SIDEBAR: readonly NavItem[] = [
  */
 export const VISITOR_SIDEBAR: readonly NavItem[] = [
   { href: "/", label: "Accueil", icon: HomeIcon },
-  { href: "/#recettes", label: "Nos recettes", icon: BookIcon },
+  { href: "/recipes", label: "Nos recettes", icon: BookIcon },
   { href: "/#fonctionnement", label: "Comment ça marche", icon: CalendarIcon },
   { href: "/#engagements", label: "Nos engagements", icon: LeafIcon },
 ];

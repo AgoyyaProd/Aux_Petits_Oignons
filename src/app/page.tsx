@@ -84,7 +84,7 @@ export default function HomePage() {
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link
-                  href="/signup"
+                  href="/recipes"
                   className={buttonClasses("primary", "min-h-12 px-6 text-base")}
                 >
                   Voir les recettes
@@ -152,7 +152,7 @@ export default function HomePage() {
             <h2 id="recettes-titre" className="type-page">
               Nos recettes du moment
             </h2>
-            <Link href="/signup" className={buttonClasses("text", "gap-1")}>
+            <Link href="/recipes" className={buttonClasses("text", "gap-1")}>
               Voir toutes les recettes <ArrowRightIcon size={16} />
             </Link>
           </div>
@@ -160,7 +160,7 @@ export default function HomePage() {
             {SELECTION.map((r) => (
               <li
                 key={r.slug}
-                className="bg-surface border-border flex flex-col overflow-hidden rounded-2xl border"
+                className="bg-surface border-border relative flex flex-col overflow-hidden rounded-2xl border"
               >
                 <div className="relative aspect-[4/3]">
                   <RecipeVisual slug={r.slug} title={r.title} tags={r.tags} />
@@ -169,7 +169,14 @@ export default function HomePage() {
                   </span>
                 </div>
                 <div className="flex flex-col gap-2 p-4">
-                  <h3 className="font-semibold">{r.title}</h3>
+                  <h3 className="font-semibold">
+                    <Link
+                      href={`/recipes/${r.slug}`}
+                      className="after:absolute after:inset-0 after:content-[''] hover:underline"
+                    >
+                      {r.title}
+                    </Link>
+                  </h3>
                   <p className="text-muted flex flex-wrap gap-x-4 gap-y-1 text-sm">
                     <span className="inline-flex items-center gap-1.5">
                       <ClockIcon size={16} /> {duration(r.minutes)}

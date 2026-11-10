@@ -88,3 +88,12 @@ async function fallbackHousehold(
     .eq("id", userId);
   return pick.households;
 }
+
+/**
+ * Comme getCurrentContext, sans exiger de connexion : null pour un visiteur. Pour les pages
+ * ouvertes à tous (catalogue de recettes).
+ */
+export const getOptionalContext = cache(async () => {
+  const user = await getCurrentUser();
+  return user ? getCurrentContext() : null;
+});

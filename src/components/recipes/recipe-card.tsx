@@ -13,7 +13,14 @@ import type { RecipeCard as RecipeCardData } from "@/server/modules/recipes/quer
  * compacte (vignette à gauche) sur téléphone. Le titre est le lien principal ; le cœur et
  * l'ajout au menu restent des boutons séparés (pas d'interactif imbriqué).
  */
-export function RecipeCard({ recipe }: { recipe: RecipeCardData }) {
+export function RecipeCard({
+  recipe,
+  guest = false,
+}: {
+  recipe: RecipeCardData;
+  /** Visiteur sans compte : ni favori, ni ajout au menu. */
+  guest?: boolean;
+}) {
   const { coverage, compatibility } = recipe;
   const ratio = coverage.total ? coverage.inStock / coverage.total : 0;
   const dimmed = !compatibility.compatible || recipe.rating === -1;
@@ -24,13 +31,15 @@ export function RecipeCard({ recipe }: { recipe: RecipeCardData }) {
     >
       <div className="relative size-24 shrink-0 overflow-hidden rounded-xl sm:aspect-[4/3] sm:size-auto sm:rounded-none">
         <RecipeVisual slug={recipe.slug} title={recipe.title} tags={recipe.tags} />
-        <div className="absolute top-2.5 right-2.5 z-10 hidden sm:block">
-          <FavoriteButton
-            recipeId={recipe.id}
-            title={recipe.title}
-            favorite={recipe.rating === 1}
-          />
-        </div>
+        {guest ? null : (
+          <div className="absolute top-2.5 right-2.5 z-10 hidden sm:block">
+            <FavoriteButton
+              recipeId={recipe.id}
+              title={recipe.title}
+              favorite={recipe.rating === 1}
+            />
+          </div>
+        )}
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col gap-1.5 sm:p-4">
@@ -45,13 +54,15 @@ export function RecipeCard({ recipe }: { recipe: RecipeCardData }) {
               {recipe.title}
             </Link>
           </h3>
-          <div className="relative z-10 -mt-1 -mr-1 sm:hidden">
-            <FavoriteButton
-              recipeId={recipe.id}
-              title={recipe.title}
-              favorite={recipe.rating === 1}
-            />
-          </div>
+          {guest ? null : (
+            <div className="relative z-10 -mt-1 -mr-1 sm:hidden">
+              <FavoriteButton
+                recipeId={recipe.id}
+                title={recipe.title}
+                favorite={recipe.rating === 1}
+              />
+            </div>
+          )}
         </div>
         <p className="text-muted flex flex-wrap items-center gap-x-4 gap-y-1 text-sm max-sm:flex-nowrap max-sm:gap-x-3 max-sm:text-[0.8125rem]">
           <span className="inline-flex items-center gap-1.5">
@@ -90,7 +101,7 @@ export function RecipeCard({ recipe }: { recipe: RecipeCardData }) {
             <Badge tone="neutral">Végétarien</Badge>
           ) : null}
           {recipe.rating === -1 ? <Badge tone="neutral">Pas pour nous</Badge> : null}
-          {compatibility.compatible ? (
+          {compatibility.compatible && !guest ? (
             <span className="ml-auto max-sm:hidden">
               <AddToMenuButton recipeId={recipe.id} iconOnly />
             </span>
