@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 import { Logo } from "@/components/brand/logo";
-import { PageShapes } from "@/components/brand/page-shapes";
 import {
   SideNav,
   SideNavShell,
@@ -12,8 +11,8 @@ import {
 } from "@/components/layout/app-nav";
 import { APP_FOOTER_LINKS, PUBLIC_FOOTER_LINKS, SiteFooter } from "@/components/layout/site-footer";
 import { OfflineBanner } from "@/components/pwa/offline-banner";
-import { buttonClasses, iconButtonClasses } from "@/components/ui/button";
-import { SearchIcon } from "@/components/ui/icons";
+import { buttonClasses } from "@/components/ui/button";
+import { UserIcon } from "@/components/ui/icons";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { getCurrentContext, getCurrentUser } from "@/server/modules/auth/session";
 
@@ -35,11 +34,6 @@ export function SiteShell({ member, children }: { member?: boolean; children: Re
 
   return (
     <div className="relative isolate flex min-h-full flex-1 flex-col">
-      {member === false ? null : (
-        <Suspense fallback={null}>
-          <PageShapes />
-        </Suspense>
-      )}
       <div className="flex flex-1">
         <aside className="border-border bg-surface sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-8 border-r px-4 py-6 lg:flex print:hidden">
           <div className="flex items-start justify-between gap-2 px-2">
@@ -68,11 +62,13 @@ export function SiteShell({ member, children }: { member?: boolean; children: Re
                 {part((m) =>
                   m ? (
                     <Link
-                      href="/recipes"
-                      aria-label="Rechercher une recette"
-                      className={iconButtonClasses()}
+                      href="/settings"
+                      aria-label="Mon profil"
+                      className="bg-accent grid size-11 place-items-center rounded-full text-base font-bold text-white"
                     >
-                      <SearchIcon size={20} />
+                      <Suspense fallback={<UserIcon size={20} />}>
+                        <ProfileInitial />
+                      </Suspense>
                     </Link>
                   ) : (
                     <Link href="/login" className={buttonClasses("secondary", "px-4")}>
@@ -94,7 +90,7 @@ export function SiteShell({ member, children }: { member?: boolean; children: Re
       {part((m) => (
         <SiteFooter
           links={m ? APP_FOOTER_LINKS : PUBLIC_FOOTER_LINKS}
-          className={m ? "pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0" : ""}
+          className={m ? "pb-[calc(6.5rem+env(safe-area-inset-bottom))] lg:pb-0" : ""}
         />
       ))}
 
@@ -207,4 +203,11 @@ async function AccountCard() {
       </span>
     </>
   );
+}
+
+/** Initiale du profil, pour le rond « Mon profil » de l'en-tête mobile. */
+async function ProfileInitial() {
+  const { profile } = await getCurrentContext();
+  const name = profile.displayName?.trim();
+  return name ? <>{name.charAt(0).toUpperCase()}</> : <UserIcon size={20} />;
 }
