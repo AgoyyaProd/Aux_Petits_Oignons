@@ -53,6 +53,7 @@ ALIASES = {
         "pesto-rouge": "pesto-rosso",
         "grain-sesame": "graine-sesame",
         "avoca": "avocat",
+        "fromage-ail-fine-herbes": "fromage-frais-ail-fines-herbes",
     },
     "plats": {},
 }
