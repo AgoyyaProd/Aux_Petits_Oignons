@@ -41,3 +41,20 @@ export function safeRedirectPath(raw: unknown, fallback: string = DEFAULT_AFTER_
     return fallback;
   }
 }
+
+/** Rubriques réservées aux comptes, pour expliquer une redirection vers la connexion. */
+const MEMBER_AREAS: readonly [prefix: string, label: string][] = [
+  ["/planner", "ton menu de la semaine"],
+  ["/shopping", "ta liste de courses"],
+  ["/pantry", "ton garde-manger"],
+  ["/budget", "ton budget"],
+  ["/prices", "tes prix"],
+  ["/settings", "tes préférences"],
+  ["/ingredients", "la fiche de cet ingrédient"],
+];
+
+/** « ton garde-manger » pour /pantry/… ; null si la page n'a pas besoin d'explication. */
+export function memberAreaLabel(path: string): string | null {
+  const hit = MEMBER_AREAS.find(([p]) => path === p || path.startsWith(`${p}/`));
+  return hit ? hit[1] : null;
+}

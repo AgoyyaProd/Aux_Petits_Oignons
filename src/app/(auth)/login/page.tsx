@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { SignInForm } from "@/components/auth/sign-in-form";
 import { Alert } from "@/components/ui/alert";
-import { safeRedirectPath } from "@/lib/routes";
+import { memberAreaLabel, safeRedirectPath } from "@/lib/routes";
 
 export const metadata: Metadata = { title: "Connexion" };
 
@@ -25,9 +25,13 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
 async function LoginForm({ searchParams }: Pick<PageProps<"/login">, "searchParams">) {
   const params = await searchParams;
   const next = safeRedirectPath(params.next);
+  const area = memberAreaLabel(next);
 
   return (
     <>
+      {area ? (
+        <Alert tone="info">Pour accéder à {area}, connecte-toi ou crée un compte gratuit.</Alert>
+      ) : null}
       {params.error === "link" ? (
         <Alert tone="error">
           Ce lien de connexion est invalide ou a expiré. Demandes-en un nouveau.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isPublicPath, safeRedirectPath } from "@/lib/routes";
+import { isPublicPath, memberAreaLabel, safeRedirectPath } from "@/lib/routes";
 
 describe("safeRedirectPath (protection contre les redirections ouvertes)", () => {
   it.each([
@@ -53,5 +53,15 @@ describe("isPublicPath", () => {
     "/ingredients/abc",
   ])("%s est protégé", (p) => {
     expect(isPublicPath(p)).toBe(false);
+  });
+});
+
+describe("memberAreaLabel", () => {
+  it("explique les rubriques réservées aux comptes", () => {
+    expect(memberAreaLabel("/pantry")).toBe("ton garde-manger");
+    expect(memberAreaLabel("/shopping/rangement")).toBe("ta liste de courses");
+    expect(memberAreaLabel("/dashboard")).toBeNull();
+    expect(memberAreaLabel("/recipes")).toBeNull();
+    expect(memberAreaLabel("/pantryx")).toBeNull();
   });
 });
