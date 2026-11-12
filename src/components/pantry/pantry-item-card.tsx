@@ -38,7 +38,7 @@ export function PantryItemCard({
   initialKey: string;
 }) {
   const [mode, setMode] = useState<Mode>(null);
-  // Sur ordinateur, les actions se replient derrière le bouton « ⋮ » de la ligne.
+  // Les actions se replient derrière le bouton « ⋯ » de la ligne : une liste compacte.
   const [open, setOpen] = useState(false);
   const [moveState, moveAction, movePending] = useActionState(applyMovementAction, initialState);
   const [detailsState, detailsAction, detailsPending] = useActionState(
@@ -58,7 +58,7 @@ export function PantryItemCard({
   const actionsOpen = open || mode !== null;
 
   return (
-    <li className="border-border bg-surface rounded-xl border p-3.5 lg:rounded-none lg:border-0 lg:px-4 lg:py-3">
+    <li className="px-3 py-2.5 lg:px-4 lg:py-3">
       <div className="flex items-center gap-3 lg:grid lg:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)_2.75rem] lg:gap-4">
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <ImageSlot
@@ -71,7 +71,7 @@ export function PantryItemCard({
           />
           <div className="flex min-w-0 flex-col gap-0.5">
             <p className="truncate font-semibold">{item.ingredientName}</p>
-            <p className="text-sm">
+            <p className="truncate text-sm">
               <span className={`lg:hidden ${unknown ? "text-muted italic" : "font-medium"}`}>
                 {formatStockQuantity(item.quantityBase, item.dimension, item.displayUnit)}
                 <span className="text-muted font-normal not-italic"> · </span>
@@ -98,14 +98,14 @@ export function PantryItemCard({
             setOpen(!actionsOpen);
             if (actionsOpen) setMode(null);
           }}
-          className="text-muted hover:bg-surface-muted hover:text-foreground hidden size-10 items-center justify-center rounded-full lg:inline-flex"
+          className="text-muted hover:bg-surface-muted hover:text-foreground inline-flex size-11 shrink-0 items-center justify-center rounded-full lg:size-10"
         >
           <MoreIcon size={20} />
         </button>
       </div>
 
       {lastMessage.message && mode === null ? (
-        <div className="mt-3 lg:ml-[3.75rem]">
+        <div className="mt-3 ml-[3.75rem]">
           <Alert tone={lastMessage.status === "success" ? "success" : "error"}>
             {lastMessage.message}
           </Alert>
@@ -113,7 +113,7 @@ export function PantryItemCard({
       ) : null}
 
       <div
-        className={`mt-3 flex-wrap gap-2 lg:pl-[3.75rem] ${actionsOpen ? "flex" : "flex lg:hidden"}`}
+        className={`mt-3 flex-wrap gap-2 pl-[3.75rem] ${actionsOpen ? "flex" : "hidden"}`}
         role="group"
         aria-label="Actions"
       >

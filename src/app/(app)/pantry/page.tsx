@@ -5,8 +5,15 @@ import { Suspense } from "react";
 import { PantryItemCard } from "@/components/pantry/pantry-item-card";
 import { buttonClasses } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import { FridgeIcon, JarIcon, PlusIcon, SearchIcon, SnowIcon } from "@/components/ui/icons";
-import { PageHeader, Responsive } from "@/components/ui/page-header";
+import {
+  ArrowRightIcon,
+  FridgeIcon,
+  JarIcon,
+  PlusIcon,
+  SearchIcon,
+  SnowIcon,
+} from "@/components/ui/icons";
+import { Responsive } from "@/components/ui/page-header";
 import { PageSkeleton } from "@/components/ui/skeleton";
 import { categoryLabel } from "@/lib/categories";
 import { matchesSearch } from "@/domain/recipes/compatibility";
@@ -31,29 +38,95 @@ type Sort = (typeof SORTS)[number]["value"];
 
 export default function PantryPage({ searchParams }: PageProps<"/pantry">) {
   return (
-    <div className="flex flex-col gap-7">
-      <PageHeader
-        title="Mon garde-manger"
-        description="Ce que tu as au réfrigérateur, au congélateur et dans les placards. Les produits à utiliser vite passent en premier dans les menus."
-        actions={
-          <>
-            <Link href="/pantry/placard" className={buttonClasses("secondary")}>
-              <Responsive short="Épices" long="Épices et placard" />
-            </Link>
-            <Link href="/pantry/history" className={buttonClasses("secondary")}>
-              Historique
-            </Link>
-            <Link href="/pantry/new" className={buttonClasses("primary")}>
-              <PlusIcon size={18} />
-              Ajouter un produit
-            </Link>
-          </>
-        }
+    <Suspense
+      fallback={
+        <div className="flex flex-col gap-7">
+          <div className="bg-forest h-52 animate-pulse rounded-3xl" />
+          <PageSkeleton rows={4} />
+        </div>
+      }
+    >
+      <PantryContent searchParams={searchParams} />
+    </Suspense>
+  );
+}
+
+/**
+ * En-tête vert (piste « Marché ») : titre, actions, et une tuile par emplacement avec son
+ * nombre de produits. La tuile active est claire.
+ */
+function PantryHeader({
+  counts,
+  total,
+  where,
+  link,
+}: {
+  counts: Record<Location, number>;
+  total: number;
+  where: Location | null;
+  link: (next: { lieu?: string | null }) => string;
+}) {
+  const tiles: { key: Location | null; label: string; n: number }[] = [
+    { key: null, label: "Tout", n: total },
+    ...LOCATIONS.map((l) => ({ key: l, label: SHORT_LOCATION[l], n: counts[l] })),
+  ];
+  return (
+    <header className="bg-forest text-cream relative flex flex-col gap-5 overflow-hidden rounded-3xl px-5 py-6 sm:px-8 lg:px-10 lg:py-8">
+      <span
+        aria-hidden="true"
+        className="bg-leaf absolute -top-12 -right-8 hidden h-28 w-56 rotate-[-18deg] rounded-[100%_0] opacity-90 sm:block"
       />
-      <Suspense fallback={<PageSkeleton rows={4} />}>
-        <PantryContent searchParams={searchParams} />
-      </Suspense>
-    </div>
+      <div className="relative flex flex-wrap items-end justify-between gap-4">
+        <div className="flex flex-col gap-1.5">
+          <h1 className="type-page text-cream">Mon garde-manger</h1>
+          <p className="max-w-xl text-sm text-[#cfe0d4]">
+            Frigo, congélateur et placards. Les produits à utiliser vite passent en premier dans les
+            menus.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/pantry/placard"
+            className="text-cream inline-flex min-h-11 items-center rounded-full bg-white/12 px-4 text-sm font-semibold hover:bg-white/20"
+          >
+            <Responsive short="Épices" long="Épices et placard" />
+          </Link>
+          <Link
+            href="/pantry/history"
+            className="text-cream inline-flex min-h-11 items-center rounded-full bg-white/12 px-4 text-sm font-semibold hover:bg-white/20"
+          >
+            Historique
+          </Link>
+          <Link href="/pantry/new" className={buttonClasses("primary")}>
+            <PlusIcon size={18} />
+            Ajouter
+          </Link>
+        </div>
+      </div>
+      <nav aria-label="Emplacements" className="relative">
+        <ul className="grid grid-cols-4 gap-2 lg:max-w-2xl lg:gap-3">
+          {tiles.map((tile) => {
+            const active = where === tile.key;
+            return (
+              <li key={tile.label}>
+                <Link
+                  href={link({ lieu: tile.key })}
+                  aria-current={active ? "page" : undefined}
+                  scroll={false}
+                  className={[
+                    "flex min-h-[4.25rem] flex-col justify-center rounded-2xl px-3 transition-colors",
+                    active ? "bg-cream text-[#13261f]" : "text-cream bg-white/10 hover:bg-white/16",
+                  ].join(" ")}
+                >
+                  <span className="font-display text-2xl leading-none font-semibold">{tile.n}</span>
+                  <span className="mt-1 text-xs font-semibold">{tile.label}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    </header>
   );
 }
 
@@ -66,29 +139,44 @@ async function PantryContent({ searchParams }: Pick<PageProps<"/pantry">, "searc
   const pantry = await getPantry();
   if (!pantry) return <p className="text-muted">Aucun foyer actif.</p>;
   const { items, today } = pantry;
-
-  if (items.length === 0) {
-    return (
-      <EmptyState
-        title="Ton garde-manger est vide"
-        action={
-          <Link href="/pantry/new" className={buttonClasses("primary")}>
-            Ajouter un premier produit
-          </Link>
-        }
-      >
-        Ajoute ce que tu as au réfrigérateur, au congélateur et dans les placards : les repas
-        proposés utiliseront ces produits en priorité, et la liste de courses ne contiendra que ce
-        qui manque.
-      </EmptyState>
-    );
-  }
-
   const where = (LOCATIONS as readonly string[]).includes(one(sp.lieu))
     ? (one(sp.lieu) as Location)
     : null;
   const q = one(sp.q).slice(0, 60);
   const sort: Sort = SORTS.some((s) => s.value === one(sp.tri)) ? (one(sp.tri) as Sort) : "date";
+  const counts = Object.fromEntries(
+    LOCATIONS.map((l) => [l, items.filter((i) => i.location === l).length]),
+  ) as Record<Location, number>;
+  const link = (next: { lieu?: string | null; tri?: string }) => {
+    const p = new URLSearchParams();
+    const lieu = next.lieu === undefined ? where : next.lieu;
+    if (lieu) p.set("lieu", lieu);
+    if (q) p.set("q", q);
+    const tri = next.tri ?? sort;
+    if (tri !== "date") p.set("tri", tri);
+    return `/pantry${p.size ? `?${p}` : ""}`;
+  };
+  const header = <PantryHeader counts={counts} total={items.length} where={where} link={link} />;
+
+  if (items.length === 0) {
+    return (
+      <div className="flex flex-col gap-7">
+        {header}
+        <EmptyState
+          title="Ton garde-manger est vide"
+          action={
+            <Link href="/pantry/new" className={buttonClasses("primary")}>
+              Ajouter un premier produit
+            </Link>
+          }
+        >
+          Ajoute ce que tu as au réfrigérateur, au congélateur et dans les placards : les repas
+          proposés utiliseront ces produits en priorité, et la liste de courses ne contiendra que ce
+          qui manque.
+        </EmptyState>
+      </div>
+    );
+  }
 
   const filtered = items
     .filter((i) => !where || i.location === where)
@@ -106,69 +194,33 @@ async function PantryContent({ searchParams }: Pick<PageProps<"/pantry">, "searc
     );
   }
   const priority = items.filter((i) => i.priority && (!where || i.location === where));
-  const counts = Object.fromEntries(
-    LOCATIONS.map((l) => [l, items.filter((i) => i.location === l).length]),
-  ) as Record<Location, number>;
-
-  const link = (next: { lieu?: string | null; tri?: string }) => {
-    const p = new URLSearchParams();
-    const lieu = next.lieu === undefined ? where : next.lieu;
-    if (lieu) p.set("lieu", lieu);
-    if (q) p.set("q", q);
-    const tri = next.tri ?? sort;
-    if (tri !== "date") p.set("tri", tri);
-    return `/pantry${p.size ? `?${p}` : ""}`;
-  };
 
   return (
     <div className="flex flex-col gap-6">
-      <nav aria-label="Emplacements" className="border-border border-b">
-        <ul className="grid grid-cols-4 sm:flex sm:gap-1">
-          <li>
-            <Tab href={link({ lieu: null })} active={!where}>
-              Tous <span className="opacity-70">{items.length}</span>
-            </Tab>
-          </li>
-          {LOCATIONS.map((l) => {
-            const Icon = LOCATION_ICON[l];
-            return (
-              <li key={l}>
-                <Tab href={link({ lieu: l })} active={where === l}>
-                  <Icon size={18} className="max-sm:hidden" />
-                  <Responsive short={SHORT_LOCATION[l]} long={LOCATION_LABEL[l]} />{" "}
-                  <span className="opacity-70">{counts[l]}</span>
-                </Tab>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
+      {header}
 
       {priority.length > 0 ? (
-        <section
-          aria-labelledby="priorite"
-          className="bg-accent-soft flex flex-col gap-3 rounded-2xl p-4 sm:p-5"
+        <Link
+          href="/recipes?vite=1"
+          className="bg-highlight flex items-center gap-3 rounded-2xl px-4 py-3 text-[#13261f] transition-transform hover:-translate-y-0.5"
         >
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 id="priorite" className="type-section">
-              À utiliser rapidement
-            </h2>
-            <Link
-              href="/recipes?vite=1"
-              className="text-accent-strong text-sm font-semibold hover:underline"
-            >
-              Recettes qui les utilisent
-            </Link>
-          </div>
-          <p className="text-sm">
-            {priority
-              .slice(0, 8)
-              .map((i) => i.ingredientName)
-              .join(", ")}
-            {priority.length > 8 ? ` et ${priority.length - 8} autre(s)` : ""}. Date limite dans 3
-            jours ou moins, ou produit entamé.
-          </p>
-        </section>
+          <span className="font-display shrink-0 text-3xl leading-none font-semibold">
+            {priority.length}
+          </span>
+          <span className="flex min-w-0 flex-1 flex-col">
+            <span className="text-[0.9375rem] font-bold">
+              {priority.length > 1 ? "Produits à finir en premier" : "Produit à finir en premier"}
+            </span>
+            <span className="truncate text-sm">
+              {priority
+                .slice(0, 4)
+                .map((i) => i.ingredientName)
+                .join(", ")}
+              {priority.length > 4 ? "…" : ""} · voir les recettes
+            </span>
+          </span>
+          <ArrowRightIcon size={18} className="shrink-0" />
+        </Link>
       ) : null}
 
       <form
@@ -219,32 +271,6 @@ async function PantryContent({ searchParams }: Pick<PageProps<"/pantry">, "searc
   );
 }
 
-function Tab({
-  href,
-  active,
-  children,
-}: {
-  href: string;
-  active: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <Link
-      href={href}
-      aria-current={active ? "page" : undefined}
-      scroll={false}
-      className={[
-        "-mb-px inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-1.5 border-b-2 px-1 text-sm font-semibold whitespace-nowrap transition-colors sm:w-auto sm:gap-2 sm:px-3",
-        active
-          ? "border-accent text-foreground"
-          : "text-muted hover:text-foreground border-transparent",
-      ].join(" ")}
-    >
-      {children}
-    </Link>
-  );
-}
-
 /** En-tête de colonnes du tableau (ordinateur uniquement). */
 function TableHead() {
   return (
@@ -263,9 +289,9 @@ function TableHead() {
 
 function Rows({ items, today }: { items: PantryItemView[]; today: string }) {
   return (
-    <div className="lg:border-border lg:bg-surface lg:overflow-hidden lg:rounded-2xl lg:border">
+    <div className="border-border bg-surface overflow-hidden rounded-2xl border">
       <TableHead />
-      <ul className="lg:divide-border flex flex-col gap-3 lg:gap-0 lg:divide-y">
+      <ul className="divide-border flex flex-col divide-y">
         {items.map((item) => (
           // Clé d'idempotence générée côté serveur pour la prochaine action sur ce produit.
           <PantryItemCard key={item.id} item={item} today={today} initialKey={randomUUID()} />

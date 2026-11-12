@@ -2,25 +2,20 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
-import { BrandElement, TexturedMark } from "@/components/brand/shapes";
 import { RecipeVisual } from "@/components/recipes/recipe-visual";
-import { Badge, type BadgeTone } from "@/components/ui/badge";
+import type { BadgeTone } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";
-import { ACTIONS_ROW, Responsive } from "@/components/ui/page-header";
 import {
   ArrowRightIcon,
   BasketIcon,
   ClockIcon,
-  PlusIcon,
   SearchIcon,
   WalletIcon,
 } from "@/components/ui/icons";
 import { formatCents } from "@/domain/money";
 import { expiryState } from "@/domain/pantry/priority";
 import { formatLongDate, hourIn } from "@/lib/dates";
-import { formatShoppingQuantity } from "@/lib/format-quantity";
 import { ImageSlot } from "@/components/ui/image-slot";
-import { DismissibleBanner } from "@/components/pantry/dismissible-banner";
 import { ingredientImage } from "@/lib/images";
 import { formatDay } from "@/lib/week";
 import { getCurrentContext } from "@/server/modules/auth/session";
@@ -33,78 +28,44 @@ export const metadata: Metadata = { title: "Accueil" };
 export const maxDuration = 30;
 
 /**
- * Tableau de bord : ce qu'on mange aujourd'hui, ce qu'il faut finir, ce qu'il reste à
- * acheter. L'ordre suit la question du jour : « on mange quoi, et qu'est-ce que je fais
- * ensuite ? ».
+ * Tableau de bord (piste « Marché ») : un en-tête vert, le plat du jour en grand, trois
+ * tuiles colorées (à finir, courses, budget), puis la semaine et les idées. L'ordre suit la
+ * question du jour : « on mange quoi, et qu'est-ce que je fais ensuite ? ».
  */
 export default function DashboardPage() {
   return (
-    <div className="flex flex-col gap-8 lg:gap-10">
-      <Suspense fallback={<div className="bg-border/60 h-16 w-72 animate-pulse rounded-lg" />}>
+    <div className="flex flex-col gap-6 lg:gap-10">
+      <Suspense fallback={<Block className="h-56 rounded-3xl" />}>
         <Greeting />
       </Suspense>
 
-      <Suspense fallback={null}>
-        <UseSoonBanner />
-      </Suspense>
-
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        <Suspense fallback={<Block className="h-80" />}>
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)] lg:gap-6">
+        <Suspense fallback={<Block className="h-96" />}>
           <Today />
         </Suspense>
-        <Suspense fallback={<Block className="h-80" />}>
-          <Shopping />
-        </Suspense>
-        <Suspense fallback={<Block className="h-80" />}>
-          <UseSoon />
-        </Suspense>
+        <div className="grid grid-cols-2 content-start gap-3 lg:grid-cols-1 lg:gap-4">
+          <Suspense fallback={<Block className="h-40" />}>
+            <FinishTile />
+          </Suspense>
+          <Suspense fallback={<Block className="h-40" />}>
+            <ShoppingTile />
+          </Suspense>
+          <div className="col-span-2 lg:col-span-1">
+            <Suspense fallback={<Block className="h-28" />}>
+              <BudgetTile />
+            </Suspense>
+          </div>
+        </div>
       </div>
 
       <Suspense fallback={<Block className="h-40" />}>
         <Week />
       </Suspense>
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_1.6fr] lg:gap-10">
-        <Suspense fallback={<Block className="h-40" />}>
-          <Budget />
-        </Suspense>
-        <Suspense fallback={<Block className="h-48" />}>
-          <Suggestions />
-        </Suspense>
-      </div>
+      <Suspense fallback={<Block className="h-48" />}>
+        <Suggestions />
+      </Suspense>
     </div>
-  );
-}
-
-/** Carte du tableau de bord : titre en serif, lien « Voir » en haut à droite. */
-function Card({
-  title,
-  href,
-  link,
-  children,
-  id,
-}: {
-  title: string;
-  href: string;
-  link: string;
-  children: ReactNode;
-  id: string;
-}) {
-  return (
-    <section
-      aria-labelledby={id}
-      className="bg-surface border-border flex flex-col gap-4 rounded-2xl border p-5 shadow-sm"
-    >
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 id={id} className="type-section text-[1.1875rem]">
-          {title}
-        </h2>
-        <Link href={href} className="text-brand shrink-0 text-sm font-semibold hover:underline">
-          {link}
-        </Link>
-      </div>
-      {children}
-    </section>
   );
 }
 
@@ -147,39 +108,23 @@ async function Greeting() {
   const hello = hour >= 18 || hour < 5 ? "Bonsoir" : "Bonjour";
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(new Date());
   return (
-    <header className="bg-surface-muted relative flex flex-col gap-5 overflow-hidden rounded-3xl px-5 py-7 sm:px-8 lg:px-10 lg:py-10 xl:pr-72">
-      {/* Décor : les trois formes du logo, comme sur la page d'accueil du site. */}
-      <BrandElement
-        name="dot"
-        priority
-        sizes="80px"
-        className="absolute -top-6 -right-6 w-20 xl:hidden"
+    <header className="bg-forest text-cream relative flex flex-col gap-5 overflow-hidden rounded-3xl px-5 py-6 sm:px-8 lg:px-10 lg:py-9">
+      <span
+        aria-hidden="true"
+        className="bg-highlight absolute -top-10 -right-10 size-32 rounded-full lg:size-44"
       />
-      <TexturedMark
-        sizes="224px"
-        className="absolute top-1/2 right-10 hidden w-56 -translate-y-1/2 xl:block"
+      <span
+        aria-hidden="true"
+        className="bg-accent absolute right-28 -bottom-14 hidden h-24 w-48 rounded-t-full lg:block"
       />
-      <div className="relative flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div className="flex flex-col gap-1.5">
-          <p className="text-muted text-sm font-medium first-letter:uppercase">
-            {formatLongDate(today)}
-          </p>
-          <h1 className="type-page text-forest dark:text-foreground">
-            {hello}
-            {profile.displayName ? ` ${profile.displayName}` : ""} !
-          </h1>
-          <p className="text-muted">Que cuisine-t-on aujourd&apos;hui ?</p>
-        </div>
-        <div className={ACTIONS_ROW}>
-          <Link href="/pantry/new" className={buttonClasses("secondary")}>
-            <PlusIcon size={18} />
-            <Responsive short="Garde-manger" long="Ajouter au garde-manger" />
-          </Link>
-          <Link href="/planner" className={buttonClasses("primary")}>
-            Mon menu
-            <ArrowRightIcon size={18} />
-          </Link>
-        </div>
+      <div className="relative flex flex-col gap-1">
+        <p className="text-sm font-medium text-[#a9cfb2] first-letter:uppercase">
+          {formatLongDate(today)}
+        </p>
+        <h1 className="type-page text-cream">
+          {hello}
+          {profile.displayName ? ` ${profile.displayName}` : ""} !
+        </h1>
       </div>
       <div className="relative flex flex-col gap-3 lg:flex-row lg:items-center">
         <form action="/recipes" role="search" className="relative w-full lg:max-w-md">
@@ -188,14 +133,14 @@ async function Greeting() {
           </label>
           <SearchIcon
             size={20}
-            className="text-muted pointer-events-none absolute top-1/2 left-4 -translate-y-1/2"
+            className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-[#645c51]"
           />
           <input
             id="dash-search"
             name="q"
             type="search"
-            placeholder="Rechercher une recette, un ingrédient…"
-            className="bg-surface border-border focus-visible:border-forest min-h-12 w-full rounded-full border pr-4 pl-11 text-base outline-none"
+            placeholder="Une recette, un ingrédient…"
+            className="bg-cream min-h-12 w-full rounded-full border-0 pr-4 pl-11 text-base text-[#13261f] outline-none placeholder:text-[#645c51] focus-visible:ring-2 focus-visible:ring-[#ff9d00]"
           />
         </form>
         <ul className="chip-scroll" aria-label="Idées rapides">
@@ -203,7 +148,7 @@ async function Greeting() {
             <li key={q.href} className="shrink-0">
               <Link
                 href={q.href}
-                className="border-border bg-surface hover:border-border-strong inline-flex min-h-10 items-center rounded-full border px-3.5 text-sm font-medium whitespace-nowrap"
+                className="text-cream inline-flex min-h-10 items-center rounded-full bg-white/12 px-3.5 text-sm font-medium whitespace-nowrap hover:bg-white/20"
               >
                 {q.label}
               </Link>
@@ -223,7 +168,7 @@ const QUICK = [
   { href: "/recipes?vite=1", label: "À finir" },
 ] as const;
 
-/** Menu du jour : les repas placés aujourd'hui, avec le visuel du plat principal. */
+/** Le plat du jour en grand : photo, titre et « Cuisiner ». Les autres repas du jour dessous. */
 async function Today() {
   const page = await getPlannerPage({});
   if (!page) return null;
@@ -231,148 +176,127 @@ async function Today() {
   if (!page.plan || meals.length === 0) {
     const next = page.entries.find((e) => !e.cooked && e.day && e.day > page.today);
     return (
-      <Card id="jour" title="Menu du jour" href="/planner" link="Voir">
-        <ImageSlot alt="" seed="menu-du-jour" className="aspect-[16/9] rounded-xl" />
-        <p className="font-semibold">
-          {page.plan ? "Rien de prévu aujourd'hui" : "Ta semaine n'est pas encore prévue"}
-        </p>
-        <p className="text-muted text-sm leading-relaxed">
-          {page.plan
-            ? next
-              ? `Prochain repas : ${next.title}, ${formatDay(next.day!).toLowerCase()}.`
-              : "Place un plat sur aujourd'hui depuis le menu de la semaine."
-            : "Indique le nombre de repas, de personnes et ton budget : on te propose des plats qui utilisent d'abord ce que tu as."}
-        </p>
-        <Link href="/planner" className={buttonClasses("primary", "mt-auto self-start")}>
-          {page.plan ? "Ouvrir le menu" : "Générer mon menu"}
-        </Link>
-      </Card>
+      <section
+        aria-labelledby="jour"
+        className="bg-surface flex flex-col overflow-hidden rounded-3xl shadow-[var(--shadow-md)]"
+      >
+        <ImageSlot alt="" seed="menu-du-jour" className="aspect-[16/9]" />
+        <div className="flex flex-col gap-3 p-5 lg:p-6">
+          <h2 id="jour" className="type-section">
+            {page.plan ? "Rien de prévu aujourd'hui" : "Ta semaine n'est pas encore prévue"}
+          </h2>
+          <p className="text-muted text-sm leading-relaxed">
+            {page.plan
+              ? next
+                ? `Prochain repas : ${next.title}, ${formatDay(next.day!).toLowerCase()}.`
+                : "Place un plat sur aujourd'hui depuis le menu de la semaine."
+              : "Indique le nombre de repas, de personnes et ton budget : on te propose des plats qui utilisent d'abord ce que tu as."}
+          </p>
+          <Link href="/planner" className={buttonClasses("primary", "self-start")}>
+            {page.plan ? "Ouvrir le menu" : "Générer mon menu"}
+          </Link>
+        </div>
+      </section>
     );
   }
   const main = meals.find((m) => m.slot === "dinner" && !m.cooked) ?? meals[0]!;
+  const others = meals.filter((m) => m !== main);
   return (
-    <Card id="jour" title="Menu du jour" href="/planner" link="Voir">
+    <section
+      aria-labelledby="jour"
+      className="bg-surface flex flex-col overflow-hidden rounded-3xl shadow-[var(--shadow-md)]"
+    >
       <RecipeVisual
         slug={main.slug ?? main.title}
         title={main.title}
-        className="aspect-[16/9] rounded-xl"
+        className="aspect-[2/1]"
+        priority
       />
-      <ul className="flex flex-col gap-3">
-        {meals.map((m) => (
-          <li key={m.position} className="flex flex-col gap-0.5">
-            <span className="text-accent-strong text-xs font-semibold tracking-wide uppercase">
-              {m.slot === "lunch" ? "Déjeuner" : "Dîner"}
+      <div className="flex flex-col gap-3 p-5 lg:p-6">
+        <p className="text-accent-strong text-xs font-bold tracking-wide uppercase">
+          {main.slot === "dinner" ? "Ce soir" : "Ce midi"}
+          {main.cooked ? " · cuisiné" : ""}
+        </p>
+        <h2 id="jour" className="type-section text-[1.5rem] leading-tight lg:text-[1.875rem]">
+          {main.title}
+        </h2>
+        <p className="text-muted flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+          {main.totalMinutes !== null ? (
+            <span className="inline-flex items-center gap-1">
+              <ClockIcon size={15} /> {main.totalMinutes} min
             </span>
-            {m.slug ? (
-              <Link href={`/recipes/${m.slug}`} className="type-card hover:underline">
-                {m.title}
-              </Link>
-            ) : (
-              <span className="type-card">{m.title}</span>
-            )}
-            <span className="text-muted flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-              {m.totalMinutes !== null ? (
-                <span className="inline-flex items-center gap-1">
-                  <ClockIcon size={15} /> {m.totalMinutes} min
-                </span>
-              ) : null}
-              <span>
-                {m.servings} portion{m.servings > 1 ? "s" : ""}
-              </span>
-              {m.cooked ? <Badge tone="leaf">Cuisiné</Badge> : null}
-            </span>
-          </li>
-        ))}
-      </ul>
-      {main.slug && !main.cooked ? (
-        <Link
-          href={`/recipes/${main.slug}`}
-          className={buttonClasses("primary", "mt-auto self-start")}
-        >
-          Cuisiner {meals.length > 1 ? "le plat du soir" : "ce plat"}
-        </Link>
-      ) : null}
-    </Card>
-  );
-}
-
-async function Shopping() {
-  const page = await getShoppingPage();
-  if (!page || !page.plan || !("totals" in page)) {
-    return (
-      <Card id="liste" title="Ma liste de courses" href="/shopping" link="Voir">
-        <span className="bg-highlight-soft text-warning flex size-11 items-center justify-center rounded-full">
-          <BasketIcon size={22} />
-        </span>
-        <p className="text-muted text-sm">Elle se remplit dès que le menu est prêt.</p>
-      </Card>
-    );
-  }
-  const { totals } = page;
-  const done = Boolean(page.plan.shoppingDoneAt);
-  const ratio = totals.lines ? totals.checked / totals.lines : 1;
-  const remaining = page.aisles
-    .flatMap((a) => a.lines)
-    .filter((l) => !l.checked)
-    .slice(0, 5);
-  return (
-    <Card id="liste" title="Ma liste de courses" href="/shopping" link="Voir">
-      {done ? (
-        <>
-          <Badge tone="leaf">Courses faites</Badge>
-          <p className="text-sm">Marque tes plats « Cuisiné » depuis leur recette.</p>
-        </>
-      ) : totals.lines === 0 ? (
-        <p className="text-sm">Rien à acheter : tout est déjà chez toi.</p>
-      ) : (
-        <>
-          <span className="flex items-baseline gap-2">
-            <span className="font-display text-3xl font-semibold">
-              {totals.lines - totals.checked}
-            </span>
-            <span className="text-muted text-sm">
-              article{totals.lines - totals.checked > 1 ? "s" : ""} à acheter
-            </span>
-          </span>
-          {remaining.length ? (
-            <ul className="divide-border flex flex-col divide-y text-sm">
-              {remaining.map((l) => (
-                <li
-                  key={`${l.ingredientId}|${l.dimension}`}
-                  className="flex items-center justify-between gap-3 py-2"
-                >
-                  <span className="truncate">{l.name}</span>
-                  <span className="text-muted shrink-0">{formatShoppingQuantity(l.toBuy)}</span>
-                </li>
-              ))}
-            </ul>
           ) : null}
-          <div className="mt-auto flex flex-col gap-2">
-            <span className="flex items-center justify-between text-sm">
-              <span className="text-muted">À payer en magasin</span>
-              <span className="font-semibold">
-                {totals.unpriced ? "≥ " : "≈ "}
-                {formatCents(totals.storeCents)}
-              </span>
-            </span>
-            <span
-              role="img"
-              aria-label={`${totals.checked} sur ${totals.lines} dans le panier`}
-              className="bg-surface-muted h-2 overflow-hidden rounded-full"
-            >
-              <span
-                className="bg-accent-strong block h-full rounded-full"
-                style={{ width: `${Math.round(ratio * 100)}%` }}
-              />
-            </span>
-          </div>
-        </>
-      )}
-    </Card>
+          <span>
+            {main.servings} portion{main.servings > 1 ? "s" : ""}
+          </span>
+        </p>
+        {main.slug ? (
+          <Link
+            href={`/recipes/${main.slug}`}
+            className={buttonClasses(main.cooked ? "secondary" : "primary", "self-start")}
+          >
+            {main.cooked ? "Revoir la recette" : "Cuisiner"}
+            {main.cooked ? null : <ArrowRightIcon size={18} />}
+          </Link>
+        ) : null}
+        {others.length ? (
+          <ul className="border-border mt-1 flex flex-col gap-1.5 border-t pt-3 text-sm">
+            {others.map((m) => (
+              <li key={m.position} className="flex items-baseline gap-2">
+                <span className="text-muted w-12 shrink-0 text-xs font-semibold uppercase">
+                  {m.slot === "lunch" ? "Midi" : "Soir"}
+                </span>
+                {m.slug ? (
+                  <Link
+                    href={`/recipes/${m.slug}`}
+                    className={`font-medium hover:underline ${m.cooked ? "line-through opacity-60" : ""}`}
+                  >
+                    {m.title}
+                  </Link>
+                ) : (
+                  <span className="font-medium">{m.title}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+    </section>
   );
 }
 
-async function Budget() {
+/** Tuile verte : où en sont les courses. */
+async function ShoppingTile() {
+  const page = await getShoppingPage();
+  const totals = page && page.plan && "totals" in page ? page.totals : null;
+  const done = Boolean(totals && page?.plan?.shoppingDoneAt);
+  const left = totals ? totals.lines - totals.checked : 0;
+  return (
+    <Link
+      href="/shopping"
+      className="bg-leaf flex min-h-40 flex-col gap-2 rounded-3xl p-4 text-white transition-transform hover:-translate-y-0.5 lg:p-5"
+    >
+      <BasketIcon size={30} />
+      <span className="text-[0.9375rem] leading-tight font-bold">
+        {!totals
+          ? "Ta liste arrive avec le menu"
+          : done
+            ? "Courses faites"
+            : left === 0
+              ? "Rien à acheter"
+              : `${left} article${left > 1 ? "s" : ""} à acheter`}
+      </span>
+      <span className="mt-auto text-sm text-white/85">
+        {totals && !done && left > 0
+          ? `${totals.unpriced ? "≥ " : "≈ "}${formatCents(totals.storeCents)} en magasin`
+          : "Ma liste de courses"}
+      </span>
+    </Link>
+  );
+}
+
+/** Bandeau budget : coût estimé du menu face au budget de la semaine. */
+async function BudgetTile() {
   const page = await getPlannerPage({});
   if (!page?.plan) return null;
   const budget = page.plan.budgetCents;
@@ -381,39 +305,35 @@ async function Budget() {
   return (
     <Link
       href="/budget"
-      className="bg-surface border-border hover:border-border-strong flex flex-col gap-3 rounded-2xl border p-5"
+      className="bg-brand-soft flex flex-col gap-2.5 rounded-3xl p-4 transition-transform hover:-translate-y-0.5 lg:p-5"
     >
-      <span className="flex items-center gap-2 font-semibold">
-        <WalletIcon size={20} /> Mon budget de la semaine
+      <span className="flex items-center justify-between gap-3">
+        <span className="inline-flex items-center gap-2 text-sm font-semibold">
+          <WalletIcon size={18} /> Budget de la semaine
+        </span>
+        {budget !== null ? (
+          <span className={`text-sm font-semibold ${over ? "text-danger" : "text-success"}`}>
+            {over ? `+${formatCents(cents - budget)}` : `${formatCents(budget - cents)} de marge`}
+          </span>
+        ) : null}
       </span>
       <span className="flex items-baseline gap-2">
-        <span className="font-display text-3xl font-semibold">
+        <span className="font-display text-2xl font-semibold">
           {entriesWithMissing ? "≥ " : "≈ "}
           {formatCents(cents)}
         </span>
         {budget !== null ? (
-          <span className="text-muted text-sm">sur {formatCents(budget)} prévus</span>
+          <span className="text-muted text-sm">sur {formatCents(budget)}</span>
         ) : null}
       </span>
       {budget !== null ? (
-        <>
-          <span className="bg-surface-muted h-2 overflow-hidden rounded-full">
-            <span
-              className={`block h-full rounded-full ${over ? "bg-danger" : "bg-brand"}`}
-              style={{
-                width: `${Math.min(100, Math.round((cents / Math.max(budget, 1)) * 100))}%`,
-              }}
-            />
-          </span>
-          <span className={`text-sm font-medium ${over ? "text-danger" : "text-success"}`}>
-            {over
-              ? `${formatCents(cents - budget)} au-dessus du budget`
-              : `${formatCents(budget - cents)} de marge`}
-          </span>
-        </>
-      ) : (
-        <span className="text-muted text-sm">Coût estimé du menu, sans budget fixé.</span>
-      )}
+        <span className="bg-surface h-2 overflow-hidden rounded-full">
+          <span
+            className={`block h-full rounded-full ${over ? "bg-danger" : "bg-brand"}`}
+            style={{ width: `${Math.min(100, Math.round((cents / Math.max(budget, 1)) * 100))}%` }}
+          />
+        </span>
+      ) : null}
     </Link>
   );
 }
@@ -512,53 +432,61 @@ function expiryBadge(
   return { label: "Entamé", tone: "soon" };
 }
 
-async function UseSoon() {
+/** Tuile ocre : les produits entamés ou à date proche ; mène aux recettes qui les utilisent. */
+async function FinishTile() {
   const pantry = await getPantry();
   if (!pantry) return null;
-  const urgent = pantry.items.filter((i) => i.priority);
+  const urgent = pantry.items
+    .filter((i) => i.priority)
+    .sort((a, b) => (a.expiresOn ?? "9999").localeCompare(b.expiresOn ?? "9999"));
+  if (urgent.length === 0) {
+    return (
+      <Link
+        href="/pantry"
+        className="bg-highlight-soft flex min-h-40 flex-col gap-2 rounded-3xl p-4 transition-transform hover:-translate-y-0.5 lg:p-5"
+      >
+        <span className="font-display text-3xl leading-none font-semibold">0</span>
+        <span className="text-[0.9375rem] leading-tight font-bold">produit à finir</span>
+        <span className="text-muted mt-auto text-sm">
+          {pantry.items.length ? "Rien d'urgent au garde-manger" : "Garde-manger vide"}
+        </span>
+      </Link>
+    );
+  }
+  const first = expiryBadge(urgent[0]!, pantry.today);
   return (
-    <Card id="vite" title="Produits à consommer" href="/pantry" link="Voir">
-      {pantry.items.length === 0 ? (
-        <p className="text-muted text-sm leading-relaxed">
-          Ton garde-manger est vide. Ajoute ce que tu as : les menus utiliseront d&apos;abord ces
-          produits.{" "}
-          <Link href="/pantry/new" className="text-brand font-semibold underline">
-            Ajouter des produits
-          </Link>
-        </p>
-      ) : urgent.length === 0 ? (
-        <p className="text-success text-sm font-medium">
-          Rien d&apos;urgent : aucune date limite proche, rien d&apos;entamé.
-        </p>
-      ) : (
-        <ul className="divide-border flex flex-col divide-y">
-          {urgent.slice(0, 5).map((item) => {
-            const b = expiryBadge(item, pantry.today);
-            return (
-              <li key={item.id} className="flex items-center gap-3 py-2.5">
-                <ImageSlot
-                  src={ingredientImage(item.ingredientSlug)}
-                  alt=""
-                  seed={item.ingredientSlug ?? item.ingredientName}
-                  letter={item.ingredientName}
-                  className="size-10 shrink-0 rounded-lg"
-                  iconSize={16}
-                />
-                <span className="min-w-0 flex-1 truncate text-sm font-medium">
-                  {item.ingredientName}
-                </span>
-                <Badge tone={b.tone}>{b.label}</Badge>
-              </li>
-            );
-          })}
-          {urgent.length > 5 ? (
-            <li className="text-muted py-2.5 text-sm">
-              et {urgent.length - 5} autre{urgent.length - 5 > 1 ? "s" : ""}
-            </li>
-          ) : null}
-        </ul>
-      )}
-    </Card>
+    <Link
+      href="/recipes?vite=1"
+      aria-label={`${urgent.length} produit${urgent.length > 1 ? "s" : ""} à finir : voir les recettes qui les utilisent`}
+      className="bg-highlight flex min-h-40 flex-col gap-2 rounded-3xl p-4 text-[#13261f] transition-transform hover:-translate-y-0.5 lg:p-5"
+    >
+      <span className="font-display text-3xl leading-none font-semibold">{urgent.length}</span>
+      <span className="text-[0.9375rem] leading-tight font-bold">
+        produit{urgent.length > 1 ? "s" : ""} à finir
+      </span>
+      <span className="line-clamp-2 text-sm leading-snug">
+        {urgent
+          .slice(0, 2)
+          .map((i) => i.ingredientName)
+          .join(", ")}
+        {urgent.length > 2 ? "…" : ""} · {first.label.toLowerCase()}
+      </span>
+      <span className="mt-auto flex items-center justify-between gap-2">
+        <span className="flex">
+          {urgent.slice(0, 3).map((item, i) => (
+            <ImageSlot
+              key={item.id}
+              src={ingredientImage(item.ingredientSlug)}
+              alt=""
+              seed={item.ingredientSlug ?? item.ingredientName}
+              letter={item.ingredientName}
+              className={`size-9 rounded-full border-2 border-[#ff9d00] ${i ? "-ml-2.5" : ""}`}
+            />
+          ))}
+        </span>
+        <ArrowRightIcon size={18} />
+      </span>
+    </Link>
   );
 }
 
@@ -604,94 +532,5 @@ async function Suggestions() {
         </ul>
       )}
     </section>
-  );
-}
-
-/**
- * Bandeau « À consommer bientôt » : produits à DLC proche, dépassée ou entamés, et des
- * recettes qui les utilisent. Rien n'est envoyé : il s'affiche à l'ouverture de l'appli et
- * se masque pour la journée.
- */
-async function UseSoonBanner() {
-  const [pantry, catalog] = await Promise.all([getPantry(), getRecipeCatalog({ useSoon: true })]);
-  if (!pantry) return null;
-  const urgent = pantry.items
-    .filter((i) => i.priority)
-    .sort((a, b) => (a.expiresOn ?? "9999").localeCompare(b.expiresOn ?? "9999"));
-  if (urgent.length === 0) return null;
-  const recipes = (catalog?.cards ?? [])
-    .filter((c) => c.compatibility.compatible && c.rating !== -1 && c.usesPriority)
-    .slice(0, 3);
-  const shown = urgent.slice(0, 4);
-  const key = `${pantry.today}:${urgent.map((i) => i.id).join(",")}`;
-
-  return (
-    <DismissibleBanner dismissKey={key} label="À consommer bientôt">
-      <div className="flex flex-col gap-1">
-        <h2 className="type-section text-[1.1875rem]">
-          {urgent.length} produit{urgent.length > 1 ? "s" : ""} à consommer bientôt
-        </h2>
-        <p className="text-muted text-sm">
-          Date limite proche ou produit entamé : utilise-les en priorité pour ne rien jeter.
-        </p>
-      </div>
-      <ul className="flex flex-wrap gap-2">
-        {shown.map((item) => {
-          const b = expiryBadge(item, pantry.today);
-          return (
-            <li
-              key={item.id}
-              className="bg-surface inline-flex items-center gap-2 rounded-full py-1.5 pr-1.5 pl-3.5 text-sm font-medium"
-            >
-              {item.ingredientName}
-              <Badge tone={b.tone}>{b.label}</Badge>
-            </li>
-          );
-        })}
-        {urgent.length > shown.length ? (
-          <li className="text-muted self-center text-sm">
-            et {urgent.length - shown.length} autre{urgent.length - shown.length > 1 ? "s" : ""}
-          </li>
-        ) : null}
-      </ul>
-      {recipes.length ? (
-        <div className="flex flex-col gap-2">
-          <p className="text-sm font-semibold">Des idées pour les utiliser :</p>
-          <ul className="grid gap-2 sm:grid-cols-3">
-            {recipes.map((r) => (
-              <li key={r.id}>
-                <Link
-                  href={`/recipes/${r.slug}`}
-                  className="bg-surface hover:border-border-strong border-border flex items-center gap-3 rounded-xl border p-2 pr-3"
-                >
-                  <RecipeVisual
-                    slug={r.slug}
-                    title={r.title}
-                    className="size-12 shrink-0 rounded-lg"
-                    iconSize={16}
-                  />
-                  <span className="flex min-w-0 flex-col">
-                    <span className="line-clamp-2 text-sm leading-snug font-semibold">
-                      {r.title}
-                    </span>
-                    <span className="text-muted inline-flex items-center gap-1 text-xs">
-                      <ClockIcon size={12} /> {r.totalMinutes} min
-                    </span>
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-      <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
-        <Link href="/recipes?vite=1" className="text-accent-strong hover:underline">
-          Toutes les recettes qui les utilisent
-        </Link>
-        <Link href="/pantry" className="text-brand hover:underline">
-          Voir le garde-manger
-        </Link>
-      </div>
-    </DismissibleBanner>
   );
 }
