@@ -10,9 +10,18 @@ import {
   type PlannedMealInput,
   type ShoppingWarning,
   type StockLot,
+  wholePacks,
 } from "@/domain/shopping";
 import { mealDateFor } from "@/domain/planning";
-import { fromBase, scale, type Dimension, type Quantity } from "@/domain/units";
+import {
+  formatQuantity,
+  fromBase,
+  isUnitCode,
+  quantity,
+  scale,
+  type Dimension,
+  type Quantity,
+} from "@/domain/units";
 import { AISLES, orderedAisles } from "@/lib/categories";
 import { todayIn } from "@/lib/dates";
 import { addDays, isMonday, mondayOf } from "@/lib/week";
@@ -20,6 +29,7 @@ import { getCurrentContext } from "@/server/modules/auth/session";
 import { getPlanningCatalog } from "@/server/modules/planning/catalog";
 import { loadFreeIngredientIds } from "@/server/modules/prices/price-book";
 import { readPlan } from "@/server/modules/planning/repository";
+import { fetchAll } from "@/server/supabase/fetch-all";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 
 /** Rayons, dans l'ordre d'un parcours de magasin. */
@@ -43,10 +53,14 @@ export interface ShoppingLineView {
   needed: Quantity;
   fromStock: Quantity;
   toBuy: Quantity;
-  /** Format standard correspondant à l'achat (« 1 boîte de 40 cl ») : indicatif. */
+  /** Format correspondant à l'achat (« 1 boîte de 40 cl », « 2 × 300 g ») : indicatif. */
   packHint: string | null;
-  /** Coût estimé de l'achat, en centimes ; null si pas de prix. */
+  /** D'où vient ce format ; null si l'achat est chiffré au poids exact. */
+  packSource: PurchaseFormatSource | null;
+  /** Coût de la quantité utilisée par les repas, en centimes ; null si pas de prix. */
   cents: number | null;
+  /** Coût en paquets entiers (à payer en magasin) ; = cents sans format connu. */
+  storeCents: number | null;
   recipes: string[];
   checked: boolean;
 }
@@ -129,13 +143,7 @@ export async function getShoppingPage(week?: string) {
     category.set(i.id, i.category);
   }
 
-  /** Format standard d'un achat, dans la dimension de l'ingrédient (sans conversion). */
-  const packHintFor = (ingredientId: string, buy: Quantity) => {
-    const pack = catalog.packages.get(ingredientId);
-    const dimension = info.get(ingredientId)?.defaultDimension;
-    if (!pack || pack.size === null || !pack.label || !dimension) return null;
-    return packHint(buy, { size: pack.size, label: pack.label, dimension });
-  };
+  const formats = await loadPurchaseFormats(supabase, catalog.packages, info);
 
   // Chaque plat est daté de son jour au planning (ou d'aujourd'hui s'il n'est pas placé) :
   // un produit du garde-manger ne compte que s'il sera encore bon ce jour-là.
@@ -208,6 +216,8 @@ export async function getShoppingPage(week?: string) {
   const covered: ShoppingLineView[] = [];
   const cupboard: { name: string }[] = [];
   let knownCents = 0;
+  let storeCents = 0;
+  let byWeight = 0;
   let unpriced = 0;
 
   for (const line of result.lines) {
@@ -219,9 +229,14 @@ export async function getShoppingPage(week?: string) {
     }
     const buy = purchaseQuantity(line.toBuy);
     const price = catalog.priceBook.get(line.ingredientId);
-    const cost =
+    const conversions = info.get(line.ingredientId)!.conversions;
+    const cost = buy.milli > 0 && price ? costMillicents(buy, price.unit, conversions) : null;
+    // En magasin : paquets entiers quand le format est connu, sinon la quantité exacte.
+    const format = formats.get(line.ingredientId);
+    const packs = wholePacks(buy, format);
+    const storeCost =
       buy.milli > 0 && price
-        ? costMillicents(buy, price.unit, info.get(line.ingredientId)!.conversions)
+        ? costMillicents(packs?.quantity ?? buy, price.unit, conversions)
         : null;
     const view: ShoppingLineView = {
       ingredientId: line.ingredientId,
@@ -232,8 +247,10 @@ export async function getShoppingPage(week?: string) {
       needed: line.needed,
       fromStock: line.fromStock,
       toBuy: buy,
-      packHint: packHintFor(line.ingredientId, buy),
+      packHint: packHint(buy, format),
+      packSource: packs ? format!.source : null,
       cents: cost === null ? null : millicentsToCents(cost),
+      storeCents: storeCost === null ? null : millicentsToCents(storeCost),
       recipes: line.mealIds.map((id) => titles.get(id) ?? "?"),
       checked: checked.has(`${line.ingredientId}|${line.dimension}`),
     };
@@ -241,6 +258,8 @@ export async function getShoppingPage(week?: string) {
       toBuy.push(view);
       if (view.cents === null) unpriced += 1;
       else knownCents += view.cents;
+      if (view.storeCents !== null) storeCents += view.storeCents;
+      if (view.storeCents !== null && !packs) byWeight += 1;
     } else {
       covered.push(view);
     }
@@ -269,6 +288,10 @@ export async function getShoppingPage(week?: string) {
       lines: toBuy.length,
       checked: toBuy.filter((l) => l.checked).length,
       knownCents,
+      /** À payer en magasin : paquets entiers quand le format est connu. */
+      storeCents,
+      /** Lignes chiffrées au poids exact faute de format (vrac, ou format inconnu). */
+      byWeight,
       unpriced,
     },
     newKey: () => randomUUID(),
@@ -300,3 +323,82 @@ function describeWarnings(
 }
 
 export type ShoppingPage = NonNullable<Awaited<ReturnType<typeof getShoppingPage>>>;
+
+/** D'où vient le format d'achat retenu pour un ingrédient. */
+export type PurchaseFormatSource = "standard" | "receipt" | "open_prices";
+
+interface PurchaseFormat {
+  size: number;
+  label: string;
+  dimension: Dimension;
+  source: PurchaseFormatSource;
+}
+
+/**
+ * Format d'achat de chaque ingrédient, dans sa dimension (aucune conversion) :
+ *  1. format standard (0065), choisi à la main ;
+ *  2. contenance du dernier ticket de caisse (ce qui est réellement acheté) ;
+ *  3. contenance la plus courante relevée par Open Prices (0083).
+ */
+async function loadPurchaseFormats(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  packages: ReadonlyMap<string, { size: number | null; label?: string | null }>,
+  info: ReadonlyMap<string, IngredientInfo>,
+): Promise<Map<string, PurchaseFormat>> {
+  const [open, receipts] = await Promise.all([
+    supabase.from("purchase_formats").select("ingredient_id, quantity_base, label"),
+    fetchAll(
+      (from, to) =>
+        supabase
+          .from("receipt_prices")
+          .select("ingredient_id, pack_quantity, pack_unit, purchased_on, id")
+          .order("purchased_on", { ascending: false })
+          .order("id", { ascending: false })
+          .range(from, to),
+      "des formats des tickets",
+    ),
+  ]);
+  if (open.error) throw new Error(`Lecture des formats impossible : ${open.error.message}`);
+
+  const formats = new Map<string, PurchaseFormat>();
+  const dimensionOf = (id: string) => info.get(id)?.defaultDimension;
+  for (const f of open.data) {
+    const dimension = dimensionOf(f.ingredient_id);
+    if (!dimension) continue;
+    formats.set(f.ingredient_id, {
+      size: Number(f.quantity_base),
+      label: f.label,
+      dimension,
+      source: "open_prices",
+    });
+  }
+  // Du plus récent au plus ancien : le premier ticket compatible l'emporte.
+  const fromReceipt = new Set<string>();
+  for (const r of receipts) {
+    if (fromReceipt.has(r.ingredient_id)) continue;
+    const dimension = dimensionOf(r.ingredient_id);
+    if (!dimension || !isUnitCode(r.pack_unit)) continue;
+    const q = quantity(String(r.pack_quantity), r.pack_unit);
+    if (q.dimension !== dimension || q.milli <= 0) continue;
+    fromReceipt.add(r.ingredient_id);
+    formats.set(r.ingredient_id, {
+      size: q.milli / 1000,
+      label: formatLabel(q),
+      dimension,
+      source: "receipt",
+    });
+  }
+  for (const [id, p] of packages) {
+    const dimension = dimensionOf(id);
+    if (p.size === null || !p.label || !dimension) continue;
+    formats.set(id, { size: p.size, label: p.label, dimension, source: "standard" });
+  }
+  return formats;
+}
+
+/** « 300 g », « 1 kg », « 75 cl », « 4 pièces » : contenance d'un ticket. */
+function formatLabel(q: Quantity): string {
+  if (q.dimension !== "count") return formatQuantity(q);
+  const n = q.milli / 1000;
+  return `${formatQuantity(q)} pièce${n > 1 ? "s" : ""}`;
+}

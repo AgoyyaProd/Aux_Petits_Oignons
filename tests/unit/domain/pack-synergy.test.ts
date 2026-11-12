@@ -9,7 +9,7 @@ import {
   type PackInfo,
   type PlanCandidate,
 } from "@/domain/planning";
-import { packHint } from "@/domain/shopping";
+import { packHint, wholePacks } from "@/domain/shopping";
 
 function candidate(id: string, over: Partial<PlanCandidate> = {}): PlanCandidate {
   return {
@@ -183,5 +183,28 @@ describe("packHint (liste de courses)", () => {
     expect(packHint(q(100), undefined)).toBeNull();
     expect(packHint(q(0), coco)).toBeNull();
     expect(packHint(q(100, "mass"), coco)).toBeNull();
+  });
+});
+
+describe("wholePacks (coût à payer en magasin)", () => {
+  const barquette = { size: 300, dimension: "mass" as const };
+  const g = (base: number) => ({ milli: base * 1000, dimension: "mass" as const });
+
+  it("arrondit au paquet entier supérieur", () => {
+    expect(wholePacks(g(500), barquette)).toEqual({ count: 2, quantity: g(600) });
+    expect(wholePacks(g(300), barquette)).toEqual({ count: 1, quantity: g(300) });
+    expect(wholePacks(g(0.001), barquette)).toEqual({ count: 1, quantity: g(300) });
+  });
+
+  it("formats décimaux (75 cl) sans erreur d'arrondi", () => {
+    const bouteille = { size: 750, dimension: "volume" as const };
+    expect(wholePacks({ milli: 1_500_000, dimension: "volume" }, bouteille)?.count).toBe(2);
+    expect(wholePacks({ milli: 1_500_001, dimension: "volume" }, bouteille)?.count).toBe(3);
+  });
+
+  it("rien sans format, sans achat ou dans une autre dimension (pas de conversion)", () => {
+    expect(wholePacks(g(500), undefined)).toBeNull();
+    expect(wholePacks(g(0), barquette)).toBeNull();
+    expect(wholePacks({ milli: 500_000, dimension: "volume" }, barquette)).toBeNull();
   });
 });

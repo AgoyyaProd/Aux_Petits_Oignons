@@ -349,10 +349,10 @@ async function Shopping() {
           ) : null}
           <div className="mt-auto flex flex-col gap-2">
             <span className="flex items-center justify-between text-sm">
-              <span className="text-muted">Total estimé</span>
+              <span className="text-muted">À payer en magasin</span>
               <span className="font-semibold">
                 {totals.unpriced ? "≥ " : "≈ "}
-                {formatCents(totals.knownCents)}
+                {formatCents(totals.storeCents)}
               </span>
             </span>
             <span

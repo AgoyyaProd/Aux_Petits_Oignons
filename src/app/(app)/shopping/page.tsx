@@ -234,7 +234,7 @@ function ListView({ page, byRecipe }: { page: ListPage; byRecipe: boolean }) {
         <div className="mx-auto flex max-w-xl items-center gap-4 lg:max-w-none">
           <div className="flex min-w-0 flex-1 flex-col gap-1.5">
             <p className="text-muted flex items-center gap-2 text-xs whitespace-nowrap lg:text-sm">
-              <span>Total estimé</span>
+              <span>À payer en magasin</span>
               <span aria-hidden="true">·</span>
               <span className="tabular-nums">
                 {totals.checked}/{totals.lines} dans le panier
@@ -243,16 +243,23 @@ function ListView({ page, byRecipe }: { page: ListPage; byRecipe: boolean }) {
             <p className="flex items-baseline gap-3">
               <span className="font-display text-xl font-semibold whitespace-nowrap lg:text-2xl">
                 {totals.unpriced ? "≥ " : "≈ "}
-                {formatCents(totals.knownCents)}
+                {formatCents(totals.storeCents)}
               </span>
               <span className="text-muted hidden text-sm lg:inline">
-                Pour {plan.mealCount} plat{plan.mealCount > 1 ? "s" : ""} ({plan.people} pers.)
+                En paquets entiers.{" "}
+                {totals.storeCents > totals.knownCents
+                  ? `Dont ≈ ${formatCents(totals.knownCents)} pour les ${plan.mealCount} plat${plan.mealCount > 1 ? "s" : ""} (${plan.people} pers.), ≈ ${formatCents(totals.storeCents - totals.knownCents)} restent au garde-manger.`
+                  : `Pour ${plan.mealCount} plat${plan.mealCount > 1 ? "s" : ""} (${plan.people} pers.).`}
                 {totals.unpriced
-                  ? `, ${totals.unpriced} article${totals.unpriced > 1 ? "s" : ""} sans prix`
+                  ? ` ${totals.unpriced} article${totals.unpriced > 1 ? "s" : ""} sans prix.`
                   : ""}
-                . Le prix payé en magasin peut différer.
               </span>
             </p>
+            {totals.storeCents > totals.knownCents ? (
+              <p className="text-muted text-xs lg:hidden">
+                Dont ≈ {formatCents(totals.knownCents)} pour les repas, le reste au garde-manger.
+              </p>
+            ) : null}
             <span
               role="img"
               aria-label={`${totals.checked} articles sur ${totals.lines}`}
@@ -380,7 +387,9 @@ function ListView({ page, byRecipe }: { page: ListPage; byRecipe: boolean }) {
                                 : line.recipes.join(", ")}
                             </span>
                             <span className="shrink-0 lg:hidden">
-                              {line.cents !== null ? `≈ ${formatCents(line.cents)}` : "sans prix"}
+                              {line.storeCents !== null
+                                ? `≈ ${formatCents(line.storeCents)}`
+                                : "sans prix"}
                             </span>
                           </span>
                         </span>
@@ -393,9 +402,11 @@ function ListView({ page, byRecipe }: { page: ListPage; byRecipe: boolean }) {
                           ) : null}
                         </span>
                         <span
-                          className={`hidden text-right tabular-nums lg:block ${line.cents === null ? "text-muted text-sm" : "font-medium"}`}
+                          className={`hidden text-right tabular-nums lg:block ${line.storeCents === null ? "text-muted text-sm" : "font-medium"}`}
                         >
-                          {line.cents !== null ? `≈ ${formatCents(line.cents)}` : "sans prix"}
+                          {line.storeCents !== null
+                            ? `≈ ${formatCents(line.storeCents)}`
+                            : "sans prix"}
                         </span>
                       </span>
                     </CheckLine>
