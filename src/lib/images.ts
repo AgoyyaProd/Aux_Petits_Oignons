@@ -347,7 +347,7 @@ const INGREDIENT_PHOTO_VERSIONS: Readonly<Record<string, string>> = {
   "farine-soja": "34a0430d",
   farine: "36c8832f",
   "fecule-mais": "83fd8725",
-  fenouil: "f412e169",
+  fenouil: "4722fcbb",
   feta: "b3d2bf2c",
   "flocon-avoine": "8a0dfc0c",
   fraise: "fe7e0aef",
