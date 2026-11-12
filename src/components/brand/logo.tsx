@@ -218,7 +218,13 @@ export function Logo({
           <path
             key={i}
             d={l.d}
-            className={l.initial && tone !== "mono" ? INITIAL_CLASS[l.initial] : undefined}
+            className={
+              !l.initial || tone === "mono"
+                ? undefined
+                : tone === "inverse" && l.initial === "a"
+                  ? "fill-[#a9cfb2]"
+                  : INITIAL_CLASS[l.initial]
+            }
           />
         ))}
       </g>

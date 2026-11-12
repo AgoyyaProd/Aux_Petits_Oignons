@@ -16,7 +16,6 @@ export function ImageSlot({
   sizes = "(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw",
   priority = false,
   seed,
-  letter,
 }: {
   src?: string | null;
   /** Texte alternatif de la photo ; l'emplacement vide, lui, est décoratif. */
@@ -30,8 +29,6 @@ export function ImageSlot({
   priority?: boolean;
   /** Sans photo : vignette illustrée, composition et couleurs tirées de ce texte (le slug). */
   seed?: string;
-  /** Sans photo : initiale affichée au centre de la vignette (aliments). */
-  letter?: string;
 }) {
   // Le parent fixe la taille, OU la classe elle-même (aspect-*, size-*, h-*) : dans ce cas on
   // ne force pas la hauteur à 100 %, sinon le ratio est écrasé dans une grille étirée.
@@ -55,7 +52,7 @@ export function ImageSlot({
       />
     );
   }
-  if (seed) return <Illustration seed={seed} letter={letter} className={`${fill} ${className}`} />;
+  if (seed) return <Illustration seed={seed} className={`${fill} ${className}`} />;
   return (
     <span
       aria-hidden="true"
@@ -118,35 +115,22 @@ function hashOf(text: string): number {
  * Vignette illustrée d'un plat ou d'un aliment sans photo : jamais un carré gris. Purement
  * décorative (le nom est toujours écrit à côté) : masquée aux lecteurs d'écran.
  */
-function Illustration({
-  seed,
-  letter,
-  className,
-}: {
-  seed: string;
-  letter?: string;
-  className: string;
-}) {
+function Illustration({ seed, className }: { seed: string; className: string }) {
   const h = hashOf(seed);
   const ground = GROUNDS[h % GROUNDS.length];
   const shapes = COMPOSITIONS[Math.floor(h / GROUNDS.length) % COMPOSITIONS.length];
   return (
     <span
       aria-hidden="true"
-      className={`[container-type:size] relative flex shrink-0 items-center justify-center overflow-hidden ${ground} ${className}`}
+      className={`relative block shrink-0 overflow-hidden ${ground} ${className}`}
     >
       <svg
         viewBox="-60 -45 520 390"
         preserveAspectRatio="xMidYMid slice"
-        className={`absolute inset-0 h-full w-full ${letter ? "opacity-45" : ""}`}
+        className="absolute inset-0 h-full w-full"
       >
         {shapes}
       </svg>
-      {letter ? (
-        <span className="font-display text-accent-strong relative text-[48cqmin] leading-none font-semibold">
-          {letter.charAt(0).toUpperCase()}
-        </span>
-      ) : null}
     </span>
   );
 }

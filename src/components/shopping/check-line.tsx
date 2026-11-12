@@ -75,7 +75,6 @@ export function CheckLine({
         <ImageSlot
           alt=""
           seed={ingredientId}
-          letter={name}
           className={`size-11 shrink-0 rounded-lg transition-opacity ${optimistic ? "opacity-50" : ""}`}
         />
       ) : null}

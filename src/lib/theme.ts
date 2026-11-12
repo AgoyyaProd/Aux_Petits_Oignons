@@ -4,7 +4,8 @@
  */
 export const THEME_KEY = "apo-theme";
 export type ThemeChoice = "light" | "dark" | "auto";
-export const THEME_COLORS = { light: "#fff8ef", dark: "#0b1c16" } as const;
+/** Couleur de la barre du navigateur sur téléphone : celle de l'en-tête vert, pour qu'il ne paraisse pas coupé. */
+export const THEME_COLORS = { light: "#142f26", dark: "#0b1c16" } as const;
 
 /**
  * Script exécuté dans <head> avant le premier affichage : pose data-theme sur <html> pour

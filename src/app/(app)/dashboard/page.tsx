@@ -111,7 +111,7 @@ async function Greeting() {
     <header className="bg-forest text-cream relative -mx-4 -mt-6 flex flex-col gap-5 overflow-hidden rounded-b-[1.75rem] px-5 pt-2 pb-6 sm:-mx-6 sm:px-8 lg:mx-0 lg:mt-0 lg:rounded-3xl lg:px-10 lg:py-9">
       <span
         aria-hidden="true"
-        className="bg-highlight absolute -top-10 -right-10 size-32 rounded-full lg:size-44"
+        className="bg-highlight absolute top-4 -right-12 size-28 rounded-full lg:-top-10 lg:-right-10 lg:size-44"
       />
       <span
         aria-hidden="true"
@@ -445,7 +445,6 @@ async function FinishTile() {
               src={ingredientImage(item.ingredientSlug)}
               alt=""
               seed={item.ingredientSlug ?? item.ingredientName}
-              letter={item.ingredientName}
               className={`size-9 rounded-full border-2 border-[#ff9d00] ${i ? "-ml-2.5" : ""}`}
             />
           ))}

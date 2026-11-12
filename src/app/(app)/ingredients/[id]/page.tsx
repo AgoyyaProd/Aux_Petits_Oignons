@@ -56,7 +56,7 @@ async function IngredientContent({ params }: Pick<PageProps<"/ingredients/[id]">
               priority
             />
           ) : (
-            <ImageSlot alt="" seed={ingredient.slug} letter={ingredient.name} />
+            <ImageSlot alt="" seed={ingredient.slug} />
           )}
         </div>
         <div className="flex flex-col gap-5">

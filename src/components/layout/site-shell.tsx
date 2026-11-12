@@ -52,7 +52,7 @@ export function SiteShell({ member, children }: { member?: boolean; children: Re
 
         <div className="flex min-w-0 flex-1 flex-col">
           <OfflineBanner />
-          <header className="bg-forest text-cream sticky top-0 z-20 lg:hidden print:hidden">
+          <header className="bg-forest text-cream sticky top-0 z-20 pt-[env(safe-area-inset-top)] lg:hidden print:hidden">
             <div className="flex w-full items-center justify-between gap-3 px-4 py-2.5 sm:px-6">
               {part((m) => (
                 <HomeLink member={m} size={40} inverse />
