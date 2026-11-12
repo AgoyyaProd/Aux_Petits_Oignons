@@ -376,16 +376,16 @@ function ListView({ page, byRecipe }: { page: ListPage; byRecipe: boolean }) {
                             </span>
                           </span>
                           <span className="text-muted flex justify-between gap-3 text-sm">
-                            <span className="min-w-0 truncate">
-                              {line.fromStock.milli > 0
-                                ? `${formatShoppingQuantity(line.fromStock)} déjà chez toi, `
-                                : ""}
-                              {byRecipe
-                                ? line.recipes.length > 1
-                                  ? `aussi pour ${line.recipes.slice(1).join(", ")}`
-                                  : ""
-                                : line.recipes.join(", ")}
-                            </span>
+                            {line.perRecipe.length > 1 ? (
+                              <SharedNeed line={line} />
+                            ) : (
+                              <span className="min-w-0 truncate">
+                                {line.fromStock.milli > 0
+                                  ? `${formatShoppingQuantity(line.fromStock)} déjà chez toi, `
+                                  : ""}
+                                {byRecipe ? "" : line.recipes.join(", ")}
+                              </span>
+                            )}
                             <span className="shrink-0 lg:hidden">
                               {line.storeCents !== null
                                 ? `≈ ${formatCents(line.storeCents)}`
@@ -440,5 +440,30 @@ function ListView({ page, byRecipe }: { page: ListPage; byRecipe: boolean }) {
       {/* Espace réservé à la barre collée sur téléphone. */}
       <div aria-hidden="true" className="h-20 lg:hidden" />
     </div>
+  );
+}
+
+/**
+ * Aliment partagé entre plusieurs plats : le détail du calcul, pour comprendre pourquoi il
+ * faut en racheter alors qu'il en reste (« Dahl 300 ml + Satay 225 ml − 200 ml chez toi »).
+ */
+function SharedNeed({ line }: { line: ShoppingLineView }) {
+  return (
+    <span className="min-w-0">
+      {line.perRecipe.map((p, i) => (
+        <span key={p.recipe}>
+          {i > 0 ? " + " : ""}
+          {p.recipe}{" "}
+          <span className="text-foreground tabular-nums">{formatShoppingQuantity(p.quantity)}</span>
+        </span>
+      ))}
+      {line.fromStock.milli > 0 ? (
+        <>
+          {" "}
+          − <span className="tabular-nums">{formatShoppingQuantity(line.fromStock)}</span> déjà chez
+          toi
+        </>
+      ) : null}
+    </span>
   );
 }

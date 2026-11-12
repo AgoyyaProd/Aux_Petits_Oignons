@@ -269,6 +269,15 @@ describe("calcul des besoins", () => {
     expect(totals.find((t) => t.ingredientId === "lait")?.quantity).toEqual(quantity(1050, "ml"));
   });
 
+  it("détaille la part de chaque plat d'un aliment partagé", () => {
+    // Le lait sert à l'omelette (5 cl) et au riz au lait (1 l) : la liste montre le calcul.
+    const result = run([meal(OMELETTE, "2026-10-12"), meal(RIZ_AU_LAIT, "2026-10-12", 4, "lunch")]);
+    const lait = result.lines.find((l) => l.ingredientId === "lait")!;
+    // Ordre des repas dans la semaine : le déjeuner (riz au lait) avant le dîner.
+    expect(lait.perMeal.map((p) => p.quantity)).toEqual([quantity(1000, "ml"), quantity(50, "ml")]);
+    expect(lait.perMeal.map((p) => p.mealId)).toEqual(lait.mealIds);
+  });
+
   it("garde une ligne séparée quand la conversion vers la dimension par défaut est impossible", () => {
     const pesto = recipe("pesto", 2, [
       ["basilic", quantity(50, "g")],

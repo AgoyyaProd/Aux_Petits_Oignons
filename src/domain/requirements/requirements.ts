@@ -60,6 +60,8 @@ export interface RequirementTotal {
   ingredientId: string;
   quantity: Quantity;
   mealIds: string[];
+  /** Part de chaque plat dans le total (même ordre que mealIds). */
+  perMeal: { mealId: string; quantity: Quantity }[];
 }
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -144,11 +146,15 @@ export function aggregateRequirements(
     if (current) {
       current.quantity = add(current.quantity, req.quantity);
       if (!current.mealIds.includes(req.mealId)) current.mealIds.push(req.mealId);
+      const share = current.perMeal.find((p) => p.mealId === req.mealId);
+      if (share) share.quantity = add(share.quantity, req.quantity);
+      else current.perMeal.push({ mealId: req.mealId, quantity: req.quantity });
     } else {
       totals.set(key, {
         ingredientId: req.ingredientId,
         quantity: req.quantity,
         mealIds: [req.mealId],
+        perMeal: [{ mealId: req.mealId, quantity: req.quantity }],
       });
     }
   }

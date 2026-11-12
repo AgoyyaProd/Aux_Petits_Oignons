@@ -35,6 +35,8 @@ export interface ShoppingLine {
   /** Besoin théorique à acheter : max(0, besoin − stock utilisable). Jamais un conditionnement. */
   toBuy: Quantity;
   mealIds: string[];
+  /** Part de chaque plat dans le besoin (un aliment partagé entre plusieurs plats). */
+  perMeal: { mealId: string; quantity: Quantity }[];
   /** Coché dans le placard du foyer : présent par déclaration, rien à acheter. */
   inCupboard: boolean;
 }
@@ -190,6 +192,7 @@ export function computeShoppingList(input: {
       fromStock: fromMilli(total.quantity.milli - toBuyMilli, dimension),
       toBuy: fromMilli(toBuyMilli, dimension),
       mealIds: total.mealIds,
+      perMeal: total.perMeal,
       inCupboard,
     };
   });

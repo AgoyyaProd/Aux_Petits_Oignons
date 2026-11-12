@@ -57,6 +57,8 @@ export interface ShoppingLineView {
   packHint: string | null;
   /** D'où vient ce format ; null si l'achat est chiffré au poids exact. */
   packSource: PurchaseFormatSource | null;
+  /** Besoin de chaque plat, quand l'aliment sert à plusieurs plats de la semaine. */
+  perRecipe: { recipe: string; quantity: Quantity }[];
   /** Coût de la quantité utilisée par les repas, en centimes ; null si pas de prix. */
   cents: number | null;
   /** Coût en paquets entiers (à payer en magasin) ; = cents sans format connu. */
@@ -252,6 +254,10 @@ export async function getShoppingPage(week?: string) {
       cents: cost === null ? null : millicentsToCents(cost),
       storeCents: storeCost === null ? null : millicentsToCents(storeCost),
       recipes: line.mealIds.map((id) => titles.get(id) ?? "?"),
+      perRecipe: line.perMeal.map((p) => ({
+        recipe: titles.get(p.mealId) ?? "?",
+        quantity: p.quantity,
+      })),
       checked: checked.has(`${line.ingredientId}|${line.dimension}`),
     };
     if (buy.milli > 0) {
