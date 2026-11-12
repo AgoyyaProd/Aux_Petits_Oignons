@@ -3,8 +3,7 @@ import { recipeImage } from "@/lib/images";
 
 /**
  * Visuel d'une recette : la photo déclarée dans lib/images (ou passée en imageUrl), sinon
- * un emplacement neutre. Le fond alterne crème et sauge de façon stable d'une recette à
- * l'autre pour que les grilles restent lisibles sans photos.
+ * une vignette illustrée tirée du slug (stable d'une page à l'autre).
  */
 export function RecipeVisual({
   slug,
@@ -25,13 +24,11 @@ export function RecipeVisual({
   sizes?: string;
   priority?: boolean;
 }) {
-  let h = 0;
-  for (let i = 0; i < slug.length; i += 1) h = (h * 31 + slug.charCodeAt(i)) >>> 0;
   return (
     <ImageSlot
       src={imageUrl ?? recipeImage(slug)}
       alt={title}
-      tone={h % 3 === 0 ? "sage" : "cream"}
+      seed={slug}
       className={className}
       iconSize={iconSize}
       sizes={sizes}

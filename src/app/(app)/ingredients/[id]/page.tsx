@@ -56,7 +56,7 @@ async function IngredientContent({ params }: Pick<PageProps<"/ingredients/[id]">
               priority
             />
           ) : (
-            <RecipeVisual slug={ingredient.id} title={ingredient.name} tags={["salade"]} />
+            <ImageSlot alt="" seed={ingredient.slug} letter={ingredient.name} />
           )}
         </div>
         <div className="flex flex-col gap-5">

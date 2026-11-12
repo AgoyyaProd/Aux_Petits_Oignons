@@ -142,7 +142,7 @@ export function KitchenProvider({
   return (
     <KitchenContext.Provider value={value}>
       {children}
-      <TimerTray className="fixed inset-x-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-30 lg:right-8 lg:bottom-8 lg:left-auto lg:w-80" />
+      <TimerTray className="fixed inset-x-4 bottom-[calc(6.75rem+env(safe-area-inset-bottom))] z-30 lg:right-8 lg:bottom-8 lg:left-auto lg:w-80" />
     </KitchenContext.Provider>
   );
 }

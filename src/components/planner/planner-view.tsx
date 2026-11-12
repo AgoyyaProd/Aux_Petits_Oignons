@@ -305,7 +305,7 @@ function DraftDock({ page, base }: { page: PlannerPage; base: Base }) {
     <div
       role="region"
       aria-label="Valider le menu"
-      className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-30 px-3 pb-2 lg:bottom-6 lg:left-64 lg:px-12"
+      className="fixed inset-x-0 bottom-[calc(6.25rem+env(safe-area-inset-bottom))] z-30 px-3 pb-2 lg:bottom-6 lg:left-64 lg:px-12"
     >
       <div className="bg-forest text-cream mx-auto flex max-w-3xl flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl p-3 shadow-2xl sm:p-4 dark:bg-[#1b3a30]">
         <div className="flex min-w-0 flex-1 flex-col">

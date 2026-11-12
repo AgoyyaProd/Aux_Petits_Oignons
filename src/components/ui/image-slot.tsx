@@ -1,8 +1,9 @@
 import { recipeImageSmall } from "@/lib/images";
 
 /**
- * Emplacement d'image : affiche la photo si elle existe, sinon un fond neutre (crème ou
- * sauge) avec une petite icône. Il remplit son conteneur : c'est le parent qui fixe le
+ * Emplacement d'image : affiche la photo si elle existe, sinon une vignette illustrée aux
+ * couleurs du site (formes du logo, fond tiré du nom : stable d'une page à l'autre), ou à
+ * défaut un fond neutre avec une petite icône. Il remplit son conteneur : c'est le parent qui fixe le
  * ratio (aspect-[4/3], size-24…), de sorte que la mise en page ne bouge pas quand la photo
  * arrive.
  */
@@ -14,6 +15,8 @@ export function ImageSlot({
   iconSize = 28,
   sizes = "(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw",
   priority = false,
+  seed,
+  letter,
 }: {
   src?: string | null;
   /** Texte alternatif de la photo ; l'emplacement vide, lui, est décoratif. */
@@ -25,6 +28,10 @@ export function ImageSlot({
   sizes?: string;
   /** Photo visible dès l'arrivée sur la page (ex. fiche recette) : pas de chargement différé. */
   priority?: boolean;
+  /** Sans photo : vignette illustrée, composition et couleurs tirées de ce texte (le slug). */
+  seed?: string;
+  /** Sans photo : initiale affichée au centre de la vignette (aliments). */
+  letter?: string;
 }) {
   // Le parent fixe la taille, OU la classe elle-même (aspect-*, size-*, h-*) : dans ce cas on
   // ne force pas la hauteur à 100 %, sinon le ratio est écrasé dans une grille étirée.
@@ -48,6 +55,7 @@ export function ImageSlot({
       />
     );
   }
+  if (seed) return <Illustration seed={seed} letter={letter} className={`${fill} ${className}`} />;
   return (
     <span
       aria-hidden="true"
@@ -71,6 +79,71 @@ export function ImageSlot({
         <circle cx="9" cy="10" r="1.75" />
         <path d="m20.5 16-5-5-8.5 8.5" />
       </svg>
+    </span>
+  );
+}
+
+/** Fonds clairs du site (adaptés au thème sombre par leurs variables). */
+const GROUNDS = ["bg-accent-soft", "bg-highlight-soft", "bg-leaf-soft", "bg-brand-soft"] as const;
+
+/** Formes du logo : rond ocre, demi-disque terracotta, feuille sauge. viewBox 400 × 300. */
+const COMPOSITIONS = [
+  <>
+    <circle cx="300" cy="92" r="72" fill="var(--highlight)" />
+    <path d="M150 178a95 95 0 0 0 190 0z" fill="var(--accent)" />
+    <path d="M70 128c26-58 112-70 134-36-24 52-104 70-134 36z" fill="var(--leaf)" />
+  </>,
+  <>
+    <circle cx="320" cy="250" r="118" fill="var(--highlight)" />
+    <path d="M40 92c30-62 128-74 152-36-28 56-118 76-152 36z" fill="var(--leaf)" />
+    <circle cx="120" cy="226" r="36" fill="var(--accent)" />
+  </>,
+  <>
+    <path d="M40 0a110 110 0 0 0 220 0z" fill="var(--accent)" />
+    <circle cx="120" cy="220" r="62" fill="var(--highlight)" />
+    <path d="M232 214c30-70 136-82 160-40-30 62-126 84-160 40z" fill="var(--leaf)" />
+  </>,
+] as const;
+
+function hashOf(text: string): number {
+  let h = 0;
+  for (let i = 0; i < text.length; i += 1) h = (h * 31 + text.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+/**
+ * Vignette illustrée d'un plat ou d'un aliment sans photo : jamais un carré gris. Purement
+ * décorative (le nom est toujours écrit à côté) : masquée aux lecteurs d'écran.
+ */
+function Illustration({
+  seed,
+  letter,
+  className,
+}: {
+  seed: string;
+  letter?: string;
+  className: string;
+}) {
+  const h = hashOf(seed);
+  const ground = GROUNDS[h % GROUNDS.length];
+  const shapes = COMPOSITIONS[Math.floor(h / GROUNDS.length) % COMPOSITIONS.length];
+  return (
+    <span
+      aria-hidden="true"
+      className={`[container-type:size] relative flex shrink-0 items-center justify-center overflow-hidden ${ground} ${className}`}
+    >
+      <svg
+        viewBox="0 0 400 300"
+        preserveAspectRatio="xMidYMid slice"
+        className={`absolute inset-0 h-full w-full ${letter ? "opacity-45" : ""}`}
+      >
+        {shapes}
+      </svg>
+      {letter ? (
+        <span className="font-display text-accent-strong relative text-[48cqmin] leading-none font-semibold">
+          {letter.charAt(0).toUpperCase()}
+        </span>
+      ) : null}
     </span>
   );
 }

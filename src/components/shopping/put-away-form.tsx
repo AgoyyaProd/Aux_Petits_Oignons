@@ -121,7 +121,7 @@ export function PutAwayForm({
           </li>
         ))}
       </ul>
-      <div className="bg-background/95 sticky bottom-16 py-2 md:bottom-0">
+      <div className="bg-background/95 sticky bottom-[calc(6.25rem+env(safe-area-inset-bottom))] py-2 lg:bottom-0">
         <Button type="submit" disabled={pending} className="w-full">
           {pending ? "Enregistrement…" : "Finir les courses"}
         </Button>

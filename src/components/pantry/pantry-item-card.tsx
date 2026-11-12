@@ -64,6 +64,8 @@ export function PantryItemCard({
           <ImageSlot
             src={ingredientImage(item.ingredientSlug)}
             alt=""
+            seed={item.ingredientSlug ?? item.ingredientName}
+            letter={item.ingredientName}
             className="size-12 shrink-0 rounded-lg"
             iconSize={18}
           />

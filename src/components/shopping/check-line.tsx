@@ -3,6 +3,7 @@
 import { useOptimistic, useTransition } from "react";
 import { CheckIcon } from "@/components/ui/icons";
 import { toggleCheckAction } from "@/server/modules/shopping/actions";
+import { ImageSlot } from "@/components/ui/image-slot";
 
 /**
  * Article de la liste : toute la ligne est la zone tactile (mode magasin, une main).
@@ -14,6 +15,7 @@ export function CheckLine({
   dimension,
   checked,
   image,
+  name,
   children,
 }: {
   week: string;
@@ -22,6 +24,8 @@ export function CheckLine({
   checked: boolean;
   /** Photo de l'aliment, s'il en a une (vignette à côté de la case). */
   image?: string | null;
+  /** Nom de l'aliment : vignette illustrée quand il n'a pas de photo. */
+  name?: string;
   children: React.ReactNode;
 }) {
   const [optimistic, setOptimistic] = useOptimistic(checked);
@@ -66,6 +70,13 @@ export function CheckLine({
           loading="lazy"
           decoding="async"
           className={`size-11 shrink-0 rounded-lg object-cover transition-opacity ${optimistic ? "opacity-50" : ""}`}
+        />
+      ) : name ? (
+        <ImageSlot
+          alt=""
+          seed={ingredientId}
+          letter={name}
+          className={`size-11 shrink-0 rounded-lg transition-opacity ${optimistic ? "opacity-50" : ""}`}
         />
       ) : null}
       <span

@@ -51,7 +51,7 @@ export function StaplesForm({
           </div>
         </fieldset>
       ))}
-      <div className="bg-background/95 sticky bottom-16 flex flex-col gap-2 py-2 md:bottom-0">
+      <div className="bg-background/95 sticky bottom-[calc(6.25rem+env(safe-area-inset-bottom))] flex flex-col gap-2 py-2 lg:bottom-0">
         {state.message ? (
           <Alert tone={state.status === "success" ? "success" : "error"}>{state.message}</Alert>
         ) : null}

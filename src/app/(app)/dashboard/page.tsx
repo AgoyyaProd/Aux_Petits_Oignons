@@ -232,7 +232,7 @@ async function Today() {
     const next = page.entries.find((e) => !e.cooked && e.day && e.day > page.today);
     return (
       <Card id="jour" title="Menu du jour" href="/planner" link="Voir">
-        <ImageSlot alt="" className="aspect-[16/9] rounded-xl" tone="sage" />
+        <ImageSlot alt="" seed="menu-du-jour" className="aspect-[16/9] rounded-xl" />
         <p className="font-semibold">
           {page.plan ? "Rien de prévu aujourd'hui" : "Ta semaine n'est pas encore prévue"}
         </p>
@@ -539,6 +539,8 @@ async function UseSoon() {
                 <ImageSlot
                   src={ingredientImage(item.ingredientSlug)}
                   alt=""
+                  seed={item.ingredientSlug ?? item.ingredientName}
+                  letter={item.ingredientName}
                   className="size-10 shrink-0 rounded-lg"
                   iconSize={16}
                 />

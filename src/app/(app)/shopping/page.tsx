@@ -229,7 +229,7 @@ function ListView({ page, byRecipe }: { page: ListPage; byRecipe: boolean }) {
       {/* Récapitulatif : en haut sur ordinateur, collé en bas (au-dessus des onglets) sur téléphone. */}
       <section
         aria-label="Récapitulatif"
-        className="bg-surface border-border fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-10 border-t px-4 py-3 shadow-[var(--shadow-md)] lg:static lg:rounded-2xl lg:border lg:px-6 lg:py-4 lg:shadow-none"
+        className="bg-surface border-border fixed inset-x-0 bottom-[calc(6.25rem+env(safe-area-inset-bottom))] z-10 border-t px-4 py-3 shadow-[var(--shadow-md)] lg:static lg:rounded-2xl lg:border lg:px-6 lg:py-4 lg:shadow-none"
       >
         <div className="mx-auto flex max-w-xl items-center gap-4 lg:max-w-none">
           <div className="flex min-w-0 flex-1 flex-col gap-1.5">
@@ -361,6 +361,7 @@ function ListView({ page, byRecipe }: { page: ListPage; byRecipe: boolean }) {
                       dimension={line.dimension}
                       checked={line.checked}
                       image={ingredientImage(line.slug)}
+                      name={line.name}
                     >
                       <span className="flex flex-col gap-0.5 lg:grid lg:grid-cols-[minmax(0,1fr)_9rem_7rem] lg:items-center lg:gap-4">
                         <span className="flex min-w-0 flex-col gap-0.5">
