@@ -27,7 +27,7 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
           sizes="288px"
           className="absolute bottom-0 left-[18%] -z-10 hidden w-72 rotate-3 md:block"
         />
-        <div className="bg-surface border-border flex w-full max-w-md flex-col gap-6 rounded-2xl border p-6 sm:p-8">
+        <div className="bg-surface border-border flex w-full max-w-md flex-col gap-6 overflow-hidden rounded-2xl border p-6 sm:p-8">
           {children}
         </div>
       </div>

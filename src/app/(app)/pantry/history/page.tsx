@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
 import { PageSkeleton } from "@/components/ui/skeleton";
 import { formatDateTime } from "@/lib/dates";
 import { formatStockQuantity } from "@/lib/format-quantity";
 import { getStockHistory } from "@/server/modules/pantry/queries";
+import { Hero } from "@/components/ui/hero";
 
 export const metadata: Metadata = { title: "Historique du stock" };
 
@@ -21,15 +21,12 @@ const KIND_LABEL: Record<string, string> = {
 export default function HistoryPage() {
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <Link href="/pantry" className="text-brand text-sm font-medium">
-          ← Garde-manger
-        </Link>
-        <h1 className="type-page">Historique du stock</h1>
-        <p className="text-muted text-sm">
-          Les 100 derniers mouvements. L&apos;historique n&apos;est jamais modifié.
-        </p>
-      </div>
+      <Hero
+        back={{ href: "/pantry", label: "Garde-manger" }}
+        title="Historique du stock"
+        description={<>Les 100 derniers mouvements. L&apos;historique n&apos;est jamais modifié.</>}
+        decor="circle"
+      />
       <Suspense fallback={<PageSkeleton rows={5} />}>
         <HistoryContent />
       </Suspense>

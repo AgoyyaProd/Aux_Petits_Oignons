@@ -6,15 +6,14 @@ import { GenerateForm } from "@/components/planner/generate-form";
 import { WeekBalancePanel } from "@/components/planner/week-balance";
 import { RecipePickerProvider } from "@/components/planner/recipe-picker";
 import { WeekGrid, type Base } from "@/components/planner/week-grid";
+import { Hero, HeroWeekNav } from "@/components/ui/hero";
 import { Alert } from "@/components/ui/alert";
 import { catalogLimitMessage } from "@/domain/planning/pick";
 import { Badge } from "@/components/ui/badge";
-import { buttonClasses, iconButtonClasses } from "@/components/ui/button";
+import { buttonClasses } from "@/components/ui/button";
 import {
   BasketIcon,
   CheckIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
   ClockIcon,
   RefreshIcon,
   SwapIcon,
@@ -49,19 +48,24 @@ export function PlannerView({
     <div className={`flex flex-col gap-6 lg:gap-8 ${plan?.isDraft ? "pb-28 lg:pb-24" : ""}`}>
       {plan?.isDraft ? <DraftGuard week={page.weekStart} /> : null}
 
-      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div className="flex flex-col gap-1">
-          <h1 className="type-page">Mon menu</h1>
-          <p className="text-muted">
-            {plan?.isDraft
-              ? "Proposition en cours : change ce qui ne te tente pas, puis valide."
-              : plan
-                ? "Ta semaine de repas, validée."
-                : "Aucun menu pour cette semaine."}
-          </p>
-        </div>
-        <WeekNav page={page} />
-      </header>
+      <Hero
+        title="Mon menu"
+        decor="half"
+        description={
+          plan?.isDraft
+            ? "Proposition en cours : change ce qui ne te tente pas, puis valide."
+            : plan
+              ? "Ta semaine de repas, validée."
+              : "Aucun menu pour cette semaine."
+        }
+      >
+        <HeroWeekNav
+          previous={`/planner?semaine=${page.previousWeek}`}
+          next={`/planner?semaine=${page.nextWeek}`}
+          label={formatWeek(page.weekStart).replace("Semaine du", "Du")}
+          sub={page.isCurrentWeek ? "Cette semaine" : "Autre semaine"}
+        />
+      </Hero>
 
       <CatalogLimitNotice page={page} />
 
@@ -116,38 +120,6 @@ function CatalogLimitNotice({ page }: { page: PlannerPage }) {
   );
 }
 
-function WeekNav({ page }: { page: PlannerPage }) {
-  return (
-    <nav
-      aria-label="Semaine"
-      className="bg-surface border-border flex items-center gap-1 self-stretch rounded-full border p-1 lg:self-auto"
-    >
-      <Link
-        href={`/planner?semaine=${page.previousWeek}`}
-        className={iconButtonClasses("border-transparent")}
-        aria-label="Semaine précédente"
-      >
-        <ChevronLeftIcon size={20} />
-      </Link>
-      <span className="flex flex-1 flex-col items-center px-3 text-center lg:min-w-56">
-        <span className="text-sm font-semibold">
-          {formatWeek(page.weekStart).replace("Semaine du", "Du")}
-        </span>
-        <span className="text-muted text-xs">
-          {page.isCurrentWeek ? "Cette semaine" : "Autre semaine"}
-        </span>
-      </span>
-      <Link
-        href={`/planner?semaine=${page.nextWeek}`}
-        className={iconButtonClasses("border-transparent")}
-        aria-label="Semaine suivante"
-      >
-        <ChevronRightIcon size={20} />
-      </Link>
-    </nav>
-  );
-}
-
 /** Statut du menu et actions secondaires (une ligne défilante sur téléphone). */
 function Toolbar({ page, base }: { page: PlannerPage; base: Base }) {
   const plan = page.plan!;
@@ -193,14 +165,17 @@ function Stat({
   label,
   children,
   foot,
+  fill,
 }: {
   icon: ReactNode;
   label: string;
+  /** Fond doux de la charte (tuiles « Marché »). */
+  fill: string;
   children: ReactNode;
   foot?: ReactNode;
 }) {
   return (
-    <div className="bg-surface border-border flex min-w-0 flex-col gap-1 rounded-2xl border p-3 sm:p-4">
+    <div className={`${fill} flex min-w-0 flex-col gap-1 rounded-3xl p-3 sm:p-4`}>
       <span className="text-muted flex items-center gap-1.5 text-xs sm:text-sm">
         {icon}
         {label}
@@ -227,7 +202,7 @@ function Summary({ page }: { page: PlannerPage }) {
       <div
         className={`grid grid-cols-3 gap-2 sm:gap-3 ${plan.isDraft ? "lg:grid-cols-3" : "lg:grid-cols-4"}`}
       >
-        <div className="bg-surface border-border flex min-w-0 flex-col gap-1 rounded-2xl border p-3 sm:p-4">
+        <div className="bg-brand-soft flex min-w-0 flex-col gap-1 rounded-3xl p-3 sm:p-4">
           <span className="text-muted flex items-center gap-1.5 text-xs sm:text-sm">
             <WalletIcon size={16} />
             Coût
@@ -238,7 +213,7 @@ function Summary({ page }: { page: PlannerPage }) {
           </span>
           {budget !== null ? (
             <>
-              <span className="bg-surface-muted h-1.5 overflow-hidden rounded-full">
+              <span className="bg-surface/70 h-1.5 overflow-hidden rounded-full">
                 <span
                   className={`block h-full rounded-full ${over ? "bg-danger" : "bg-brand"}`}
                   style={{
@@ -258,17 +233,23 @@ function Summary({ page }: { page: PlannerPage }) {
         <Stat
           icon={<CheckIcon size={16} />}
           label="Repas"
+          fill="bg-highlight-soft"
           foot={`${cooking.length} à cuisiner · ${plan.people} pers.${cooked ? ` · ${cooked} cuisiné${cooked > 1 ? "s" : ""}` : ""}`}
         >
           {page.entries.length}
         </Stat>
-        <Stat icon={<ClockIcon size={16} />} label="En cuisine" foot="sur la semaine">
+        <Stat
+          icon={<ClockIcon size={16} />}
+          label="En cuisine"
+          fill="bg-leaf-soft"
+          foot="sur la semaine"
+        >
           {minutes >= 60
             ? `${Math.floor(minutes / 60)} h ${String(minutes % 60).padStart(2, "0")}`
             : `${minutes} min`}
         </Stat>
         {plan.isDraft ? null : (
-          <div className="bg-surface border-border col-span-3 flex flex-col justify-between gap-2 rounded-2xl border p-3 sm:p-4 lg:col-span-1">
+          <div className="bg-accent-soft col-span-3 flex flex-col justify-between gap-2 rounded-3xl p-3 sm:p-4 lg:col-span-1">
             <span className="text-muted flex items-center gap-1.5 text-sm">
               <BasketIcon size={16} />
               Courses

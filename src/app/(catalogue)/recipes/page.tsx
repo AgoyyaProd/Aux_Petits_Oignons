@@ -84,6 +84,7 @@ export default function RecipesPage({ searchParams }: PageProps<"/recipes">) {
     <div className="flex flex-col gap-7">
       <PageHeader
         title="Nos recettes"
+        decor="half"
         description="Des plats du quotidien, chiffrés et détaillés. Avec un compte, elles sont filtrées selon tes préférences et celles qui utilisent ce que tu as passent en premier."
       />
       <Suspense fallback={<PageSkeleton rows={4} />}>

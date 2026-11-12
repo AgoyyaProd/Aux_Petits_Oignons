@@ -23,7 +23,10 @@ export const metadata: Metadata = { title: "Ingrédient" };
 export default function IngredientRoute({ params }: PageProps<"/ingredients/[id]">) {
   return (
     <div className="flex flex-col gap-6">
-      <nav aria-label="Fil d'Ariane" className="text-muted flex items-center gap-1.5 text-sm">
+      <nav
+        aria-label="Fil d'Ariane"
+        className="text-muted flex items-center gap-1.5 text-sm max-lg:hidden"
+      >
         <Link href="/recipes" className="hover:text-foreground">
           Recettes
         </Link>
@@ -47,7 +50,7 @@ async function IngredientContent({ params }: Pick<PageProps<"/ingredients/[id]">
   return (
     <article className="flex flex-col gap-10">
       <header className="grid gap-6 lg:grid-cols-[1fr_1fr] lg:gap-12">
-        <div className="aspect-[4/3] overflow-hidden rounded-3xl">
+        <div className="-mx-4 -mt-6 aspect-[4/3] overflow-hidden rounded-b-[1.75rem] sm:-mx-6 lg:mx-0 lg:mt-0 lg:rounded-3xl">
           {ingredientImage(ingredient.slug) ? (
             <ImageSlot
               src={ingredientImage(ingredient.slug)}

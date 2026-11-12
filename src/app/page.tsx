@@ -64,21 +64,21 @@ export default function HomePage() {
       <div className="flex flex-col gap-20 lg:gap-28">
         {/* Hero */}
         <section className="mx-auto w-full max-w-7xl">
-          <div className="bg-surface-muted relative grid overflow-hidden rounded-3xl lg:grid-cols-[1fr_1.1fr]">
+          <div className="bg-forest text-cream relative -mx-4 -mt-6 grid overflow-hidden rounded-b-[1.75rem] sm:-mx-6 lg:mx-0 lg:mt-0 lg:grid-cols-[1fr_1.1fr] lg:rounded-3xl">
             <BrandElement
               name="dot"
               priority
               sizes="96px"
               className="absolute -top-8 -right-8 w-24 lg:hidden"
             />
-            <div className="relative z-10 flex flex-col gap-6 px-6 py-12 sm:px-12 lg:py-20">
-              <h1 className="type-display text-forest dark:text-foreground">
+            <div className="relative z-10 flex flex-col gap-6 px-5 pt-6 pb-10 sm:px-12 lg:py-20">
+              <h1 className="type-display text-cream">
                 Bien manger
                 <br />
                 ça change tout.
               </h1>
               <span aria-hidden="true" className="bg-accent block h-1 w-14 rounded-full" />
-              <p className="text-muted max-w-md text-lg leading-relaxed">
+              <p className="max-w-md text-lg leading-relaxed text-[#cfe0d4]">
                 Des ingrédients simples, des recettes savoureuses pour le quotidien. Ton
                 garde-manger, tes menus et tes courses, enfin au même endroit.
               </p>
@@ -92,7 +92,7 @@ export default function HomePage() {
                 </Link>
                 <a
                   href="#fonctionnement"
-                  className={buttonClasses("secondary", "min-h-12 px-6 text-base")}
+                  className={buttonClasses("glass", "min-h-12 px-6 text-base")}
                 >
                   Découvrir notre approche
                 </a>

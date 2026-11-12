@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
-import { buttonClasses } from "@/components/ui/button";
 import { AlertIcon } from "@/components/ui/icons";
+import { ON_FOREST } from "@/components/ui/hero";
 import { PageHeader } from "@/components/ui/page-header";
 import { PageSkeleton } from "@/components/ui/skeleton";
 import { formatCents } from "@/domain/money";
@@ -18,9 +18,10 @@ export default function BudgetRoute() {
     <div className="flex flex-col gap-8">
       <PageHeader
         title="Budget alimentaire"
+        decor="leaf"
         description="Ce que coûtent tes menus, estimé avant les courses à partir des prix indicatifs et de tes propres prix."
         actions={
-          <Link href="/prices" className={buttonClasses("secondary")}>
+          <Link href="/prices" className={ON_FOREST}>
             Mes prix
           </Link>
         }
@@ -51,17 +52,18 @@ async function BudgetContent() {
     <div className="flex flex-col gap-10">
       <section
         aria-label="Cette semaine"
-        className="grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-4"
+        className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4"
       >
-        <Stat label="Budget de la semaine" kind="objectif">
+        <Stat label="Budget de la semaine" kind="objectif" fill="bg-brand-soft">
           {budget !== null ? formatCents(budget) : "Non fixé"}
         </Stat>
-        <Stat label="Coût estimé du menu" kind="estimation">
+        <Stat label="Coût estimé du menu" kind="estimation" fill="bg-highlight-soft">
           {week.hasPlan ? `${prefix}${formatCents(week.estimatedCents)}` : "Pas de menu"}
         </Stat>
         <Stat
           label="Marge restante"
           kind="estimation"
+          fill="bg-leaf-soft"
           tone={margin !== null && margin < 0 ? "danger" : "success"}
         >
           {margin === null || !week.hasPlan
@@ -70,7 +72,7 @@ async function BudgetContent() {
               ? `${formatCents(-margin)} de dépassement`
               : formatCents(margin)}
         </Stat>
-        <Stat label="Achats à venir" kind="estimation">
+        <Stat label="Achats à venir" kind="estimation" fill="bg-accent-soft">
           {toBuyCents === null
             ? "—"
             : list?.plan?.shoppingDoneAt
@@ -109,20 +111,23 @@ function Stat({
   label,
   kind,
   tone,
+  fill,
   children,
 }: {
   label: string;
   kind: "objectif" | "estimation";
   tone?: "danger" | "success";
+  /** Fond de la tuile (couleur douce de la charte). */
+  fill: string;
   children: ReactNode;
 }) {
   return (
-    <div className="border-border flex flex-col gap-1 border-t pt-4">
-      <span className="text-muted text-sm">
+    <div className={`${fill} flex min-h-28 flex-col justify-between gap-2 rounded-3xl p-4 lg:p-5`}>
+      <span className="text-muted text-sm leading-snug">
         {label} <span className="text-xs">({kind})</span>
       </span>
       <span
-        className={`font-display text-3xl font-semibold ${tone === "danger" ? "text-danger" : tone === "success" ? "text-success" : ""}`}
+        className={`font-display text-2xl leading-tight font-semibold lg:text-3xl ${tone === "danger" ? "text-danger" : tone === "success" ? "text-success" : ""}`}
       >
         {children}
       </span>

@@ -121,12 +121,18 @@ export function AddExtraForm() {
 }
 
 /** Partage la liste (menu de partage du téléphone) ou la copie dans le presse-papiers. */
-export function ExportListButton({ text }: { text: string }) {
+export function ExportListButton({
+  text,
+  variant = "secondary",
+}: {
+  text: string;
+  variant?: "secondary" | "glass";
+}) {
   const [copied, setCopied] = useOptimistic(false);
   const [, start] = useTransition();
   return (
     <Button
-      variant="secondary"
+      variant={variant}
       onClick={() =>
         start(async () => {
           const nav = navigator as Navigator & {

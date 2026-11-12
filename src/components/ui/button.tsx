@@ -6,11 +6,13 @@ import type { ButtonHTMLAttributes } from "react";
  *  - forest : vert forêt plein, actions de structure (se connecter, tout ajouter, valider) ;
  *  - accent : synonyme de primary, conservé pour les écrans existants ;
  *  - secondary : blanc avec contour ;
- *  - ghost / text : actions discrètes.
+ *  - ghost / text : actions discrètes ;
+ *  - glass : pastille translucide, pour les actions posées sur un en-tête vert forêt.
  * Le terracotta des boutons est la version foncée du rouge du logo (#C2451F) : texte blanc lisible
  * (contraste AA). Le rouge du logo (#ED6135) reste celui des formes et des accents.
  */
-export type ButtonVariant = "primary" | "forest" | "accent" | "secondary" | "ghost" | "text";
+export type ButtonVariant =
+  "primary" | "forest" | "accent" | "secondary" | "ghost" | "text" | "glass";
 
 const terracotta = "bg-accent-strong text-white hover:bg-accent-strong/90 dark:text-forest";
 const variants: Record<ButtonVariant, string> = {
@@ -21,6 +23,7 @@ const variants: Record<ButtonVariant, string> = {
     "border border-border-strong bg-surface text-foreground hover:border-forest hover:bg-surface",
   ghost: "text-foreground hover:bg-surface-muted",
   text: "min-h-0 px-0 text-accent-strong underline-offset-4 hover:underline",
+  glass: "bg-white/12 text-cream hover:bg-white/20",
 };
 
 export function buttonClasses(variant: ButtonVariant = "primary", extra = "") {

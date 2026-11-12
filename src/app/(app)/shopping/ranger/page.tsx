@@ -5,6 +5,7 @@ import { PutAwayForm, type PutAwayLine } from "@/components/shopping/put-away-fo
 import { PageSkeleton } from "@/components/ui/skeleton";
 import { suggestPutAway } from "@/lib/format-quantity";
 import { defaultLocation, getShoppingPage } from "@/server/modules/shopping/queries";
+import { Hero } from "@/components/ui/hero";
 
 export const metadata: Metadata = { title: "Finir les courses" };
 export const maxDuration = 30;
@@ -12,14 +13,18 @@ export const maxDuration = 30;
 export default function PutAwayRoute({ searchParams }: PageProps<"/shopping/ranger">) {
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="type-page">Finir les courses</h1>
-        <p className="text-muted text-sm">
-          Les produits cochés sont rangés au garde-manger : ajuste les quantités réellement achetées
-          (un paquet de 500 g plutôt que les 375 g nécessaires, par exemple), l&apos;emplacement et,
-          si tu veux, la date limite. Ensuite, tu pourras marquer tes plats « Cuisiné ».
-        </p>
-      </div>
+      <Hero
+        title="Finir les courses"
+        description={
+          <>
+            Les produits cochés sont rangés au garde-manger : ajuste les quantités réellement
+            achetées (un paquet de 500 g plutôt que les 375 g nécessaires, par exemple),
+            l&apos;emplacement et, si tu veux, la date limite. Ensuite, tu pourras marquer tes plats
+            « Cuisiné ».
+          </>
+        }
+        decor="half"
+      />
       <Suspense fallback={<PageSkeleton rows={4} />}>
         <PutAwayContent searchParams={searchParams} />
       </Suspense>

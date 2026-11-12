@@ -7,16 +7,11 @@ import { ShoppingLiveRefresh } from "@/components/shopping/live-refresh";
 import { AddExtraForm, ExportListButton, ExtraLine } from "@/components/shopping/extras";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { buttonClasses, iconButtonClasses } from "@/components/ui/button";
+import { buttonClasses } from "@/components/ui/button";
+import { Hero, HeroWeekNav, ON_FOREST } from "@/components/ui/hero";
 import { EmptyState } from "@/components/ui/empty-state";
-import {
-  ArrowRightIcon,
-  CheckIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  PlusIcon,
-} from "@/components/ui/icons";
-import { ACTIONS_ROW, Responsive } from "@/components/ui/page-header";
+import { ArrowRightIcon, CheckIcon, PlusIcon } from "@/components/ui/icons";
+import { Responsive } from "@/components/ui/page-header";
 import { PageSkeleton } from "@/components/ui/skeleton";
 import { formatCents } from "@/domain/money";
 import { formatShoppingQuantity } from "@/lib/format-quantity";
@@ -57,42 +52,51 @@ async function ShoppingContent({ searchParams }: Pick<PageProps<"/shopping">, "s
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex w-full flex-col gap-3 sm:w-auto">
-          <h1 className="type-page">Ma liste de courses</h1>
-          <WeekNav page={page} />
-          <ShoppingLiveRefresh householdId={page.householdId} week={page.weekStart} />
-        </div>
-        <div className={ACTIONS_ROW}>
-          {lines.length + page.extras.length > 0 && !allChecked ? (
-            <form action={checkAllAction}>
-              <input type="hidden" name="week" value={page.weekStart} />
-              <input
-                type="hidden"
-                name="lines"
-                value={JSON.stringify(lines.map((l) => ({ i: l.ingredientId, d: l.dimension })))}
-              />
-              <button type="submit" className={buttonClasses("secondary", "w-full")}>
-                <CheckIcon size={18} />
-                <Responsive short="Tout cocher" long="Cocher les achats" />
-                <span className="text-muted tabular-nums">
-                  (
-                  {lines.filter((l) => l.checked).length +
-                    page.extras.filter((e) => e.checked).length}
-                  /{lines.length + page.extras.length})
-                </span>
-              </button>
-            </form>
-          ) : null}
-          {lines.length + page.extras.length > 0 ? <ExportListButton text={exportText} /> : null}
-          {page.isCurrentWeek ? (
-            <a href="#ajouts" className={buttonClasses("primary")}>
-              <PlusIcon size={18} />
-              <Responsive short="Ajouter" long="Ajouter un produit" />
-            </a>
-          ) : null}
-        </div>
-      </header>
+      <Hero
+        title="Ma liste de courses"
+        decor="circle"
+        actions={
+          <>
+            {lines.length + page.extras.length > 0 && !allChecked ? (
+              <form action={checkAllAction}>
+                <input type="hidden" name="week" value={page.weekStart} />
+                <input
+                  type="hidden"
+                  name="lines"
+                  value={JSON.stringify(lines.map((l) => ({ i: l.ingredientId, d: l.dimension })))}
+                />
+                <button type="submit" className={ON_FOREST}>
+                  <CheckIcon size={18} />
+                  <Responsive short="Tout cocher" long="Cocher les achats" />
+                  <span className="tabular-nums opacity-75">
+                    (
+                    {lines.filter((l) => l.checked).length +
+                      page.extras.filter((e) => e.checked).length}
+                    /{lines.length + page.extras.length})
+                  </span>
+                </button>
+              </form>
+            ) : null}
+            {lines.length + page.extras.length > 0 ? (
+              <ExportListButton text={exportText} variant="glass" />
+            ) : null}
+            {page.isCurrentWeek ? (
+              <a href="#ajouts" className={buttonClasses("primary")}>
+                <PlusIcon size={18} />
+                <Responsive short="Ajouter" long="Ajouter un produit" />
+              </a>
+            ) : null}
+          </>
+        }
+      >
+        <HeroWeekNav
+          previous={`/shopping?semaine=${page.previousWeek}`}
+          next={`/shopping?semaine=${page.nextWeek}`}
+          label={formatWeek(page.weekStart).replace("Semaine du", "Du")}
+          sub={page.isCurrentWeek ? "Cette semaine" : undefined}
+        />
+        <ShoppingLiveRefresh householdId={page.householdId} week={page.weekStart} />
+      </Hero>
 
       {!list ? (
         <>
@@ -141,33 +145,6 @@ function buildExport(
     for (const e of todoExtras) out.push(`- ${e.label}${e.quantity ? ` : ${e.quantity}` : ""}`);
   }
   return out.join("\n");
-}
-
-function WeekNav({ page }: { page: ShoppingPage }) {
-  return (
-    <nav aria-label="Semaine" className="flex w-full items-center justify-between gap-2 sm:w-auto">
-      <Link
-        href={`/shopping?semaine=${page.previousWeek}`}
-        className={iconButtonClasses()}
-        aria-label="Semaine précédente"
-      >
-        <ChevronLeftIcon size={20} />
-      </Link>
-      <span className="flex-1 text-center font-semibold sm:min-w-52">
-        {formatWeek(page.weekStart).replace("Semaine du", "Du")}
-        {page.isCurrentWeek ? (
-          <span className="text-muted block text-xs font-medium">Cette semaine</span>
-        ) : null}
-      </span>
-      <Link
-        href={`/shopping?semaine=${page.nextWeek}`}
-        className={iconButtonClasses()}
-        aria-label="Semaine suivante"
-      >
-        <ChevronRightIcon size={20} />
-      </Link>
-    </nav>
-  );
 }
 
 function Extras({ extras }: { extras: Extra[] }) {
@@ -229,7 +206,7 @@ function ListView({ page, byRecipe }: { page: ListPage; byRecipe: boolean }) {
       {/* Récapitulatif : en haut sur ordinateur, collé en bas (au-dessus des onglets) sur téléphone. */}
       <section
         aria-label="Récapitulatif"
-        className="bg-surface border-border fixed inset-x-0 bottom-[calc(6.25rem+env(safe-area-inset-bottom))] z-10 border-t px-4 py-3 shadow-[var(--shadow-md)] lg:static lg:rounded-2xl lg:border lg:px-6 lg:py-4 lg:shadow-none"
+        className="bg-surface border-border lg:bg-leaf-soft fixed inset-x-0 bottom-[calc(6.25rem+env(safe-area-inset-bottom))] z-10 border-t px-4 py-3 shadow-[var(--shadow-md)] lg:static lg:rounded-3xl lg:border-0 lg:px-6 lg:py-5 lg:shadow-none"
       >
         <div className="mx-auto flex max-w-xl items-center gap-4 lg:max-w-none">
           <div className="flex min-w-0 flex-1 flex-col gap-1.5">

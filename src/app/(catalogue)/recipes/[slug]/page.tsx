@@ -51,7 +51,7 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
   return (
     <KitchenProvider baseServings={recipe.servings}>
       <article className="flex flex-col gap-10 lg:gap-14">
-        <nav aria-label="Fil d'Ariane" className="text-muted -mb-4 text-sm lg:-mb-6">
+        <nav aria-label="Fil d'Ariane" className="text-muted -mb-6 text-sm max-lg:hidden">
           <ol className="flex flex-wrap items-center gap-1.5">
             <li>
               <Link href={recipe.guest ? "/" : "/dashboard"} className="hover:text-foreground">
@@ -81,7 +81,7 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
           <RecipeVisual
             slug={recipe.slug}
             title={recipe.title}
-            className="aspect-[4/3] rounded-3xl lg:aspect-auto lg:h-full lg:min-h-[26rem]"
+            className="-mx-4 -mt-6 aspect-[4/3] rounded-b-[1.75rem] sm:-mx-6 lg:mx-0 lg:mt-0 lg:aspect-auto lg:h-full lg:min-h-[26rem] lg:rounded-3xl"
             iconSize={40}
             sizes="(min-width: 1024px) 55vw, 100vw"
             priority

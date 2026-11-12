@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AcceptInvitationForm } from "@/components/households/accept-invitation-form";
+import { Hero } from "@/components/ui/hero";
 import { Alert } from "@/components/ui/alert";
 import { PageSkeleton } from "@/components/ui/skeleton";
 import { getCurrentUser } from "@/server/modules/auth/session";
@@ -10,11 +11,13 @@ export const metadata: Metadata = { title: "Invitation" };
 
 export default function InvitationPage({ params }: PageProps<"/invitation/[token]">) {
   return (
-    <div className="mx-auto flex max-w-md flex-col gap-5">
-      <h1 className="type-page">Rejoindre un foyer</h1>
-      <Suspense fallback={<PageSkeleton />}>
-        <Invitation params={params} />
-      </Suspense>
+    <div className="flex flex-col gap-6">
+      <Hero title="Rejoindre un foyer" decor="half" />
+      <div className="mx-auto flex w-full max-w-md flex-col gap-5">
+        <Suspense fallback={<PageSkeleton />}>
+          <Invitation params={params} />
+        </Suspense>
+      </div>
     </div>
   );
 }

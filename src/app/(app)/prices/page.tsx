@@ -9,6 +9,7 @@ import { centsToInput, formatCents } from "@/domain/money";
 import { formatDateTime, formatShortDate } from "@/lib/dates";
 import { removeHouseholdPriceAction } from "@/server/modules/prices/actions";
 import { getPricesPage, type PriceRow } from "@/server/modules/prices/queries";
+import { Hero } from "@/components/ui/hero";
 
 export const metadata: Metadata = { title: "Prix" };
 
@@ -18,15 +19,18 @@ export const maxDuration = 60;
 export default function PricesPage({ searchParams }: PageProps<"/prices">) {
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="type-page">Prix</h1>
-        <p className="text-muted text-sm">
-          Les prix servent à estimer le coût de tes menus. Par défaut, ce sont des prix indicatifs :
-          les prix relevés sur des tickets de caisse des 12 derniers mois quand il y en a, sinon la
-          médiane des relevés publics Open Prices faits en France sur la même période. Ton prix,
-          s&apos;il est renseigné, les remplace.
-        </p>
-      </div>
+      <Hero
+        title="Prix"
+        description={
+          <>
+            Les prix servent à estimer le coût de tes menus. Par défaut, ce sont des prix indicatifs
+            : les prix relevés sur des tickets de caisse des 12 derniers mois quand il y en a, sinon
+            la médiane des relevés publics Open Prices faits en France sur la même période. Ton
+            prix, s&apos;il est renseigné, les remplace.
+          </>
+        }
+        decor="leaf"
+      />
       <Suspense fallback={<PageSkeleton rows={4} />}>
         <PricesContent searchParams={searchParams} />
       </Suspense>

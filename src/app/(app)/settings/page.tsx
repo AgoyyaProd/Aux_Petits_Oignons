@@ -12,6 +12,7 @@ import { AisleOrderForm } from "@/components/settings/aisle-order-form";
 import { MealPatternForm } from "@/components/settings/meal-pattern-form";
 import { buttonClasses } from "@/components/ui/button";
 import { signOutAction } from "@/server/modules/auth/actions";
+import { ON_FOREST } from "@/components/ui/hero";
 import { PageHeader } from "@/components/ui/page-header";
 import {
   ChevronRightIcon,
@@ -38,7 +39,7 @@ export default function SettingsPage() {
         title="Profil et préférences"
         description="Ton foyer, ses membres et ce que vous mangez : ces réglages décident des recettes et des menus proposés."
         actions={
-          <Link href="/bienvenue" className={buttonClasses("secondary")}>
+          <Link href="/bienvenue" className={ON_FOREST}>
             Refaire le questionnaire
           </Link>
         }

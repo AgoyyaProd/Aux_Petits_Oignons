@@ -4,16 +4,19 @@ import { Suspense } from "react";
 import { SignInForm } from "@/components/auth/sign-in-form";
 import { Alert } from "@/components/ui/alert";
 import { memberAreaLabel, safeRedirectPath } from "@/lib/routes";
+import { Hero } from "@/components/ui/hero";
 
 export const metadata: Metadata = { title: "Connexion" };
 
 export default function LoginPage({ searchParams }: PageProps<"/login">) {
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="type-page">Connexion</h1>
-        <p className="text-muted text-sm">Retrouve ton garde-manger et ton planning.</p>
-      </div>
+      <Hero
+        inCard
+        title="Connexion"
+        description={<>Retrouve ton garde-manger et ton planning.</>}
+        decor="circle"
+      />
       {/* searchParams est une donnée de requête : lue derrière une frontière Suspense. */}
       <Suspense fallback={<SignInForm />}>
         <LoginForm searchParams={searchParams} />
