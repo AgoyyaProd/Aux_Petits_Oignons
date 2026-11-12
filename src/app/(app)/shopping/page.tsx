@@ -320,7 +320,7 @@ function ListView({ page, byRecipe }: { page: ListPage; byRecipe: boolean }) {
           </Link>
         </div>
         <span className="text-muted flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-          Quantités nécessaires, pas des tailles de paquet.
+          Quantité nécessaire ; en dessous, les paquets à prendre.
           {!byRecipe ? (
             <Link href="/settings#rayons" className="text-foreground underline underline-offset-2">
               Ordre de mon magasin
