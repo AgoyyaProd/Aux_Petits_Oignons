@@ -52,13 +52,13 @@ export function SiteShell({ member, children }: { member?: boolean; children: Re
 
         <div className="flex min-w-0 flex-1 flex-col">
           <OfflineBanner />
-          <header className="border-border bg-background/95 sticky top-0 z-20 border-b backdrop-blur lg:hidden print:hidden">
+          <header className="bg-forest text-cream sticky top-0 z-20 lg:hidden print:hidden">
             <div className="flex w-full items-center justify-between gap-3 px-4 py-2.5 sm:px-6">
               {part((m) => (
-                <HomeLink member={m} size={40} />
+                <HomeLink member={m} size={40} inverse />
               ))}
               <div className="flex items-center gap-2">
-                <ThemeToggle />
+                <ThemeToggle className="text-cream! border-white/20! hover:bg-white/10!" />
                 {part((m) =>
                   m ? (
                     <Link
@@ -121,14 +121,23 @@ async function Viewer({ render }: { render: (member: boolean) => ReactNode }) {
   return render(user !== null);
 }
 
-function HomeLink({ member, size }: { member: boolean; size: number }) {
+function HomeLink({
+  member,
+  size,
+  inverse = false,
+}: {
+  member: boolean;
+  size: number;
+  /** Sur l'en-tête vert du téléphone. */
+  inverse?: boolean;
+}) {
   return (
     <Link
       href={member ? "/dashboard" : "/"}
       aria-label="Aux Petits Oignons, accueil"
       className="shrink-0"
     >
-      <Logo size={size} />
+      <Logo size={size} tone={inverse ? "inverse" : "color"} />
     </Link>
   );
 }

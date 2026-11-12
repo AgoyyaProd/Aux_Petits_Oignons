@@ -86,7 +86,10 @@ export function ImageSlot({
 /** Fonds clairs du site (adaptés au thème sombre par leurs variables). */
 const GROUNDS = ["bg-accent-soft", "bg-highlight-soft", "bg-leaf-soft", "bg-brand-soft"] as const;
 
-/** Formes du logo : rond ocre, demi-disque terracotta, feuille sauge. viewBox 400 × 300. */
+/**
+ * Formes du logo : rond ocre, demi-disque terracotta, feuille sauge. Dessinées sur 400 × 300,
+ * affichées dans un cadre de 520 × 390 : elles laissent de l'air autour.
+ */
 const COMPOSITIONS = [
   <>
     <circle cx="300" cy="92" r="72" fill="var(--highlight)" />
@@ -133,7 +136,7 @@ function Illustration({
       className={`[container-type:size] relative flex shrink-0 items-center justify-center overflow-hidden ${ground} ${className}`}
     >
       <svg
-        viewBox="0 0 400 300"
+        viewBox="-60 -45 520 390"
         preserveAspectRatio="xMidYMid slice"
         className={`absolute inset-0 h-full w-full ${letter ? "opacity-45" : ""}`}
       >

@@ -71,7 +71,7 @@ function PantryHeader({
     ...LOCATIONS.map((l) => ({ key: l, label: SHORT_LOCATION[l], n: counts[l] })),
   ];
   return (
-    <header className="bg-forest text-cream relative flex flex-col gap-5 overflow-hidden rounded-3xl px-5 py-6 sm:px-8 lg:px-10 lg:py-8">
+    <header className="bg-forest text-cream relative -mx-4 -mt-6 flex flex-col gap-5 overflow-hidden rounded-b-[1.75rem] px-5 pt-2 pb-6 sm:-mx-6 sm:px-8 lg:mx-0 lg:mt-0 lg:rounded-3xl lg:px-10 lg:py-8">
       <span
         aria-hidden="true"
         className="bg-leaf absolute -top-12 -right-8 hidden h-28 w-56 rotate-[-18deg] rounded-[100%_0] opacity-90 sm:block"

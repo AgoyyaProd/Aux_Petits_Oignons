@@ -17,7 +17,7 @@ import { expiryState } from "@/domain/pantry/priority";
 import { formatLongDate, hourIn } from "@/lib/dates";
 import { ImageSlot } from "@/components/ui/image-slot";
 import { ingredientImage } from "@/lib/images";
-import { formatDay } from "@/lib/week";
+import { addDays, formatDay, mondayOf } from "@/lib/week";
 import { getCurrentContext } from "@/server/modules/auth/session";
 import { getPantry } from "@/server/modules/pantry/queries";
 import { getPlannerPage, type PlannerEntryView } from "@/server/modules/planning/queries";
@@ -108,7 +108,7 @@ async function Greeting() {
   const hello = hour >= 18 || hour < 5 ? "Bonsoir" : "Bonjour";
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(new Date());
   return (
-    <header className="bg-forest text-cream relative flex flex-col gap-5 overflow-hidden rounded-3xl px-5 py-6 sm:px-8 lg:px-10 lg:py-9">
+    <header className="bg-forest text-cream relative -mx-4 -mt-6 flex flex-col gap-5 overflow-hidden rounded-b-[1.75rem] px-5 pt-2 pb-6 sm:-mx-6 sm:px-8 lg:mx-0 lg:mt-0 lg:rounded-3xl lg:px-10 lg:py-9">
       <span
         aria-hidden="true"
         className="bg-highlight absolute -top-10 -right-10 size-32 rounded-full lg:size-44"
@@ -143,7 +143,7 @@ async function Greeting() {
             className="bg-cream min-h-12 w-full rounded-full border-0 pr-4 pl-11 text-base text-[#13261f] outline-none placeholder:text-[#645c51] focus-visible:ring-2 focus-visible:ring-[#ff9d00]"
           />
         </form>
-        <ul className="chip-scroll" aria-label="Idées rapides">
+        <ul className="chip-scroll max-lg:hidden" aria-label="Idées rapides">
           {QUICK.map((q) => (
             <li key={q.href} className="shrink-0">
               <Link
@@ -201,71 +201,55 @@ async function Today() {
   }
   const main = meals.find((m) => m.slot === "dinner" && !m.cooked) ?? meals[0]!;
   const others = meals.filter((m) => m !== main);
-  return (
-    <section
-      aria-labelledby="jour"
-      className="bg-surface flex flex-col overflow-hidden rounded-3xl shadow-[var(--shadow-md)]"
-    >
-      <RecipeVisual
-        slug={main.slug ?? main.title}
-        title={main.title}
-        className="aspect-[2/1]"
-        priority
-      />
-      <div className="flex flex-col gap-3 p-5 lg:p-6">
-        <p className="text-accent-strong text-xs font-bold tracking-wide uppercase">
-          {main.slot === "dinner" ? "Ce soir" : "Ce midi"}
-          {main.cooked ? " · cuisiné" : ""}
-        </p>
-        <h2 id="jour" className="type-section text-[1.5rem] leading-tight lg:text-[1.875rem]">
-          {main.title}
-        </h2>
-        <p className="text-muted flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-          {main.totalMinutes !== null ? (
-            <span className="inline-flex items-center gap-1">
-              <ClockIcon size={15} /> {main.totalMinutes} min
-            </span>
-          ) : null}
-          <span>
-            {main.servings} portion{main.servings > 1 ? "s" : ""}
+  const card = (
+    <>
+      <span className="relative block">
+        <RecipeVisual
+          slug={main.slug ?? main.title}
+          title={main.title}
+          className="h-44 lg:aspect-[2/1] lg:h-auto"
+          priority
+        />
+        {main.totalMinutes !== null ? (
+          <span className="bg-surface text-accent-strong absolute bottom-3 left-3 rounded-full px-2.5 py-1 text-xs font-bold tracking-wide uppercase">
+            {main.totalMinutes} min
           </span>
-        </p>
-        {main.slug ? (
-          <Link
-            href={`/recipes/${main.slug}`}
-            className={buttonClasses(main.cooked ? "secondary" : "primary", "self-start")}
-          >
-            {main.cooked ? "Revoir la recette" : "Cuisiner"}
-            {main.cooked ? null : <ArrowRightIcon size={18} />}
-          </Link>
         ) : null}
-        {others.length ? (
-          <ul className="border-border mt-1 flex flex-col gap-1.5 border-t pt-3 text-sm">
-            {others.map((m) => (
-              <li key={m.position} className="flex items-baseline gap-2">
-                <span className="text-muted w-12 shrink-0 text-xs font-semibold uppercase">
-                  {m.slot === "lunch" ? "Midi" : "Soir"}
-                </span>
-                {m.slug ? (
-                  <Link
-                    href={`/recipes/${m.slug}`}
-                    className={`font-medium hover:underline ${m.cooked ? "line-through opacity-60" : ""}`}
-                  >
-                    {m.title}
-                  </Link>
-                ) : (
-                  <span className="font-medium">{m.title}</span>
-                )}
-              </li>
-            ))}
-          </ul>
-        ) : null}
-      </div>
+      </span>
+      <span className="flex flex-col gap-1.5 p-4 lg:p-6">
+        <span className="type-section text-[1.3125rem] leading-tight lg:text-[1.875rem]">
+          {main.title}
+        </span>
+        <span className="text-muted text-sm">
+          {main.cooked ? "Déjà cuisiné" : `${main.servings} portion${main.servings > 1 ? "s" : ""}`}
+          {others.length
+            ? ` · ${others[0]!.slot === "lunch" ? "ce midi" : "ce soir"} : ${others[0]!.title}`
+            : ""}
+        </span>
+      </span>
+    </>
+  );
+  return (
+    <section aria-labelledby="jour" className="flex flex-col gap-3">
+      <h2 id="jour" className="type-section">
+        {main.slot === "dinner" ? "Ce soir" : "Ce midi"}
+      </h2>
+      {main.slug ? (
+        <Link
+          href={`/recipes/${main.slug}`}
+          className="bg-surface flex flex-col overflow-hidden rounded-3xl shadow-[var(--shadow-md)] transition-transform hover:-translate-y-0.5"
+        >
+          {card}
+        </Link>
+      ) : (
+        <div className="bg-surface flex flex-col overflow-hidden rounded-3xl shadow-[var(--shadow-md)]">
+          {card}
+        </div>
+      )}
     </section>
   );
 }
 
-/** Tuile verte : où en sont les courses. */
 async function ShoppingTile() {
   const page = await getShoppingPage();
   const totals = page && page.plan && "totals" in page ? page.totals : null;
@@ -338,48 +322,34 @@ async function BudgetTile() {
   );
 }
 
-/** La semaine en un coup d'œil : une colonne par jour, défilement horizontal sur téléphone. */
+/** La suite : les prochains plats prévus (hors restes), en vignettes. */
 async function Week() {
   const page = await getPlannerPage({});
-  if (!page?.plan) return null;
-  const days = [...new Set(page.slots.map((s) => s.day))];
+  if (!page) return null;
+  const later = (entries: PlannerEntryView[]) =>
+    entries
+      .filter((e) => !e.cooked && !e.leftover && e.day !== null && e.day > page.today)
+      .sort((a, b) => a.day!.localeCompare(b.day!) || (a.slot === "lunch" ? -1 : 1));
+  let upcoming = later(page.entries);
+  // Fin de semaine : on enchaîne sur le menu de la semaine suivante, s'il existe.
+  if (upcoming.length < 3) {
+    const next = await getPlannerPage({ week: addDays(mondayOf(page.today), 7) });
+    if (next?.plan) upcoming = [...upcoming, ...later(next.entries)];
+  }
+  upcoming = upcoming.slice(0, 6);
+  if (upcoming.length === 0) return null;
   return (
-    <section aria-labelledby="semaine" className="flex flex-col gap-4">
-      <SectionTitle href="/planner" link="Voir">
-        <span id="semaine">Ma semaine en un coup d&apos;œil</span>
+    <section aria-labelledby="semaine" className="flex flex-col gap-3">
+      <SectionTitle href="/planner" link="Mon menu">
+        <span id="semaine">La suite de la semaine</span>
       </SectionTitle>
-      <div className="snap-x overflow-x-auto pb-1">
-        <ol className="grid w-max grid-cols-[repeat(7,8.75rem)] gap-3 lg:w-auto lg:grid-cols-7">
-          {days.map((day) => {
-            const meals = page.entries.filter((e) => e.day === day);
-            const isToday = day === page.today;
-            return (
-              <li
-                key={day}
-                className={[
-                  "bg-surface flex snap-start flex-col gap-2.5 rounded-xl border p-2.5",
-                  isToday ? "border-accent ring-accent/30 ring-2" : "border-border",
-                  day < page.today && !isToday ? "opacity-70" : "",
-                ].join(" ")}
-              >
-                <span className="flex items-baseline justify-between px-0.5 text-sm font-semibold">
-                  <span>{formatDay(day).replace(/ .*/, "").slice(0, 3)}</span>
-                  <span className={isToday ? "text-accent-strong" : "text-muted"}>
-                    {day.slice(8).replace(/^0/, "")}
-                  </span>
-                </span>
-                {meals.length ? (
-                  meals.map((m) => <WeekMeal key={m.position} meal={m} />)
-                ) : (
-                  <span className="bg-surface-muted text-muted grid aspect-[4/3] place-items-center rounded-lg text-xs">
-                    Rien de prévu
-                  </span>
-                )}
-              </li>
-            );
-          })}
-        </ol>
-      </div>
+      <ol className="-mx-4 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:scroll-px-6 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-6 lg:overflow-visible lg:px-0">
+        {upcoming.map((m) => (
+          <li key={m.position} className="w-[8.25rem] shrink-0 snap-start lg:w-auto">
+            <WeekMeal meal={m} />
+          </li>
+        ))}
+      </ol>
     </section>
   );
 }
@@ -390,25 +360,21 @@ function WeekMeal({ meal }: { meal: PlannerEntryView }) {
       <RecipeVisual
         slug={meal.slug ?? meal.title}
         title={meal.title}
-        className="aspect-[4/3] rounded-lg"
-        iconSize={18}
+        className="h-24 rounded-2xl lg:h-28"
       />
-      <span className="text-muted text-[0.6875rem] font-medium">
-        {meal.slot === "lunch" ? "Déjeuner" : "Dîner"}
+      <span className="text-accent-strong text-xs font-bold uppercase">
+        {formatDay(meal.day!).replace(/ .*/, "").slice(0, 3)}
+        {meal.slot === "lunch" ? " · midi" : ""}
       </span>
-      <span
-        className={`line-clamp-2 text-[0.8125rem] leading-snug font-semibold ${meal.cooked ? "line-through opacity-60" : ""}`}
-      >
-        {meal.title}
-      </span>
+      <span className="line-clamp-2 text-[0.8125rem] leading-snug font-semibold">{meal.title}</span>
     </>
   );
   return meal.slug ? (
-    <Link href={`/recipes/${meal.slug}`} className="flex flex-col gap-1 hover:underline">
+    <Link href={`/recipes/${meal.slug}`} className="flex flex-col gap-1.5 hover:underline">
       {body}
     </Link>
   ) : (
-    <span className="flex flex-col gap-1">{body}</span>
+    <span className="flex flex-col gap-1.5">{body}</span>
   );
 }
 
@@ -510,11 +476,11 @@ async function Suggestions() {
           complet, plus les idées sont justes.
         </p>
       ) : (
-        <ul className="grid gap-4 sm:grid-cols-3">
+        <ul className="-mx-4 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:scroll-px-6 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-3 lg:gap-4 lg:overflow-visible lg:px-0">
           {picks.map((r) => (
-            <li key={r.id}>
-              <Link href={`/recipes/${r.slug}`} className="group flex flex-col gap-2.5">
-                <span className="aspect-[4/3] overflow-hidden rounded-xl">
+            <li key={r.id} className="w-[12rem] shrink-0 snap-start lg:w-auto">
+              <Link href={`/recipes/${r.slug}`} className="group flex flex-col gap-2">
+                <span className="aspect-[4/3] overflow-hidden rounded-2xl">
                   <RecipeVisual slug={r.slug} title={r.title} tags={r.tags} />
                 </span>
                 <span className="type-card group-hover:underline">{r.title}</span>
