@@ -2,11 +2,13 @@
 
 import { refresh } from "next/cache";
 import { z } from "zod";
+import { parseExpense } from "@/domain/budget/expense-form";
 import { parseAmount, UNITS, isUnitCode } from "@/domain/units";
 import { todayIn } from "@/lib/dates";
 import { isMonday, mondayOf } from "@/lib/week";
 import { toActionError } from "@/server/errors";
 import { getCurrentContext } from "@/server/modules/auth/session";
+import { getShoppingPage } from "@/server/modules/shopping/queries";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 
 const checkSchema = z.object({
@@ -55,6 +57,8 @@ export type PutAwayState = {
   message?: string;
   /** Index des lignes en erreur, pour les signaler dans le formulaire. */
   invalid?: number[];
+  /** Champ de la dépense en erreur. */
+  expenseField?: "amount" | "nonFood" | "spentOn" | "store";
 };
 
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
@@ -130,6 +134,54 @@ export async function finishShoppingAction(
     };
   }
   const supabase = await createSupabaseServerClient();
+
+  // Montant payé (facultatif). Enregistré avant le rangement : une fois les produits au
+  // garde-manger, la liste se recalcule depuis le stock et son estimation serait perdue.
+  // Même clé que le rangement : un double envoi n'enregistre qu'une dépense.
+  const paid = String(formData.get("amount") ?? "").trim();
+  let expenseSaved = false;
+  if (paid !== "") {
+    const today = todayIn(household.timezone);
+    const parsed = parseExpense(
+      {
+        amount: paid,
+        nonFood: String(formData.get("nonFood") ?? ""),
+        store: String(formData.get("store") ?? ""),
+      },
+      today,
+    );
+    if (!parsed.ok) {
+      return { status: "error", message: parsed.message, expenseField: parsed.field };
+    }
+    const estimate = await estimateOfLines(week, lines);
+    const { error: expenseError } = await supabase.from("household_expenses").upsert(
+      {
+        household_id: household.id,
+        idempotency_key: key,
+        week_start: week,
+        spent_on: parsed.value.spentOn,
+        store_label: parsed.value.storeLabel,
+        amount_cents: parsed.value.amountCents,
+        non_food_cents: parsed.value.nonFoodCents,
+        estimated_store_cents: estimate?.store ?? null,
+        estimated_meals_cents: estimate?.meals ?? null,
+        estimate_is_minimum: estimate?.isMinimum ?? false,
+        source: "courses",
+      },
+      { onConflict: "household_id,idempotency_key", ignoreDuplicates: true },
+    );
+    if (expenseError) {
+      return {
+        status: "error",
+        message:
+          expenseError.code === "23514"
+            ? "Montant payé refusé : vérifie la semaine et les montants."
+            : toActionError(expenseError).message,
+      };
+    }
+    expenseSaved = true;
+  }
+
   const { data, error } = await supabase.rpc("shopping_finish", {
     p_household_id: household.id,
     p_week_start: week,
@@ -158,13 +210,43 @@ export async function finishShoppingAction(
   );
   refresh();
   const n = (data as { put_away?: { count?: number } | null } | null)?.put_away?.count ?? 0;
+  const done =
+    n > 0
+      ? `Courses terminées : ${n} produit${n > 1 ? "s" : ""} rangé${n > 1 ? "s" : ""} au garde-manger.`
+      : "Courses terminées.";
   return {
     status: "success",
-    message:
-      n > 0
-        ? `Courses terminées : ${n} produit${n > 1 ? "s" : ""} rangé${n > 1 ? "s" : ""} au garde-manger.`
-        : "Courses terminées.",
+    message: expenseSaved ? `${done} Montant payé ajouté au budget.` : done,
   };
+}
+
+/**
+ * Estimation de la liste pour les lignes rangées, figée sur la dépense : à payer en magasin
+ * (paquets entiers) et part destinée aux plats. Une ligne sans prix rend l'estimation
+ * minimale ; sans aucune ligne chiffrée, pas d'estimation (null), jamais 0 € inventé.
+ */
+async function estimateOfLines(
+  week: string,
+  lines: readonly { ingredientId: string; dimension: string }[],
+): Promise<{ store: number; meals: number; isMinimum: boolean } | null> {
+  const page = await getShoppingPage(week);
+  if (!page || !("aisles" in page) || lines.length === 0) return null;
+  const wanted = new Set(lines.map((l) => `${l.ingredientId}|${l.dimension}`));
+  let store = 0;
+  let meals = 0;
+  let priced = 0;
+  let isMinimum = false;
+  for (const line of page.aisles.flatMap((a) => a.lines)) {
+    if (!wanted.has(`${line.ingredientId}|${line.dimension}`)) continue;
+    if (line.storeCents === null || line.cents === null) {
+      isMinimum = true;
+      continue;
+    }
+    priced += 1;
+    store += line.storeCents;
+    meals += Math.min(line.cents, line.storeCents);
+  }
+  return priced > 0 ? { store, meals, isMinimum } : null;
 }
 
 // ---------------------------------------------------------------------------

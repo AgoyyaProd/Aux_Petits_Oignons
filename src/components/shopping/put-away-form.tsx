@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
+import { ExpenseFields } from "@/components/budget/expense-fields";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { UNITS, type UnitCode } from "@/domain/units";
@@ -30,10 +32,13 @@ export function PutAwayForm({
   week,
   formKey,
   lines,
+  store,
 }: {
   week: string;
   formKey: string;
   lines: PutAwayLine[];
+  /** Magasin de référence du foyer, proposé par défaut. */
+  store: string | null;
 }) {
   const [state, action, pending] = useActionState(finishShoppingAction, idle);
   const invalid = new Set(state.invalid ?? []);
@@ -41,7 +46,10 @@ export function PutAwayForm({
   if (state.status === "success") {
     return (
       <Alert tone="success">
-        {state.message} Tu peux maintenant marquer chaque plat « Cuisiné » depuis sa fiche recette.
+        {state.message} Tu peux maintenant marquer chaque plat « Cuisiné » depuis sa fiche recette.{" "}
+        <Link href="/budget" className="font-semibold underline underline-offset-4">
+          Voir le budget
+        </Link>
       </Alert>
     );
   }
@@ -121,6 +129,20 @@ export function PutAwayForm({
           </li>
         ))}
       </ul>
+      <fieldset className="bg-accent-soft flex flex-col gap-3 rounded-3xl p-4 sm:p-5">
+        <legend className="sr-only">Montant payé</legend>
+        <div className="flex flex-col gap-0.5">
+          <p className="font-semibold">Combien as-tu payé ?</p>
+          <p className="text-muted text-sm">
+            Facultatif : le total de ton ticket, pour le comparer à ton budget et à
+            l&apos;estimation de la liste.
+          </p>
+        </div>
+        <ExpenseFields
+          store={store ?? ""}
+          error={{ field: state.expenseField, message: state.message }}
+        />
+      </fieldset>
       <div className="bg-background/95 sticky bottom-[calc(6.25rem+env(safe-area-inset-bottom))] py-2 lg:bottom-0">
         <Button type="submit" disabled={pending} className="w-full">
           {pending ? "Enregistrement…" : "Finir les courses"}

@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { PutAwayForm, type PutAwayLine } from "@/components/shopping/put-away-form";
 import { PageSkeleton } from "@/components/ui/skeleton";
 import { suggestPutAway } from "@/lib/format-quantity";
+import { getReferenceStore } from "@/server/modules/budget/queries";
 import { defaultLocation, getShoppingPage } from "@/server/modules/shopping/queries";
 import { Hero } from "@/components/ui/hero";
 
@@ -19,8 +20,8 @@ export default function PutAwayRoute({ searchParams }: PageProps<"/shopping/rang
           <>
             Les produits cochés sont rangés au garde-manger : ajuste les quantités réellement
             achetées (un paquet de 500 g plutôt que les 375 g nécessaires, par exemple),
-            l&apos;emplacement et, si tu veux, la date limite. Ensuite, tu pourras marquer tes plats
-            « Cuisiné ».
+            l&apos;emplacement et, si tu veux, la date limite et le montant payé. Ensuite, tu
+            pourras marquer tes plats « Cuisiné ».
           </>
         }
         decor="half"
@@ -36,7 +37,10 @@ async function PutAwayContent({
   searchParams,
 }: Pick<PageProps<"/shopping/ranger">, "searchParams">) {
   const sp = await searchParams;
-  const page = await getShoppingPage(typeof sp.semaine === "string" ? sp.semaine : undefined);
+  const [page, store] = await Promise.all([
+    getShoppingPage(typeof sp.semaine === "string" ? sp.semaine : undefined),
+    getReferenceStore(),
+  ]);
   if (!page) return <p className="text-muted">Aucun foyer actif.</p>;
   const back = (
     <Link href={`/shopping?semaine=${page.weekStart}`} className="text-brand text-sm font-medium">
@@ -70,7 +74,7 @@ async function PutAwayContent({
   return (
     <>
       {back}
-      <PutAwayForm week={page.weekStart} formKey={page.newKey()} lines={lines} />
+      <PutAwayForm week={page.weekStart} formKey={page.newKey()} lines={lines} store={store} />
     </>
   );
 }

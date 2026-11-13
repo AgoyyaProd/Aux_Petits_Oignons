@@ -153,6 +153,18 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"household_expenses": {
+                  Row: {
+                    "amount_cents": number,"created_at": string,"created_by": string | null,"estimate_is_minimum": boolean,"estimated_meals_cents": number | null,"estimated_store_cents": number | null,"household_id": string,"id": string,"idempotency_key": string,"non_food_cents": number,"source": string,"spent_on": string,"store_label": string | null,"updated_at": string,"week_start": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_cents": number,"created_at"?: string,"created_by"?: string | null,"estimate_is_minimum"?: boolean,"estimated_meals_cents"?: number | null,"estimated_store_cents"?: number | null,"household_id": string,"id"?: string,"idempotency_key": string,"non_food_cents"?: number,"source": string,"spent_on": string,"store_label"?: string | null,"updated_at"?: string,"week_start": string
+                  }
+                  Update: {
+                    "amount_cents"?: number,"created_at"?: string,"created_by"?: string | null,"estimate_is_minimum"?: boolean,"estimated_meals_cents"?: number | null,"estimated_store_cents"?: number | null,"household_id"?: string,"id"?: string,"idempotency_key"?: string,"non_food_cents"?: number,"source"?: string,"spent_on"?: string,"store_label"?: string | null,"updated_at"?: string,"week_start"?: string
+                  }
+                  Relationships: []
                 },"household_food_profile": {
                   Row: {
                     "eating_style": string,"equipment": (string)[] | null,"household_id": string,"objectives": (string)[],"protein_target_g": number | null,"updated_at": string
