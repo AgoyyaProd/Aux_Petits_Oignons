@@ -43,17 +43,22 @@ export default function DashboardPage() {
         <Suspense fallback={<Block className="h-96" />}>
           <Today />
         </Suspense>
-        <div className="grid grid-cols-2 content-start gap-3 lg:grid-cols-1 lg:gap-4">
-          <Suspense fallback={<Block className="h-40" />}>
-            <FinishTile />
-          </Suspense>
-          <Suspense fallback={<Block className="h-40" />}>
-            <ShoppingTile />
-          </Suspense>
-          <div className="col-span-2 lg:col-span-1">
-            <Suspense fallback={<Block className="h-28" />}>
-              <BudgetTile />
+        {/* Sur ordinateur, les deux colonnes ont chacune un titre puis un bloc de même hauteur,
+            pour que les tuiles s'alignent sur la carte du jour (haut et bas). */}
+        <div className="flex flex-col gap-3">
+          <h2 className="type-section hidden lg:block">En un coup d&apos;œil</h2>
+          <div className="grid grid-cols-2 content-start gap-3 lg:flex-1 lg:grid-cols-1 lg:grid-rows-[1fr_1fr_auto] lg:content-stretch lg:gap-4">
+            <Suspense fallback={<Block className="h-40" />}>
+              <FinishTile />
             </Suspense>
+            <Suspense fallback={<Block className="h-40" />}>
+              <ShoppingTile />
+            </Suspense>
+            <div className="col-span-2 lg:col-span-1">
+              <Suspense fallback={<Block className="h-28" />}>
+                <BudgetTile />
+              </Suspense>
+            </div>
           </div>
         </div>
       </div>
@@ -126,8 +131,8 @@ async function Greeting() {
           {profile.displayName ? ` ${profile.displayName}` : ""} !
         </h1>
       </div>
-      <div className="relative flex flex-col gap-3 lg:flex-row lg:items-center">
-        <form action="/recipes" role="search" className="relative w-full lg:max-w-md">
+      <div className="relative flex flex-col gap-3 xl:flex-row xl:items-center">
+        <form action="/recipes" role="search" className="relative w-full lg:max-w-xl xl:max-w-md">
           <label htmlFor="dash-search" className="sr-only">
             Rechercher une recette
           </label>
@@ -176,25 +181,31 @@ async function Today() {
   if (!page.plan || meals.length === 0) {
     const next = page.entries.find((e) => !e.cooked && e.day && e.day > page.today);
     return (
-      <section
-        aria-labelledby="jour"
-        className="bg-surface flex flex-col overflow-hidden rounded-3xl shadow-[var(--shadow-md)]"
-      >
-        <ImageSlot alt="" seed="menu-du-jour" className="aspect-[16/9]" />
-        <div className="flex flex-col gap-3 p-5 lg:p-6">
-          <h2 id="jour" className="type-section">
-            {page.plan ? "Rien de prévu aujourd'hui" : "Ta semaine n'est pas encore prévue"}
-          </h2>
-          <p className="text-muted text-sm leading-relaxed">
-            {page.plan
-              ? next
-                ? `Prochain repas : ${next.title}, ${formatDay(next.day!).toLowerCase()}.`
-                : "Place un plat sur aujourd'hui depuis le menu de la semaine."
-              : "Indique le nombre de repas, de personnes et ton budget : on te propose des plats qui utilisent d'abord ce que tu as."}
-          </p>
-          <Link href="/planner" className={buttonClasses("primary", "self-start")}>
-            {page.plan ? "Ouvrir le menu" : "Générer mon menu"}
-          </Link>
+      <section aria-labelledby="jour" className="flex h-full flex-col gap-3">
+        <h2 id="jour" className="type-section">
+          Aujourd&apos;hui
+        </h2>
+        <div className="bg-surface flex flex-1 flex-col overflow-hidden rounded-3xl shadow-[var(--shadow-md)]">
+          <ImageSlot
+            alt=""
+            seed="menu-du-jour"
+            className="aspect-[16/9] lg:aspect-auto lg:min-h-56 lg:flex-1"
+          />
+          <div className="flex flex-col gap-3 p-5 lg:p-6">
+            <p className="font-semibold">
+              {page.plan ? "Rien de prévu aujourd'hui" : "Ta semaine n'est pas encore prévue"}
+            </p>
+            <p className="text-muted text-sm leading-relaxed">
+              {page.plan
+                ? next
+                  ? `Prochain repas : ${next.title}, ${formatDay(next.day!).toLowerCase()}.`
+                  : "Place un plat sur aujourd'hui depuis le menu de la semaine."
+                : "Indique le nombre de repas, de personnes et ton budget : on te propose des plats qui utilisent d'abord ce que tu as."}
+            </p>
+            <Link href="/planner" className={buttonClasses("primary", "self-start")}>
+              {page.plan ? "Ouvrir le menu" : "Générer mon menu"}
+            </Link>
+          </div>
         </div>
       </section>
     );
@@ -203,11 +214,11 @@ async function Today() {
   const others = meals.filter((m) => m !== main);
   const card = (
     <>
-      <span className="relative block">
+      <span className="relative block lg:min-h-64 lg:flex-1">
         <RecipeVisual
           slug={main.slug ?? main.title}
           title={main.title}
-          className="h-44 lg:aspect-[2/1] lg:h-auto"
+          className="h-44 lg:absolute lg:inset-0 lg:h-full"
           priority
         />
         {main.totalMinutes !== null ? (
@@ -230,19 +241,19 @@ async function Today() {
     </>
   );
   return (
-    <section aria-labelledby="jour" className="flex flex-col gap-3">
+    <section aria-labelledby="jour" className="flex h-full flex-col gap-3">
       <h2 id="jour" className="type-section">
         {main.slot === "dinner" ? "Ce soir" : "Ce midi"}
       </h2>
       {main.slug ? (
         <Link
           href={`/recipes/${main.slug}`}
-          className="bg-surface flex flex-col overflow-hidden rounded-3xl shadow-[var(--shadow-md)] transition-transform hover:-translate-y-0.5"
+          className="bg-surface flex flex-1 flex-col overflow-hidden rounded-3xl shadow-[var(--shadow-md)] transition-transform hover:-translate-y-0.5"
         >
           {card}
         </Link>
       ) : (
-        <div className="bg-surface flex flex-col overflow-hidden rounded-3xl shadow-[var(--shadow-md)]">
+        <div className="bg-surface flex flex-1 flex-col overflow-hidden rounded-3xl shadow-[var(--shadow-md)]">
           {card}
         </div>
       )}
