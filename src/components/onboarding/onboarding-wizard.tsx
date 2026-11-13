@@ -204,34 +204,41 @@ export function OnboardingWizard(props: OnboardingWizardProps) {
   const { title, lead } = STEP_TITLES[step];
   return (
     <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between gap-4">
-          <p className="text-muted text-sm font-medium">
-            Étape {index + 1} sur {steps.length}
-          </p>
-          {props.skip}
+      {/* Bandeau vert « Marché » collé aux bords de la carte (voir bienvenue/layout). */}
+      <div className="bg-forest text-cream relative -mx-5 -mt-5 flex flex-col gap-5 overflow-hidden rounded-t-2xl px-5 pt-5 pb-6 sm:-mx-8 sm:-mt-8 sm:px-8 sm:pt-8 lg:-mx-10 lg:-mt-10 lg:px-10 lg:pt-10">
+        <span
+          aria-hidden="true"
+          className="bg-highlight absolute -top-10 -right-12 hidden size-32 rounded-full sm:block"
+        />
+        <div className="relative flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-4 sm:pr-20">
+            <p className="text-sm font-medium text-[#a9cfb2]">
+              Étape {index + 1} sur {steps.length}
+            </p>
+            <span className="[&_a]:text-cream! [&_button]:text-cream!">{props.skip}</span>
+          </div>
+          <div
+            className="flex h-1.5 gap-1 overflow-hidden rounded-full bg-white/15"
+            role="progressbar"
+            aria-valuemin={1}
+            aria-valuemax={steps.length}
+            aria-valuenow={index + 1}
+            aria-label="Avancement du questionnaire"
+          >
+            {steps.map((s, i) => (
+              <span
+                key={s}
+                className={`flex-1 rounded-full transition-colors ${i <= index ? "bg-highlight" : ""}`}
+              />
+            ))}
+          </div>
         </div>
-        <div
-          className="bg-border/70 flex h-1.5 gap-1 overflow-hidden rounded-full"
-          role="progressbar"
-          aria-valuemin={1}
-          aria-valuemax={steps.length}
-          aria-valuenow={index + 1}
-          aria-label="Avancement du questionnaire"
-        >
-          {steps.map((s, i) => (
-            <span
-              key={s}
-              className={`flex-1 rounded-full transition-colors ${i <= index ? "bg-accent-strong" : ""}`}
-            />
-          ))}
-        </div>
-      </div>
 
-      <header className="flex flex-col gap-2">
-        <h1 className="type-page">{title}</h1>
-        <p className="text-muted max-w-prose">{lead}</p>
-      </header>
+        <header className="relative flex flex-col gap-2">
+          <h1 className="type-page text-cream">{title}</h1>
+          <p className="max-w-prose text-[#cfe0d4]">{lead}</p>
+        </header>
+      </div>
 
       {step === "foyer" ? (
         <div className="flex flex-col gap-6">

@@ -64,82 +64,98 @@ export function CookMode({
         }}
         className="bg-background text-foreground m-0 h-dvh max-h-none w-screen max-w-none p-0 backdrop:bg-black/40"
       >
-        <div className="mx-auto flex h-full max-w-2xl flex-col px-5 pt-[max(1.25rem,env(safe-area-inset-top))] pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-muted min-w-0 truncate text-sm font-semibold">
-              {title} · {servings} pers.
-            </p>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              aria-label="Quitter le mode cuisine"
-              className="border-border flex size-11 items-center justify-center rounded-full border"
-            >
-              <CloseIcon size={20} />
-            </button>
-          </div>
-          <div
-            role="progressbar"
-            aria-valuemin={1}
-            aria-valuemax={steps.length}
-            aria-valuenow={index + 1}
-            aria-label="Progression"
-            className="bg-surface-muted mt-4 h-1.5 overflow-hidden rounded-full"
-          >
-            <div
-              className="bg-accent h-full rounded-full transition-[width]"
-              style={{ width: `${((index + 1) / steps.length) * 100}%` }}
+        <div className="flex h-full flex-col">
+          {/* Bandeau vert « Marché » : recette, fermeture, avancement. */}
+          <header className="bg-forest text-cream relative shrink-0 overflow-hidden rounded-b-[1.75rem] px-5 pt-[max(1rem,env(safe-area-inset-top))] pb-5">
+            <span
+              aria-hidden="true"
+              className="bg-highlight absolute -top-12 -right-12 hidden size-32 rounded-full sm:block"
             />
-          </div>
-          <div className="flex flex-1 flex-col justify-center gap-6 overflow-y-auto py-8">
-            <p className="font-display text-accent-strong text-6xl font-semibold">{index + 1}</p>
-            <p className="text-2xl leading-snug font-medium sm:text-3xl" aria-live="polite">
-              {steps[index]}
-            </p>
-            <StepIngredients
-              ids={stepDetails[index]?.ingredientIds ?? []}
-              ingredients={ingredients}
-              servings={servings}
-              base={baseServings}
-              size="lg"
-            />
-            <StepTimerButtons
-              step={index + 1}
-              timers={stepDetails[index]?.timers ?? []}
-              size="lg"
-            />
-            <p className="text-muted text-sm">
-              Étape {index + 1} sur {steps.length}
-            </p>
-          </div>
-          <TimerTray className="mb-3" />
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              variant="secondary"
-              className="min-h-14 text-base"
-              disabled={index === 0}
-              onClick={() => setIndex((i) => Math.max(0, i - 1))}
-            >
-              <ChevronLeftIcon size={20} />
-              Précédente
-            </Button>
-            {index < last ? (
-              <Button
-                className="min-h-14 text-base"
-                onClick={() => setIndex((i) => Math.min(last, i + 1))}
+            <div className="relative mx-auto flex max-w-2xl flex-col gap-4">
+              <div className="flex items-center justify-between gap-3">
+                <p className="min-w-0 truncate text-sm font-semibold">
+                  {title} · {servings} pers.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  aria-label="Quitter le mode cuisine"
+                  className="text-cream flex size-11 shrink-0 items-center justify-center rounded-full bg-white/12 hover:bg-white/20"
+                >
+                  <CloseIcon size={20} />
+                </button>
+              </div>
+              <div
+                role="progressbar"
+                aria-valuemin={1}
+                aria-valuemax={steps.length}
+                aria-valuenow={index + 1}
+                aria-label="Progression"
+                className="h-1.5 overflow-hidden rounded-full bg-white/15"
               >
-                Suivante
-                <ChevronRightIcon size={20} />
-              </Button>
-            ) : (
-              <Button
-                variant="accent"
-                className="min-h-14 text-base"
-                onClick={() => setOpen(false)}
+                <div
+                  className="bg-highlight h-full rounded-full transition-[width]"
+                  style={{ width: `${((index + 1) / steps.length) * 100}%` }}
+                />
+              </div>
+              <p className="text-xs font-medium text-[#a9cfb2]">
+                Étape {index + 1} sur {steps.length}
+              </p>
+            </div>
+          </header>
+          <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col overflow-hidden px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+            <div className="flex flex-1 flex-col justify-center gap-6 overflow-y-auto py-8">
+              <p
+                aria-hidden="true"
+                className="bg-highlight font-display grid size-16 place-items-center rounded-full text-3xl font-semibold text-[#13261f]"
               >
-                Terminé
+                {index + 1}
+              </p>
+              <p className="text-2xl leading-snug font-medium sm:text-3xl" aria-live="polite">
+                {steps[index]}
+              </p>
+              <StepIngredients
+                ids={stepDetails[index]?.ingredientIds ?? []}
+                ingredients={ingredients}
+                servings={servings}
+                base={baseServings}
+                size="lg"
+              />
+              <StepTimerButtons
+                step={index + 1}
+                timers={stepDetails[index]?.timers ?? []}
+                size="lg"
+              />
+            </div>
+            <TimerTray className="mb-3" />
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                variant="secondary"
+                className="min-h-14 text-base"
+                disabled={index === 0}
+                onClick={() => setIndex((i) => Math.max(0, i - 1))}
+              >
+                <ChevronLeftIcon size={20} />
+                Précédente
               </Button>
-            )}
+              {index < last ? (
+                <Button
+                  className="min-h-14 text-base"
+                  onClick={() => setIndex((i) => Math.min(last, i + 1))}
+                >
+                  Suivante
+                  <ChevronRightIcon size={20} />
+                </Button>
+              ) : (
+                <Button
+                  variant="accent"
+                  className="min-h-14 text-base"
+                  onClick={() => setOpen(false)}
+                >
+                  Terminé
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </dialog>
