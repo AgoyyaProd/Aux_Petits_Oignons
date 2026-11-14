@@ -179,6 +179,12 @@ describe("packHint (liste de courses)", () => {
     expect(packHint(q(600), coco)).toBe("2 × boîte de 40 cl");
   });
 
+  it("un format nu garde le « × » même pour un seul paquet (pas « 1 500 g »)", () => {
+    const saumon = { size: 500, label: "500 g", dimension: "mass" as const };
+    expect(packHint(q(260, "mass"), saumon)).toBe("1 × 500 g");
+    expect(packHint(q(600, "mass"), saumon)).toBe("2 × 500 g");
+  });
+
   it("rien sans format, sans achat ou dans une autre dimension (pas de conversion)", () => {
     expect(packHint(q(100), undefined)).toBeNull();
     expect(packHint(q(0), coco)).toBeNull();

@@ -20,7 +20,9 @@ export function packHint(toBuy: Quantity, pack: PackFormat | undefined): string 
     return null;
   }
   const count = Math.ceil(toBuy.milli / (pack.size * 1000) - 1e-9);
-  return count === 1 ? `1 ${pack.label}` : `${count} × ${pack.label}`;
+  // Un format nu (« 500 g ») garde le « × » même pour un seul paquet : « 1 500 g » se lirait
+  // comme 1 500 grammes.
+  return count === 1 && !/^\d/.test(pack.label) ? `1 ${pack.label}` : `${count} × ${pack.label}`;
 }
 
 /**
