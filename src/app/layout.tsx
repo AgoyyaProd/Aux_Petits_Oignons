@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import "@fontsource-variable/fraunces/opsz.css";
-import "@fontsource-variable/inter/index.css";
 import "./globals.css";
 import { ICONS_VERSION } from "@/lib/icons";
 import { THEME_SCRIPT } from "@/lib/theme";
 import { ServiceWorkerSetup } from "@/components/pwa/service-worker";
+
+const TYPEKIT_CSS = "https://use.typekit.net/pks6mdg.css";
 
 export const metadata: Metadata = {
   title: { default: "Aux Petits Oignons", template: "%s · Aux Petits Oignons" },
@@ -40,6 +40,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="fr" className="h-full antialiased" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        {/* Polices de la charte (Adobe Fonts) : New Cordial pour les titres, Finder pour le
+            texte. Autorisées dans la CSP (next.config.ts). */}
+        <link rel="preconnect" href="https://use.typekit.net" crossOrigin="anonymous" />
+        <link rel="stylesheet" href={TYPEKIT_CSS} />
       </head>
       <body className="flex min-h-full flex-col">
         {children}

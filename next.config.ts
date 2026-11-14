@@ -28,9 +28,10 @@ const siteIsHttps = (process.env.NEXT_PUBLIC_SITE_URL ?? "").startsWith("https:/
 const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
-  "style-src 'self' 'unsafe-inline'",
+  // Adobe Fonts : la feuille (use.typekit.net) importe un compteur d'usage (p.typekit.net).
+  "style-src 'self' 'unsafe-inline' https://use.typekit.net https://p.typekit.net",
   "img-src 'self' blob: data:",
-  "font-src 'self'",
+  "font-src 'self' https://use.typekit.net",
   `connect-src 'self' ${supabaseOrigins().join(" ")}`,
   "worker-src 'self'",
   "manifest-src 'self'",
