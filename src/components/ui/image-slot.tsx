@@ -32,7 +32,8 @@ export function ImageSlot({
 }) {
   // Le parent fixe la taille, OU la classe elle-même (aspect-*, size-*, h-*) : dans ce cas on
   // ne force pas la hauteur à 100 %, sinon le ratio est écrasé dans une grille étirée.
-  const fill = /(^|\s)size-/.test(className)
+  // Une largeur donnée par la classe (w-[…], pour une photo bord à bord) n'est pas écrasée.
+  const fill = /(^|\s)(size-|w-\[)/.test(className)
     ? ""
     : /(^|\s)(aspect-|h-)/.test(className)
       ? "w-full"
