@@ -6,6 +6,9 @@ setup("connexion du compte de test", async ({ page }) => {
   const password = process.env.E2E_PASSWORD;
   setup.skip(!email || !password, "E2E_EMAIL et E2E_PASSWORD ne sont pas définis.");
   await page.goto("/login");
+  // Pendant le streaming, le formulaire d'attente et le vrai formulaire coexistent un instant :
+  // on attend qu'il n'en reste qu'un.
+  await expect(page.getByLabel("Adresse e-mail")).toHaveCount(1);
   await page.getByLabel("Adresse e-mail").fill(email!);
   await page.getByLabel("Mot de passe").fill(password!);
   await page.getByRole("button", { name: "Se connecter" }).click();
