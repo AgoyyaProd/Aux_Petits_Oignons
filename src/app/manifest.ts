@@ -4,8 +4,8 @@ import { ICONS_VERSION } from "@/lib/icons";
 /** Appli installable sur l'écran d'accueil du téléphone (PWA). */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Aux Petits Oignons",
-    short_name: "Petits Oignons",
+    name: "Marmy",
+    short_name: "Marmy",
     description: "Garde-manger, menus de la semaine, liste de courses et budget.",
     lang: "fr",
     start_url: "/dashboard",

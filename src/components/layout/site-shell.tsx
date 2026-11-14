@@ -38,7 +38,7 @@ export function SiteShell({ member, children }: { member?: boolean; children: Re
         <aside className="border-border bg-surface sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-8 border-r px-4 py-6 lg:flex print:hidden">
           <div className="flex items-start justify-between gap-2 px-2">
             {part((m) => (
-              <HomeLink member={m} size={52} />
+              <HomeLink member={m} size={60} />
             ))}
             <ThemeToggle />
           </div>
@@ -55,7 +55,7 @@ export function SiteShell({ member, children }: { member?: boolean; children: Re
           <header className="bg-forest text-cream sticky top-0 z-20 pt-[env(safe-area-inset-top)] lg:hidden print:hidden">
             <div className="flex w-full items-center justify-between gap-3 px-4 py-2.5 sm:px-6">
               {part((m) => (
-                <HomeLink member={m} size={40} inverse />
+                <HomeLink member={m} size={44} inverse />
               ))}
               <div className="flex items-center gap-2">
                 <ThemeToggle className="text-cream! border-white/20! hover:bg-white/10!" />
@@ -132,11 +132,7 @@ function HomeLink({
   inverse?: boolean;
 }) {
   return (
-    <Link
-      href={member ? "/dashboard" : "/"}
-      aria-label="Aux Petits Oignons, accueil"
-      className="shrink-0"
-    >
+    <Link href={member ? "/dashboard" : "/"} aria-label="Marmy, accueil" className="shrink-0">
       <Logo size={size} tone={inverse ? "inverse" : "color"} />
     </Link>
   );

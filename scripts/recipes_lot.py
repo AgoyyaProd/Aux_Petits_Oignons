@@ -233,7 +233,7 @@ def run(lot, migration, ordinal, summary, new_ingredients=None):
         "insert into public.recipes (slug, title, description, storage_note, servings, prep_minutes,",
         "  cook_minutes, tags, status, source, source_ref, validated_at)",
         "select v.slug, v.title, v.description, v.storage, v.servings, v.prep, v.cook, v.tags,",
-        "  'published', 'curated', 'Aux Petits Oignons — recette originale', now()",
+        "  'published', 'curated', 'Marmy — recette originale', now()",
         "from (values",
         ",\n".join(recipe_rows),
         ") as v(slug, title, description, storage, servings, prep, cook, tags);",

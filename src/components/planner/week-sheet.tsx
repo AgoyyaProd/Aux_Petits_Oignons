@@ -81,7 +81,7 @@ export function WeekSheet({
       </div>
 
       <header className="border-border flex flex-col gap-1 border-b pb-4">
-        <p className="text-muted text-sm">Aux Petits Oignons</p>
+        <p className="text-muted text-sm">Marmy</p>
         <h1 className="type-page">{formatWeek(weekStart)}</h1>
         {people !== null ? (
           <p className="text-muted text-sm">

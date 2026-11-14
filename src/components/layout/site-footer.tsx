@@ -44,7 +44,7 @@ export function SiteFooter({
         {/* Marque et liens sur une ligne, jusqu'au grand écran où les sources s'intercalent. */}
         <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-4 xl:contents">
           <div className="flex shrink-0 items-center gap-4 xl:order-1">
-            <Logo size={40} />
+            <Logo size={46} />
             <p className="hidden whitespace-nowrap sm:block">
               La cuisine du quotidien, bien pensée.
             </p>

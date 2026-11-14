@@ -1,12 +1,12 @@
 @import "tailwindcss";
 
 /*
- * Design system « Aux Petits Oignons » : une seule source pour les couleurs, espacements,
+ * Design system « Marmy » : une seule source pour les couleurs, espacements,
  * rayons, ombres et typographie, en clair et en sombre.
  *
  * Palette de marque : vert forêt (structure), terracotta (attention), ocre (repères),
  * sauge (végétal, positif), pêche (surfaces douces), crème (fond).
- * Couleurs alignées sur le logo officiel (public/brand/aux-petits-oignons.svg) : nom #142F26,
+ * Couleurs alignées sur le logo officiel (public/brand/marmy.svg) : nom #142F26,
  * feuille #507A46 → #295120, rond #EEB653 → #FF9D00, tranche #ED6135 → #EF491D.
  * Le rouge du logo (#ED6135) n'est pas assez contrasté pour du texte blanc (3,3:1) :
  * les boutons et liens d'accent utilisent sa version foncée `accent-strong` (#C2451F, 5:1).

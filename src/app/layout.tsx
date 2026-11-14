@@ -7,11 +7,11 @@ import { ServiceWorkerSetup } from "@/components/pwa/service-worker";
 const TYPEKIT_CSS = "https://use.typekit.net/pks6mdg.css";
 
 export const metadata: Metadata = {
-  title: { default: "Aux Petits Oignons", template: "%s · Aux Petits Oignons" },
+  title: { default: "Marmy", template: "%s · Marmy" },
   description:
     "La cuisine du quotidien, bien pensée : garde-manger, menus de la semaine, liste de courses et budget au même endroit.",
-  applicationName: "Aux Petits Oignons",
-  appleWebApp: { capable: true, title: "Petits Oignons", statusBarStyle: "default" },
+  applicationName: "Marmy",
+  appleWebApp: { capable: true, title: "Marmy", statusBarStyle: "default" },
   // ?v= : les navigateurs gardent l'icône d'onglet très longtemps par adresse ; changer
   // ICONS_VERSION (lib/icons) à chaque nouveau logo force son rechargement.
   icons: {

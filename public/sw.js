@@ -1,5 +1,5 @@
 /*
- * Service worker d'Aux Petits Oignons : consultation hors ligne.
+ * Service worker de Marmy : consultation hors ligne.
  *
  *  - Fichiers statiques (_next/static, images, polices) : cache d'abord, ils sont versionnés.
  *  - Pages de l'application : réseau d'abord ; la dernière version reçue est gardée et servie

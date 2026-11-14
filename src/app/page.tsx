@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/icons";
 
 export const metadata: Metadata = {
-  title: { absolute: "Aux Petits Oignons — La cuisine du quotidien, bien pensée." },
+  title: { absolute: "Marmy — La cuisine du quotidien, bien pensée." },
 };
 
 /** Recettes réelles du catalogue, choisies parmi celles qui ont une photo. */
