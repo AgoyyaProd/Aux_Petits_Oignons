@@ -32,7 +32,7 @@ export function CheckLine({
   const [, startTransition] = useTransition();
 
   return (
-    <label className="flex min-h-16 cursor-pointer items-center gap-4 py-3">
+    <label className="flex min-h-16 cursor-pointer items-start gap-3 py-3 sm:gap-4 lg:items-center">
       <input
         type="checkbox"
         checked={optimistic}
@@ -53,7 +53,7 @@ export function CheckLine({
       <span
         aria-hidden="true"
         className={[
-          "flex size-7 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
+          "mt-2 flex size-7 shrink-0 items-center justify-center rounded-full border-2 transition-colors lg:mt-0",
           "peer-focus-visible:outline-accent peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2",
           optimistic
             ? "border-brand bg-brand text-brand-foreground"

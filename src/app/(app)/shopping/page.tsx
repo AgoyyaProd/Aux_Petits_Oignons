@@ -340,36 +340,26 @@ function ListView({ page, byRecipe }: { page: ListPage; byRecipe: boolean }) {
                       image={ingredientImage(line.slug)}
                       name={line.name}
                     >
-                      <span className="flex flex-col gap-0.5 lg:grid lg:grid-cols-[minmax(0,1fr)_9rem_7rem] lg:items-center lg:gap-4">
-                        <span className="flex min-w-0 flex-col gap-0.5">
+                      <span className="flex flex-col gap-1 lg:grid lg:grid-cols-[minmax(0,1fr)_9rem_7rem] lg:items-center lg:gap-4">
+                        <span className="flex min-w-0 flex-col gap-1">
                           <span className="flex items-baseline justify-between gap-3">
-                            <span className="item-name text-base font-semibold">{line.name}</span>
-                            <span className="shrink-0 text-right text-base font-semibold tabular-nums lg:hidden">
+                            <span className="item-name min-w-0 text-base leading-snug font-semibold">
+                              {line.name}
+                            </span>
+                            <span className="shrink-0 text-base font-semibold tabular-nums lg:hidden">
                               {formatShoppingQuantity(line.toBuy)}
-                              {line.packHint ? (
-                                <span className="text-muted block text-xs font-normal">
-                                  {line.packHint}
-                                </span>
-                              ) : null}
                             </span>
                           </span>
-                          <span className="text-muted flex justify-between gap-3 text-sm">
-                            {line.perRecipe.length > 1 ? (
-                              <SharedNeed line={line} />
-                            ) : (
-                              <span className="min-w-0 truncate">
-                                {line.fromStock.milli > 0
-                                  ? `${formatShoppingQuantity(line.fromStock)} déjà chez toi, `
-                                  : ""}
-                                {byRecipe ? "" : line.recipes.join(", ")}
-                              </span>
-                            )}
-                            <span className="shrink-0 lg:hidden">
+                          {/* Téléphone : format et prix sur une ligne courte, sous le nom. */}
+                          <span className="text-muted flex justify-between gap-3 text-xs tabular-nums lg:hidden">
+                            <span>{line.packHint ?? ""}</span>
+                            <span className="shrink-0">
                               {line.storeCents !== null
                                 ? `≈ ${formatCents(line.storeCents)}`
                                 : "sans prix"}
                             </span>
                           </span>
+                          <NeedDetail line={line} byRecipe={byRecipe} />
                         </span>
                         <span className="hidden text-right font-semibold tabular-nums lg:block">
                           {formatShoppingQuantity(line.toBuy)}
@@ -425,23 +415,37 @@ function ListView({ page, byRecipe }: { page: ListPage; byRecipe: boolean }) {
  * Aliment partagé entre plusieurs plats : le détail du calcul, pour comprendre pourquoi il
  * faut en racheter alors qu'il en reste (« Dahl 300 ml + Satay 225 ml − 200 ml chez toi »).
  */
-function SharedNeed({ line }: { line: ShoppingLineView }) {
+/**
+ * D'où vient le besoin, sur toute la largeur de la ligne : une ligne par recette quand
+ * l'aliment sert à plusieurs plats (avec la quantité de chacun), puis ce qui est déjà chez toi.
+ */
+function NeedDetail({ line, byRecipe }: { line: ShoppingLineView; byRecipe: boolean }) {
+  const stock =
+    line.fromStock.milli > 0 ? (
+      <span className="block">
+        <span className="tabular-nums">{formatShoppingQuantity(line.fromStock)}</span> déjà chez toi
+      </span>
+    ) : null;
+  if (line.perRecipe.length > 1) {
+    return (
+      <span className="text-muted flex flex-col gap-0.5 text-sm lg:max-w-md">
+        {line.perRecipe.map((p) => (
+          <span key={p.recipe} className="flex items-baseline justify-between gap-3">
+            <span className="min-w-0 truncate">{p.recipe}</span>
+            <span className="text-foreground shrink-0 tabular-nums">
+              {formatShoppingQuantity(p.quantity)}
+            </span>
+          </span>
+        ))}
+        {stock}
+      </span>
+    );
+  }
+  if (byRecipe && !stock) return null;
   return (
-    <span className="min-w-0">
-      {line.perRecipe.map((p, i) => (
-        <span key={p.recipe}>
-          {i > 0 ? " + " : ""}
-          {p.recipe}{" "}
-          <span className="text-foreground tabular-nums">{formatShoppingQuantity(p.quantity)}</span>
-        </span>
-      ))}
-      {line.fromStock.milli > 0 ? (
-        <>
-          {" "}
-          − <span className="tabular-nums">{formatShoppingQuantity(line.fromStock)}</span> déjà chez
-          toi
-        </>
-      ) : null}
+    <span className="text-muted flex flex-col gap-0.5 text-sm">
+      {byRecipe ? null : <span className="line-clamp-2">{line.recipes.join(", ")}</span>}
+      {stock}
     </span>
   );
 }
