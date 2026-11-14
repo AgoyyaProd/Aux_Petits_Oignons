@@ -3,6 +3,7 @@ import "./globals.css";
 import { ICONS_VERSION } from "@/lib/icons";
 import { THEME_SCRIPT } from "@/lib/theme";
 import { ServiceWorkerSetup } from "@/components/pwa/service-worker";
+import { Analytics } from "@vercel/analytics/next";
 
 const TYPEKIT_CSS = "https://use.typekit.net/pks6mdg.css";
 
@@ -48,6 +49,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col">
         {children}
         <ServiceWorkerSetup />
+        <Analytics />
       </body>
     </html>
   );
