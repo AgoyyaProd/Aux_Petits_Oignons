@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ingredientImage } from "@/lib/images";
 import { Suspense } from "react";
-import { CheckLine } from "@/components/shopping/check-line";
+import { CheckLine, CheckTile } from "@/components/shopping/check-line";
 import { ShoppingLiveRefresh } from "@/components/shopping/live-refresh";
 import { AddExtraForm, ExportListButton, ExtraLine } from "@/components/shopping/extras";
 import { Alert } from "@/components/ui/alert";
@@ -321,15 +321,34 @@ function ListView({ page, byRecipe }: { page: ListPage; byRecipe: boolean }) {
             <span className="text-right">Quantité</span>
             <span className="text-right">Prix estimé</span>
           </div>
-          {groups.map((group) => (
-            <section key={group.key} aria-label={group.label} className="flex flex-col gap-2">
+          {/* Téléphone, vue par rayon : tuiles à la suite dans l'ordre du magasin, le rayon
+              en petit sur chaque tuile (la plupart des rayons n'ont qu'un ou deux produits). */}
+          {!byRecipe ? (
+            <TileGrid
+              groups={groups}
+              tones={groups.map((_, i) => tileTone(i))}
+              week={page.weekStart}
+              showAisle
+            />
+          ) : null}
+          {groups.map((group, groupIndex) => (
+            <section
+              key={group.key}
+              aria-label={group.label}
+              className={`flex-col gap-2.5 ${byRecipe ? "flex" : "hidden lg:flex"}`}
+            >
               <h2 className="flex items-baseline justify-between gap-3">
-                <span className="text-lg font-semibold">{group.label}</span>
+                <span className="font-display text-xl font-semibold lg:font-sans lg:text-lg">
+                  {group.label}
+                </span>
                 <span className="text-muted text-sm">
                   {group.lines.filter((l) => l.checked).length}/{group.lines.length}
                 </span>
               </h2>
-              <ul className="border-border bg-surface divide-border divide-y rounded-2xl border px-4">
+              {byRecipe ? (
+                <TileGrid groups={[group]} tones={[tileTone(groupIndex)]} week={page.weekStart} />
+              ) : null}
+              <ul className="border-border bg-surface divide-border hidden divide-y rounded-2xl border px-4 lg:block">
                 {group.lines.map((line) => (
                   <li key={`${line.ingredientId}|${line.dimension}`}>
                     <CheckLine
@@ -415,6 +434,56 @@ function ListView({ page, byRecipe }: { page: ListPage; byRecipe: boolean }) {
  * Aliment partagé entre plusieurs plats : le détail du calcul, pour comprendre pourquoi il
  * faut en racheter alors qu'il en reste (« Dahl 300 ml + Satay 225 ml − 200 ml chez toi »).
  */
+/** Fonds des tuiles, un par rayon à tour de rôle (couleurs douces de la charte). */
+const TILE_TONES = ["bg-leaf-soft", "bg-accent-soft", "bg-highlight-soft", "bg-brand-soft"];
+const tileTone = (i: number) => TILE_TONES[i % TILE_TONES.length] ?? "bg-leaf-soft";
+
+/** Tuiles « marché » de la liste sur téléphone (deux colonnes). */
+function TileGrid({
+  groups,
+  tones,
+  week,
+  showAisle = false,
+}: {
+  groups: { key: string; label: string; lines: ShoppingLineView[] }[];
+  tones: string[];
+  week: string;
+  showAisle?: boolean;
+}) {
+  return (
+    <ul className="grid grid-cols-2 gap-2.5 lg:hidden">
+      {groups.flatMap((group, g) =>
+        group.lines.map((line) => (
+          <li key={`${group.key}|${line.ingredientId}|${line.dimension}`} className="flex">
+            <CheckTile
+              week={week}
+              ingredientId={line.ingredientId}
+              dimension={line.dimension}
+              checked={line.checked}
+              image={ingredientImage(line.slug)}
+              tone={tones[g] ?? "bg-leaf-soft"}
+              aisle={showAisle ? group.label : undefined}
+              name={line.name}
+              meta={tileMeta(line)}
+              quantity={formatShoppingQuantity(line.toBuy)}
+              pack={line.packHint}
+              price={line.storeCents !== null ? `≈ ${formatCents(line.storeCents)}` : "sans prix"}
+            />
+          </li>
+        )),
+      )}
+    </ul>
+  );
+}
+
+/** « pour 2 plats · 200 ml chez toi » : le détail par recette reste dans la vue Par recette. */
+function tileMeta(line: ShoppingLineView): string {
+  const plats = new Set(line.recipes).size;
+  const parts = [plats > 1 ? `pour ${plats} plats` : "pour 1 plat"];
+  if (line.fromStock.milli > 0) parts.push(`${formatShoppingQuantity(line.fromStock)} chez toi`);
+  return parts.join(" · ");
+}
+
 /**
  * D'où vient le besoin, sur toute la largeur de la ligne : une ligne par recette quand
  * l'aliment sert à plusieurs plats (avec la quantité de chacun), puis ce qui est déjà chez toi.
