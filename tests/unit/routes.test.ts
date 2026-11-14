@@ -39,6 +39,8 @@ describe("isPublicPath", () => {
     "/api/cron/prices",
     "/recipes",
     "/recipes/curry-pois-chiches",
+    "/robots.txt",
+    "/sitemap.xml",
   ])("%s est public", (p) => {
     expect(isPublicPath(p)).toBe(true);
   });

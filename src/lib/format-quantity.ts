@@ -101,3 +101,14 @@ export function suggestPutAway(q: Quantity): { value: string; unit: UnitCode } {
   const value = big ? base / 1000 : base;
   return { value: number.format(value).replace(/\u202f|\s/g, ""), unit };
 }
+
+/** Quantité d'un ingrédient de recette (« 250 g », « au goût » sans quantité). */
+export function ingredientQuantity(
+  item: { quantity: string | null; unit: string | null },
+  servings: number,
+  base: number,
+): string {
+  return item.quantity && item.unit
+    ? formatRecipeQuantity(item.quantity, item.unit, servings, base)
+    : "au goût";
+}

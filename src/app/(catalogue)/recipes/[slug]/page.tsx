@@ -24,8 +24,38 @@ import { formatDateTime, formatShortDate } from "@/lib/dates";
 import { formatWeek } from "@/lib/week";
 import { getCookStatus } from "@/server/modules/cooking/queries";
 import { getRecipe, RECIPE_TAG_LABEL, type RecipeDetail } from "@/server/modules/recipes/queries";
+import { getRecipeSeo, siteUrl } from "@/server/modules/seo/queries";
+import { JsonLd } from "@/components/seo/json-ld";
+import { ingredientQuantity } from "@/lib/format-quantity";
+import { absoluteUrl, OPEN_GRAPH_BASE, recipeJsonLd } from "@/lib/seo";
+import { recipeImage } from "@/lib/images";
 
-export const metadata: Metadata = { title: "Recette" };
+/** Titre, description et photo de partage propres à chaque recette. */
+export async function generateMetadata({
+  params,
+}: PageProps<"/recipes/[slug]">): Promise<Metadata> {
+  const { slug } = await params;
+  const seo = /^[a-z0-9-]{1,120}$/.test(slug) ? await getRecipeSeo(slug) : null;
+  if (!seo) return { title: "Recette", robots: { index: false } };
+  const path = `/recipes/${slug}`;
+  const images = seo.image
+    ? [{ url: seo.image, width: 1200, height: 900, alt: seo.title }]
+    : undefined;
+  return {
+    title: seo.title,
+    description: seo.description,
+    alternates: { canonical: path },
+    openGraph: {
+      ...OPEN_GRAPH_BASE,
+      type: "article",
+      url: path,
+      title: seo.title,
+      description: seo.description,
+      ...(images ? { images } : {}),
+    },
+    twitter: { card: "summary_large_image", title: seo.title, description: seo.description },
+  };
+}
 
 export default function RecipePage({ params }: PageProps<"/recipes/[slug]">) {
   return (
@@ -50,6 +80,7 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
 
   return (
     <KitchenProvider baseServings={recipe.servings}>
+      <JsonLd data={recipeSchema(recipe)} />
       <article className="flex flex-col gap-10 lg:gap-14">
         <nav aria-label="Fil d'Ariane" className="text-muted -mb-6 text-sm max-lg:hidden">
           <ol className="flex flex-wrap items-center gap-1.5">
@@ -267,4 +298,41 @@ function History({ history }: { history: RecipeDetail["history"] }) {
     parts.push(`dernier menu : ${formatWeek(history.lastPlannedWeek).toLowerCase()}`);
   }
   return <p className="text-muted text-sm">{parts.join(", ")}.</p>;
+}
+
+/** Données structurées Recipe : temps, portions, ingrédients, étapes et nutrition fiable. */
+function recipeSchema(recipe: RecipeDetail) {
+  const base = siteUrl();
+  const photo = recipeImage(recipe.slug);
+  const n = recipe.nutrition?.reliable ? recipe.nutrition.perServing : null;
+  return recipeJsonLd(
+    {
+      slug: recipe.slug,
+      title: recipe.title,
+      description: recipe.description,
+      servings: recipe.servings,
+      prepMinutes: recipe.prepMinutes,
+      cookMinutes: recipe.cookMinutes,
+      restMinutes: recipe.restMinutes,
+      tags: recipe.tags,
+      tagLabels: RECIPE_TAG_LABEL,
+      ingredients: recipe.ingredients.map(
+        (i) =>
+          `${ingredientQuantity(i, recipe.servings, recipe.servings)} ${i.name}${i.optional ? " (facultatif)" : ""}`,
+      ),
+      steps: recipe.steps,
+      vegetarian: recipe.vegetarian,
+      vegan: recipe.vegan,
+      nutrition: n
+        ? {
+            kcal: n.kcal.value,
+            proteinsG: n.proteins.value,
+            carbsG: n.carbs.value,
+            fatG: n.fat.value,
+          }
+        : null,
+      image: photo ? absoluteUrl(base, photo) : null,
+    },
+    absoluteUrl(base, `/recipes/${recipe.slug}`),
+  );
 }

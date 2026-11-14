@@ -6,6 +6,9 @@ const PUBLIC_PATHS = [
   "/login",
   "/signup",
   "/manifest.webmanifest",
+  // Référencement : lus par les moteurs de recherche, sans session.
+  "/robots.txt",
+  "/sitemap.xml",
   "/apercu",
   "/apercu/menu",
   // Service worker et page de secours hors ligne : chargés sans session.

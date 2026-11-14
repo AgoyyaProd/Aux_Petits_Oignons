@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { OPEN_GRAPH_BASE } from "@/lib/seo";
 import Link from "next/link";
 import { Suspense } from "react";
 import { RecipeCard } from "@/components/recipes/recipe-card";
@@ -15,7 +16,16 @@ import {
   SMALL_BUDGET_CENTS,
 } from "@/server/modules/recipes/queries";
 
-export const metadata: Metadata = { title: "Recettes" };
+const TITLE = "Recettes du quotidien, chiffrées et détaillées";
+const DESCRIPTION =
+  "Plus de 500 recettes faciles du quotidien : temps, coût par part, protéines, ingrédients et étapes. Filtre par durée, régime, saison ou budget, gratuitement.";
+
+export const metadata: Metadata = {
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: { canonical: "/recipes" },
+  openGraph: { ...OPEN_GRAPH_BASE, url: "/recipes", title: TITLE, description: DESCRIPTION },
+};
 export const maxDuration = 30;
 
 const TIME_OPTIONS = [

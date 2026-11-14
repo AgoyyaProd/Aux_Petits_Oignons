@@ -5,7 +5,10 @@ import { SignUpForm } from "@/components/auth/sign-up-form";
 import { safeRedirectPath } from "@/lib/routes";
 import { Hero } from "@/components/ui/hero";
 
-export const metadata: Metadata = { title: "Créer un compte" };
+export const metadata: Metadata = {
+  title: "Créer un compte",
+  robots: { index: false, follow: true },
+};
 
 export default function SignUpPage({ searchParams }: PageProps<"/signup">) {
   return (

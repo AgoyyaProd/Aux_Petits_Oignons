@@ -5,7 +5,10 @@ import { SiteShell } from "@/components/layout/site-shell";
 import { BrandBadge, BrandElement, TexturedMark } from "@/components/brand/shapes";
 import { RecipeVisual } from "@/components/recipes/recipe-visual";
 import { ImageSlot } from "@/components/ui/image-slot";
+import { JsonLd } from "@/components/seo/json-ld";
+import { siteUrlFromEnv } from "@/lib/env";
 import { SITE_IMAGES } from "@/lib/images";
+import { OPEN_GRAPH_BASE, SITE, siteJsonLd } from "@/lib/seo";
 import { buttonClasses } from "@/components/ui/button";
 import {
   ArrowRightIcon,
@@ -17,7 +20,15 @@ import {
 } from "@/components/ui/icons";
 
 export const metadata: Metadata = {
-  title: { absolute: "Marmy — La cuisine du quotidien, bien pensée." },
+  title: { absolute: `${SITE.name} — ${SITE.tagline}` },
+  description: SITE.description,
+  alternates: { canonical: "/" },
+  openGraph: {
+    ...OPEN_GRAPH_BASE,
+    url: "/",
+    title: `${SITE.name} — ${SITE.tagline}`,
+    description: SITE.description,
+  },
 };
 
 /** Recettes réelles du catalogue, choisies parmi celles qui ont une photo. */
@@ -61,6 +72,7 @@ function duration(m: number): string {
 export default function HomePage() {
   return (
     <SiteShell member={false}>
+      <JsonLd data={siteJsonLd(siteUrlFromEnv())} />
       <div className="flex flex-col gap-20 lg:gap-28">
         {/* Hero */}
         <section className="mx-auto w-full max-w-7xl">

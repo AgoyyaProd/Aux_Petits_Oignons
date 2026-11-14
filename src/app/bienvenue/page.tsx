@@ -8,7 +8,7 @@ import { getCurrentContext } from "@/server/modules/auth/session";
 import { skipOnboardingAction } from "@/server/modules/households/actions";
 import { getHouseholdSettings } from "@/server/modules/households/queries";
 
-export const metadata: Metadata = { title: "Bienvenue" };
+export const metadata: Metadata = { title: "Bienvenue", robots: { index: false, follow: false } };
 
 /**
  * Questionnaire de bienvenue : proposé automatiquement à la première connexion (depuis

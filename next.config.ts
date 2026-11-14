@@ -27,7 +27,9 @@ const siteIsHttps = (process.env.NEXT_PUBLIC_SITE_URL ?? "").startsWith("https:/
  */
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  // Vercel Analytics : script servi par le site (/_vercel/insights) ; en développement, la
+  // version de débogage vient de va.vercel-scripts.com.
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval' https://va.vercel-scripts.com" : ""}`,
   // Adobe Fonts : la feuille (use.typekit.net) importe un compteur d'usage (p.typekit.net).
   "style-src 'self' 'unsafe-inline' https://use.typekit.net https://p.typekit.net",
   "img-src 'self' blob: data:",

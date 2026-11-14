@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
 import { buttonClasses } from "@/components/ui/button";
 
-export const metadata: Metadata = { title: "Hors ligne" };
+export const metadata: Metadata = { title: "Hors ligne", robots: { index: false, follow: false } };
 
 /** Page de secours, gardée par le service worker : affichée sans réseau pour une page jamais ouverte. */
 export default function OfflinePage() {

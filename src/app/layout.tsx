@@ -2,16 +2,45 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ICONS_VERSION } from "@/lib/icons";
 import { THEME_SCRIPT } from "@/lib/theme";
+import { SiteAnalytics } from "@/components/analytics/site-analytics";
 import { ServiceWorkerSetup } from "@/components/pwa/service-worker";
+import { siteUrlFromEnv } from "@/lib/env";
+import { SITE } from "@/lib/seo";
 
 const TYPEKIT_CSS = "https://use.typekit.net/pks6mdg.css";
 
+/** Adresse publique, lue au build (les liens absolus des métadonnées en dépendent). */
+const SITE_URL = siteUrlFromEnv();
+
 export const metadata: Metadata = {
-  title: { default: "Marmy", template: "%s · Marmy" },
-  description:
-    "La cuisine du quotidien, bien pensée : garde-manger, menus de la semaine, liste de courses et budget au même endroit.",
-  applicationName: "Marmy",
-  appleWebApp: { capable: true, title: "Marmy", statusBarStyle: "default" },
+  metadataBase: new URL(SITE_URL),
+  title: { default: `${SITE.name} — ${SITE.tagline}`, template: `%s · ${SITE.name}` },
+  description: SITE.description,
+  applicationName: SITE.name,
+  keywords: [
+    "recettes",
+    "recettes du quotidien",
+    "menu de la semaine",
+    "planning repas",
+    "liste de courses",
+    "garde-manger",
+    "anti-gaspi",
+    "budget courses",
+    "batch cooking",
+  ],
+  category: "food",
+  creator: SITE.name,
+  publisher: SITE.name,
+  formatDetection: { telephone: false, address: false, email: false },
+  openGraph: {
+    type: "website",
+    locale: SITE.locale,
+    siteName: SITE.name,
+    title: `${SITE.name} — ${SITE.tagline}`,
+    description: SITE.description,
+  },
+  twitter: { card: "summary_large_image" },
+  appleWebApp: { capable: true, title: SITE.name, statusBarStyle: "default" },
   // ?v= : les navigateurs gardent l'icône d'onglet très longtemps par adresse ; changer
   // ICONS_VERSION (lib/icons) à chaque nouveau logo force son rechargement.
   icons: {
@@ -48,6 +77,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col">
         {children}
         <ServiceWorkerSetup />
+        <SiteAnalytics />
       </body>
     </html>
   );

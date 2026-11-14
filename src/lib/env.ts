@@ -25,6 +25,21 @@ export function resolveSiteUrl(env: Record<string, string | undefined>): string 
   return "http://localhost:3000";
 }
 
+/**
+ * Adresse publique seule, sans exiger la configuration Supabase (métadonnées du layout,
+ * lues au build comme à l'exécution). Accès littéraux : Next.js les remplace dans le code.
+ */
+export function siteUrlFromEnv(): string {
+  return (
+    resolveSiteUrl({
+      NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+      VERCEL_ENV: process.env.VERCEL_ENV,
+      VERCEL_URL: process.env.VERCEL_URL,
+      VERCEL_PROJECT_PRODUCTION_URL: process.env.VERCEL_PROJECT_PRODUCTION_URL,
+    }) ?? "http://localhost:3000"
+  );
+}
+
 export type PublicEnv = z.infer<typeof publicSchema>;
 
 let cached: PublicEnv | undefined;

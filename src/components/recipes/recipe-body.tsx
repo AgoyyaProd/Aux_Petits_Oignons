@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { Button, buttonClasses } from "@/components/ui/button";
 import { CheckIcon, MinusIcon, PlusIcon } from "@/components/ui/icons";
-import { formatRecipeQuantity } from "@/lib/format-quantity";
+import { ingredientQuantity } from "@/lib/format-quantity";
 import { StepTimerButtons, useKitchen } from "@/components/recipes/kitchen";
 import {
   addExtraAction,
@@ -17,9 +17,7 @@ type Ingredient = RecipeDetail["ingredients"][number];
 const idle: ExtraState = { status: "idle" };
 
 export function qty(item: Ingredient, servings: number, base: number) {
-  return item.quantity && item.unit
-    ? formatRecipeQuantity(item.quantity, item.unit, servings, base)
-    : "au goût";
+  return ingredientQuantity(item, servings, base);
 }
 
 /**

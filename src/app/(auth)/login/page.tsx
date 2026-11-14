@@ -6,7 +6,7 @@ import { Alert } from "@/components/ui/alert";
 import { memberAreaLabel, safeRedirectPath } from "@/lib/routes";
 import { Hero } from "@/components/ui/hero";
 
-export const metadata: Metadata = { title: "Connexion" };
+export const metadata: Metadata = { title: "Connexion", robots: { index: false, follow: true } };
 
 export default function LoginPage({ searchParams }: PageProps<"/login">) {
   return (
