@@ -36,9 +36,9 @@ export function SiteShell({ member, children }: { member?: boolean; children: Re
     <div className="relative isolate flex min-h-full flex-1 flex-col">
       <div className="flex flex-1">
         <aside className="border-border bg-surface sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-8 border-r px-4 py-6 lg:flex print:hidden">
-          <div className="flex items-start justify-between gap-2 px-2">
+          <div className="flex items-center justify-between gap-2 px-2">
             {part((m) => (
-              <HomeLink member={m} size={60} />
+              <HomeLink member={m} size={48} />
             ))}
             <ThemeToggle />
           </div>
