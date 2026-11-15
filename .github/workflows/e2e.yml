@@ -11,7 +11,7 @@ on:
       base_url:
         description: "Adresse du site à tester"
         required: false
-        default: "https://aux-petits-oignons-azure.vercel.app"
+        default: "https://marmy.fr"
   schedule:
     - cron: "17 6 * * *"
 
@@ -30,7 +30,7 @@ jobs:
     env:
       E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
       E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
-      E2E_BASE_URL: ${{ github.event.inputs.base_url || 'https://aux-petits-oignons-azure.vercel.app' }}
+      E2E_BASE_URL: ${{ github.event.inputs.base_url || 'https://marmy.fr' }}
     steps:
       - name: Secrets présents ?
         id: check

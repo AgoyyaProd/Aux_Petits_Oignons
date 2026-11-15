@@ -21,7 +21,7 @@ export default defineConfig({
       ]
     : "list",
   use: {
-    baseURL: process.env.E2E_BASE_URL || "https://aux-petits-oignons-azure.vercel.app",
+    baseURL: process.env.E2E_BASE_URL || "https://marmy.fr",
     locale: "fr-FR",
     timezoneId: "Europe/Paris",
     trace: "retain-on-failure",

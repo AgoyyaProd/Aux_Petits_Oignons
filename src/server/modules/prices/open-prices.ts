@@ -9,7 +9,7 @@ import type { PriceObservation } from "@/domain/pricing";
  * par Open Food Facts, et on limite le volume (100 relevés récents par catégorie).
  */
 const API = "https://prices.openfoodfacts.org/api/v1/prices";
-const USER_AGENT = "Marmy/1.0 (+https://aux-petits-oignons-azure.vercel.app)";
+const USER_AGENT = "Marmy/1.0 (+https://marmy.fr)";
 
 // Centre de la France métropolitaine ; le filtre pays est ensuite appliqué relevé par relevé.
 const NEAR_FRANCE = { lat: "46.6", lon: "2.5", radius_km: "650" };

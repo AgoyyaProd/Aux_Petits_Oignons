@@ -2,7 +2,7 @@ import json, sys, time, urllib.request, urllib.parse, pathlib
 ings = json.load(open(sys.argv[1]))
 out = pathlib.Path('raw'); out.mkdir(exist_ok=True)
 tags = sorted({t for _, _, ts in ings for t in ts})
-UA = "Marmy/1.0 (+https://aux-petits-oignons-azure.vercel.app)"
+UA = "Marmy/1.0 (+https://marmy.fr)"
 for t in tags:
     f = out / (t.replace(':','_') + '.json')
     if f.exists(): continue
