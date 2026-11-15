@@ -115,7 +115,7 @@ function CatalogLimitNotice({ page }: { page: PlannerPage }) {
       <Link href="/settings#preferences" className="font-semibold underline underline-offset-2">
         Vérifier mon matériel et mes préférences
       </Link>
-      {page.plan ? " — ou choisis n'importe quel plat avec « Chercher »." : "."}
+      {page.plan ? ". Tu peux aussi choisir n'importe quel plat avec « Chercher »." : "."}
     </Alert>
   );
 }

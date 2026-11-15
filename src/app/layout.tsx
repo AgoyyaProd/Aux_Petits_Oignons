@@ -14,7 +14,7 @@ const SITE_URL = siteUrlFromEnv();
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: `${SITE.name} — ${SITE.tagline}`, template: `%s · ${SITE.name}` },
+  title: { default: SITE.title, template: `%s · ${SITE.name}` },
   description: SITE.description,
   applicationName: SITE.name,
   keywords: [
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: SITE.locale,
     siteName: SITE.name,
-    title: `${SITE.name} — ${SITE.tagline}`,
+    title: SITE.title,
     description: SITE.description,
   },
   twitter: { card: "summary_large_image" },
@@ -46,7 +46,19 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: `/icon.svg?v=${ICONS_VERSION}`, type: "image/svg+xml" },
-      { url: `/icons/icon-32.png?v=${ICONS_VERSION}`, sizes: "32x32", type: "image/png" },
+      // Repli PNG (navigateurs sans icône SVG) : noir sur thème clair, blanc sur thème sombre.
+      {
+        url: `/icons/icon-32.png?v=${ICONS_VERSION}`,
+        sizes: "32x32",
+        type: "image/png",
+        media: "(prefers-color-scheme: light)",
+      },
+      {
+        url: `/icons/icon-32-dark.png?v=${ICONS_VERSION}`,
+        sizes: "32x32",
+        type: "image/png",
+        media: "(prefers-color-scheme: dark)",
+      },
     ],
     shortcut: [{ url: `/favicon.ico?v=${ICONS_VERSION}` }],
     apple: [{ url: `/icons/apple-touch-icon.png?v=${ICONS_VERSION}`, sizes: "180x180" }],

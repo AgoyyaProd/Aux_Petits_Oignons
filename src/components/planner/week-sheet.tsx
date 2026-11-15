@@ -48,7 +48,7 @@ export function WeekSheet({
     entries.filter((e) => e.day === day && e.slot === slot);
   const unplaced = entries.filter((e) => !e.day);
   // Version texte, pour un message ou une note.
-  const text: string[] = [`Menu — ${formatWeek(weekStart)}`];
+  const text: string[] = [`Menu, ${formatWeek(weekStart).toLowerCase()}`];
   for (const day of days) {
     const meals = (["lunch", "dinner"] as const).flatMap((slot) =>
       entriesAt(day, slot).map((e) => `${slot === "lunch" ? "midi" : "soir"} : ${e.title}`),

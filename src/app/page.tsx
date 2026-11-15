@@ -20,13 +20,13 @@ import {
 } from "@/components/ui/icons";
 
 export const metadata: Metadata = {
-  title: { absolute: `${SITE.name} — ${SITE.tagline}` },
+  title: { absolute: SITE.title },
   description: SITE.description,
   alternates: { canonical: "/" },
   openGraph: {
     ...OPEN_GRAPH_BASE,
     url: "/",
-    title: `${SITE.name} — ${SITE.tagline}`,
+    title: SITE.title,
     description: SITE.description,
   },
 };
@@ -91,8 +91,8 @@ export default function HomePage() {
               </h1>
               <span aria-hidden="true" className="bg-accent block h-1 w-14 rounded-full" />
               <p className="max-w-md text-lg leading-relaxed text-[#cfe0d4]">
-                Des ingrédients simples, des recettes savoureuses pour le quotidien. Ton
-                garde-manger, tes menus et tes courses, enfin au même endroit.
+                Des recettes simples pour tous les jours. Ton garde-manger, tes menus et tes courses
+                au même endroit.
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link
@@ -143,7 +143,7 @@ export default function HomePage() {
               Les produits à finir passent en premier dans tes menus.
             </Benefit>
             <Benefit badge="slice" title="Des recettes simples">
-              Plus de 200 plats du quotidien, chiffrés et adaptés à ton foyer.
+              Plus de 500 plats du quotidien, chiffrés et adaptés à ton foyer.
             </Benefit>
             <Benefit badge="mix" title="Des menus équilibrés">
               Une semaine variée, midi et soir, pour toute la famille.

@@ -129,7 +129,7 @@ function buildExport(
   aisles: { label: string; lines: ShoppingLineView[] }[],
   extras: Extra[],
 ) {
-  const out = [`Courses — ${formatWeek(week)}`];
+  const out = [`Courses, ${formatWeek(week).toLowerCase()}`];
   for (const a of aisles) {
     const todo = a.lines.filter((l) => !l.checked);
     if (!todo.length) continue;

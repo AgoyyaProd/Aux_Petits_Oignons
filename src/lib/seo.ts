@@ -6,8 +6,10 @@
 export const SITE = {
   name: "Marmy",
   tagline: "La cuisine du quotidien, bien pensée.",
+  /** Titre de l'accueil et titre par défaut (onglet, Google, partages). */
+  title: "Marmy | Recettes, menus de la semaine et liste de courses",
   description:
-    "Marmy réunit tes recettes, ton garde-manger, tes menus de la semaine, ta liste de courses et ton budget. Plus de 500 recettes du quotidien, chiffrées et détaillées, gratuites.",
+    "Plus de 500 recettes du quotidien avec le temps, le coût par part et les étapes. Marmy prépare aussi ton menu de la semaine, ta liste de courses et suit ton garde-manger.",
   locale: "fr_FR",
 } as const;
 
