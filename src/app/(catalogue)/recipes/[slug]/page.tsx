@@ -112,7 +112,7 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
           <RecipeVisual
             slug={recipe.slug}
             title={recipe.title}
-            className="-mx-4 -mt-6 aspect-[4/3] w-[calc(100%+2rem)] max-w-none rounded-b-[1.75rem] sm:-mx-6 sm:w-[calc(100%+3rem)] lg:mx-0 lg:mt-0 lg:aspect-auto lg:h-full lg:min-h-[26rem] lg:w-auto lg:rounded-3xl"
+            className="-mx-4 -mt-6 aspect-[4/3] w-[calc(100%+2rem)] max-w-none rounded-b-[1.75rem] sm:-mx-6 sm:w-[calc(100%+3rem)] lg:mx-0 lg:mt-0 lg:aspect-auto lg:h-full lg:min-h-[26rem] lg:w-full lg:max-w-full lg:rounded-3xl"
             iconSize={40}
             sizes="(min-width: 1024px) 55vw, 100vw"
             priority

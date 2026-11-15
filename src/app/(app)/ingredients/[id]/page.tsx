@@ -50,7 +50,7 @@ async function IngredientContent({ params }: Pick<PageProps<"/ingredients/[id]">
   return (
     <article className="flex flex-col gap-10">
       <header className="grid gap-6 lg:grid-cols-[1fr_1fr] lg:gap-12">
-        <div className="-mx-4 -mt-6 aspect-[4/3] w-[calc(100%+2rem)] overflow-hidden rounded-b-[1.75rem] sm:-mx-6 sm:w-[calc(100%+3rem)] lg:mx-0 lg:mt-0 lg:w-auto lg:rounded-3xl">
+        <div className="-mx-4 -mt-6 aspect-[4/3] w-[calc(100%+2rem)] overflow-hidden rounded-b-[1.75rem] sm:-mx-6 sm:w-[calc(100%+3rem)] lg:mx-0 lg:mt-0 lg:w-full lg:rounded-3xl">
           {ingredientImage(ingredient.slug) ? (
             <ImageSlot
               src={ingredientImage(ingredient.slug)}
