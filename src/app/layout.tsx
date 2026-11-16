@@ -3,6 +3,7 @@ import "./globals.css";
 import { ICONS_VERSION } from "@/lib/icons";
 import { THEME_SCRIPT } from "@/lib/theme";
 import { SiteAnalytics } from "@/components/analytics/site-analytics";
+import { ViewportFix } from "@/components/pwa/viewport-fix";
 import { ServiceWorkerSetup } from "@/components/pwa/service-worker";
 import { siteUrlFromEnv } from "@/lib/env";
 import { SITE } from "@/lib/seo";
@@ -89,6 +90,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col">
         {children}
         <ServiceWorkerSetup />
+        <ViewportFix />
         <SiteAnalytics />
       </body>
     </html>

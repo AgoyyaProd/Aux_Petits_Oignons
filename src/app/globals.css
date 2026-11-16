@@ -192,6 +192,18 @@
   --shadow-md: var(--shadow-md);
 }
 
+/*
+ * Écran tactile : jamais de champ sous 16 px, sinon iPhone zoome dessus à la saisie et la page
+ * reste décalée (barre d'onglets et total des courses au milieu de l'écran).
+ */
+@media (pointer: coarse) {
+  input:not([type="checkbox"], [type="radio"], [type="range"]),
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
