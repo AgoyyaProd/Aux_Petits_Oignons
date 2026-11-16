@@ -53,7 +53,7 @@ export async function getBudgetPage() {
     .single();
   if (settings.error) throw new Error(settings.error.message);
 
-  const [plans, catalog, expenses] = await Promise.all([
+  const [plans, catalog, expenses, sidesRes] = await Promise.all([
     supabase
       .from("meal_plans")
       .select("week_start, budget_cents, meal_plan_entries (recipe_id, servings, leftover)")
@@ -71,7 +71,16 @@ export async function getBudgetPage() {
       .lte("week_start", current)
       .order("spent_on", { ascending: false })
       .order("created_at", { ascending: false }),
+    supabase
+      .from("meal_plan_sides")
+      .select("week_start, recipe_id, servings")
+      .eq("household_id", household.id)
+      .gte("week_start", from)
+      .lte("week_start", current),
   ]);
+  if (sidesRes.error) {
+    throw new Error(`Lecture des recettes à côté impossible : ${sidesRes.error.message}`);
+  }
   if (plans.error) throw new Error(`Lecture des menus impossible : ${plans.error.message}`);
   if (expenses.error) {
     throw new Error(`Lecture des dépenses impossible : ${expenses.error.message}`);
@@ -88,7 +97,11 @@ export async function getBudgetPage() {
     const plan = byWeek.get(weekStart);
     let estimatedCents = 0;
     let isMinimum = false;
-    for (const e of plan?.meal_plan_entries ?? []) {
+    // Repas du menu et recettes « à côté » (pain, brioche…) : tout ce qui s'achète.
+    const sides = sidesRes.data
+      .filter((s) => s.week_start === weekStart)
+      .map((s) => ({ ...s, leftover: false }));
+    for (const e of [...(plan?.meal_plan_entries ?? []), ...sides]) {
       // Un reste est déjà payé avec le plat cuisiné en double.
       if (e.leftover) continue;
       const meta = catalog.recipes.get(e.recipe_id);

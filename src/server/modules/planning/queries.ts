@@ -16,7 +16,7 @@ import { getCurrentContext } from "@/server/modules/auth/session";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 import { costOfEntry, getPlanningCatalog } from "./catalog";
 import { orderChoices } from "@/domain/planning/pick";
-import { readWorking } from "./repository";
+import { readSides, readWorking } from "./repository";
 import { loadWeekBalance } from "@/server/modules/recipes/nutrition-data";
 
 export interface PlannerEntryView {
@@ -50,6 +50,22 @@ export interface PlannerEntryView {
   proteinPerServing: number | null;
 }
 
+/** Recette « à côté » (pain, brioche, gâteau…), en plus des repas de la semaine. */
+export interface PlannerSideView {
+  id: string;
+  recipeId: string;
+  slug: string | null;
+  title: string;
+  tags: string[];
+  servings: number;
+  totalMinutes: number | null;
+  /** Coût des ingrédients dont le prix est connu, en centimes. */
+  cents: number;
+  missingNames: string[];
+  /** Déjà préparée : ses ingrédients ont été retirés du garde-manger. */
+  cooked: boolean;
+}
+
 /**
  * Données de la page Menu pour une semaine (lundi) : le brouillon en cours s'il existe
  * (menu proposé, pas encore validé), sinon le menu validé.
@@ -69,7 +85,7 @@ export async function getPlannerPage({ week }: { week?: string }) {
     .single();
   if (settings.error) throw new Error(settings.error.message);
 
-  const [plan, catalog, lastPrice] = await Promise.all([
+  const [plan, catalog, lastPrice, storedSides] = await Promise.all([
     readWorking(supabase, household.id, weekStart),
     getPlanningCatalog(household.id, household.timezone, settings.data.max_prep_minutes),
     supabase
@@ -79,7 +95,28 @@ export async function getPlannerPage({ week }: { week?: string }) {
       .order("observed_to", { ascending: false })
       .limit(1)
       .maybeSingle(),
+    readSides(supabase, household.id, weekStart),
   ]);
+
+  // « À côté » : pain, brioche, gâteau… en plus des repas, chiffrés comme un plat.
+  const sides: PlannerSideView[] = storedSides.map((s) => {
+    const meta = catalog.recipes.get(s.recipeId);
+    const cost = meta
+      ? costOfEntry(meta, s.servings, catalog.priceBook)
+      : { cents: 0, missingNames: [] as string[] };
+    return {
+      id: s.id,
+      recipeId: s.recipeId,
+      slug: meta?.slug ?? null,
+      title: meta?.title ?? "Recette indisponible",
+      tags: meta?.tags ?? [],
+      servings: s.servings,
+      totalMinutes: meta?.totalMinutes ?? null,
+      cents: cost.cents,
+      missingNames: cost.missingNames,
+      cooked: s.cooked,
+    };
+  });
 
   const entries: PlannerEntryView[] = (plan?.entries ?? []).map((e, i) => {
     const meta = catalog.recipes.get(e.recipeId);
@@ -144,7 +181,7 @@ export async function getPlannerPage({ week }: { week?: string }) {
   );
 
   const pattern = toPattern(settings.data.meal_slots, settings.data.meals_per_cook);
-  const missing = new Set(entries.flatMap((e) => e.missingNames));
+  const missing = new Set([...entries, ...sides].flatMap((e) => e.missingNames));
   const pricedIngredients = [...catalog.priceBook.values()].filter(
     (p) => p.source !== "free",
   ).length;
@@ -181,9 +218,12 @@ export async function getPlannerPage({ week }: { week?: string }) {
     balance,
     /** Objectif de protéines par part du foyer (g), et repas qui l'atteignent. */
     protein: proteinSummary(entries, catalog.profile.proteinTargetG ?? null),
+    sides,
     totals: {
-      cents: entries.reduce((s, e) => s + e.cents, 0),
-      entriesWithMissing: entries.filter((e) => e.missingNames.length > 0).length,
+      /** Repas et recettes « à côté » : tout ce qui part sur la liste de courses. */
+      cents: [...entries, ...sides].reduce((s, e) => s + e.cents, 0),
+      sidesCents: sides.reduce((s, e) => s + e.cents, 0),
+      entriesWithMissing: [...entries, ...sides].filter((e) => e.missingNames.length > 0).length,
       missingNames: [...missing].sort((a, b) => a.localeCompare(b, "fr")),
     },
     today,
@@ -226,6 +266,30 @@ export async function getPlannerPage({ week }: { week?: string }) {
         };
       }),
     ),
+    /**
+     * Recettes « à côté » : tout le catalogue qui convient au foyer (pas seulement les plats),
+     * favoris compris ; jamais une recette exclue par une allergie, un régime ou « pas pour nous ».
+     */
+    sideChoices: [...catalog.recipes.values()]
+      .filter((meta) => meta.compatible && meta.rating !== -1)
+      // Pains, desserts, petits-déjeuners d'abord : c'est surtout pour eux que la partie existe.
+      .sort(
+        (a, b) => Number(a.mainDish) - Number(b.mainDish) || a.title.localeCompare(b.title, "fr"),
+      )
+      .map((meta) => {
+        const cost = costOfEntry(meta, 1, catalog.priceBook);
+        return {
+          id: meta.id,
+          slug: meta.slug,
+          title: meta.title,
+          tags: meta.tags,
+          totalMinutes: meta.totalMinutes,
+          centsPerServing: cost.estimate.millicents > 0 ? cost.cents : null,
+          partialPrice: cost.missingNames.length > 0,
+          favorite: meta.rating === 1,
+          warning: null as string | null,
+        };
+      }),
     prices: { pricedIngredients, lastObservation: lastPrice.data?.observed_to ?? null },
     /** Une clé d'idempotence par formulaire affiché : un double envoi n'agit qu'une fois. */
     newKey: () => randomUUID(),

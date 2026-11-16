@@ -28,7 +28,7 @@ import { addDays, isMonday, mondayOf } from "@/lib/week";
 import { getCurrentContext } from "@/server/modules/auth/session";
 import { getPlanningCatalog } from "@/server/modules/planning/catalog";
 import { loadFreeIngredientIds } from "@/server/modules/prices/price-book";
-import { readPlan } from "@/server/modules/planning/repository";
+import { readPlan, readSides } from "@/server/modules/planning/repository";
 import { fetchAll } from "@/server/supabase/fetch-all";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 
@@ -90,8 +90,9 @@ export async function getShoppingPage(week?: string) {
     .single();
   if (settings.error) throw new Error(settings.error.message);
 
-  const [plan, catalog, ingredients, pantry, checks, extrasRes] = await Promise.all([
+  const [plan, sides, catalog, ingredients, pantry, checks, extrasRes] = await Promise.all([
     readPlan(supabase, household.id, weekStart),
+    readSides(supabase, household.id, weekStart),
     getPlanningCatalog(household.id, household.timezone, settings.data.max_prep_minutes),
     supabase
       .from("ingredients")
@@ -129,7 +130,11 @@ export async function getShoppingPage(week?: string) {
     category: e.ingredients?.category ?? null,
     recipe: e.recipes?.title ?? null,
   }));
-  if (!plan || plan.entries.length === 0) return { ...base, plan: null, extras };
+  // Les recettes « à côté » arrivent sur la liste avec le menu validé (les courses se finissent
+  // sur un menu).
+  if (!plan || (plan.entries.length === 0 && sides.every((s) => s.cooked))) {
+    return { ...base, plan: null, extras };
+  }
 
   const info = new Map<string, IngredientInfo>();
   const category = new Map<string, string>();
@@ -173,6 +178,30 @@ export async function getShoppingPage(week?: string) {
       },
     });
   });
+
+  // « À côté » (pain, brioche…) : même calcul qu'un plat, sans jour fixé. Une fois préparée,
+  // la recette n'a plus besoin de rien.
+  for (const side of sides) {
+    const meta = catalog.recipes.get(side.recipeId);
+    if (!meta || side.cooked) continue;
+    const id = `cote-${side.id}`;
+    titles.set(id, meta.title);
+    meals.push({
+      id,
+      date: mealDateFor(null, weekStart, today),
+      slot: "dinner",
+      servings: side.servings,
+      recipe: {
+        id: meta.id,
+        servings: meta.baseServings,
+        lines: meta.lines.flatMap((l) =>
+          l.quantity
+            ? [{ ingredientId: l.ingredientId, quantity: l.quantity, optional: l.optional }]
+            : [],
+        ),
+      },
+    });
+  }
 
   const stock: StockLot[] = pantry.data!.map((p) => ({
     id: p.id,
@@ -283,6 +312,8 @@ export async function getShoppingPage(week?: string) {
     extras,
     plan: {
       mealCount: plan.entries.filter((e, i) => !e.leftover && !plan.cooked.has(i + 1)).length,
+      /** Recettes « à côté » encore à préparer. */
+      sideCount: sides.filter((s) => !s.cooked).length,
       people: plan.people,
       shoppingDoneAt: plan.shoppingDoneAt,
     },

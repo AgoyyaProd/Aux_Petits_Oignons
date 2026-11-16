@@ -257,3 +257,52 @@ export async function cookOffMenuAction(_prev: CookState, formData: FormData): P
   refresh();
   return cookedState(data, prepared);
 }
+
+const sideSchema = z.object({ sideId: z.uuid(), key: z.uuid() });
+
+/**
+ * « C'est prêt » pour une recette « à côté » : même décompte que pour un plat, pour le
+ * nombre de parts prévu, puis la cuisson est notée sur la ligne (meal_side_cook).
+ */
+export async function cookSideAction(_prev: CookState, formData: FormData): Promise<CookState> {
+  const { household } = await getCurrentContext();
+  if (!household) return { status: "error", message: "Aucun foyer actif." };
+  const parsed = sideSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { status: "error", message: "Formulaire expiré, recharge la page." };
+  const { sideId, key } = parsed.data;
+  const supabase = await createSupabaseServerClient();
+
+  const side = await supabase
+    .from("meal_plan_sides")
+    .select("recipe_id, servings, cooking_id")
+    .eq("id", sideId)
+    .eq("household_id", household.id)
+    .maybeSingle();
+  if (side.error) return { status: "error", message: toActionError(side.error).message };
+  if (!side.data) return { status: "error", message: "Recette introuvable. Recharge la page." };
+  if (side.data.cooking_id) return { status: "success", message: "Déjà marquée comme prête." };
+
+  const prepared = await prepareCooking(
+    supabase,
+    household,
+    side.data.recipe_id,
+    side.data.servings,
+  );
+  if ("error" in prepared) return { status: "error", message: prepared.error };
+
+  const { data, error } = await supabase.rpc("meal_side_cook", {
+    p_household_id: household.id,
+    p_side_id: sideId,
+    p_consumptions: consumptionsOf(prepared),
+    p_missing: prepared.missing,
+    p_idempotency_key: key,
+  });
+  if (error) {
+    const e = toActionError(error);
+    if (e.kind === "conflict") refresh();
+    return { status: "error", message: e.message };
+  }
+
+  refresh();
+  return cookedState(data, prepared);
+}

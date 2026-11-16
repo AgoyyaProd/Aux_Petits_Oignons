@@ -5,7 +5,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CookButton, CookOffMenuButton } from "@/components/cooking/cook-button";
+import { AddSideButton } from "@/components/recipes/add-side-button";
 import { AddToMenuButton } from "@/components/recipes/add-to-menu-button";
+import { isMainDish } from "@/domain/planning/variety";
 import { CookMode } from "@/components/recipes/cook-mode";
 import { KitchenProvider } from "@/components/recipes/kitchen";
 import { RatingButtons } from "@/components/recipes/rating-buttons";
@@ -171,7 +173,17 @@ async function RecipeContent({ params }: Pick<PageProps<"/recipes/[slug]">, "par
               </div>
             ) : !recipe.exclusionLabel ? (
               <div className="flex flex-wrap items-start gap-3">
-                <AddToMenuButton recipeId={recipe.id} variant="primary" />
+                {/* Pain, brioche, dessert… : d'abord « à côté » des repas ; un plat : au menu. */}
+                {isMainDish(recipe.tags) ? (
+                  <AddToMenuButton recipeId={recipe.id} variant="primary" />
+                ) : (
+                  <AddSideButton recipeId={recipe.id} formKey={randomUUID()} variant="primary" />
+                )}
+                {isMainDish(recipe.tags) ? (
+                  <AddSideButton recipeId={recipe.id} formKey={randomUUID()} />
+                ) : (
+                  <AddToMenuButton recipeId={recipe.id} />
+                )}
                 <FavoriteButton
                   recipeId={recipe.id}
                   title={recipe.title}

@@ -16,6 +16,7 @@ import { CloseIcon, ClockIcon, HeartIcon, SearchIcon } from "@/components/ui/ico
 import { formatCents } from "@/domain/money";
 import { filterChoices } from "@/domain/planning/pick";
 import { pickAddAction, pickEntryAction } from "@/server/modules/planning/actions";
+import { addSideAction } from "@/server/modules/planning/sides-actions";
 import { idlePlanner, type PlannerState } from "@/server/modules/planning/schema";
 
 export interface PickerChoice {
@@ -34,7 +35,9 @@ export interface PickerChoice {
 /** Ce que le choix va faire : remplacer un plat, ou ajouter un plat dans une case. */
 export type PickTarget =
   | { mode: "replace"; position: number; title: string }
-  | { mode: "add"; slot: string; label: string };
+  | { mode: "add"; slot: string; label: string }
+  /** Recette « à côté » des repas (pain, brioche…), choisie dans tout le catalogue. */
+  | { mode: "side" };
 
 const PickerContext = createContext<((target: PickTarget) => void) | null>(null);
 
@@ -48,12 +51,15 @@ const SHOWN = 60;
  */
 export function RecipePickerProvider({
   choices,
+  sideChoices,
   inPlan,
   base,
   formKey,
   children,
 }: {
   choices: PickerChoice[];
+  /** Toutes les recettes (hors allergies et régimes), pour « à côté ». */
+  sideChoices: PickerChoice[];
   /** Recettes déjà au menu : affichées, mais non sélectionnables. */
   inPlan: string[];
   base: { week: string; version: string };
@@ -66,10 +72,10 @@ export function RecipePickerProvider({
       {children}
       {target ? (
         <PickerDialog
-          key={`${target.mode}-${"position" in target ? target.position : target.slot}`}
+          key={`${target.mode}-${"position" in target ? target.position : "slot" in target ? target.slot : ""}`}
           target={target}
-          choices={choices}
-          inPlan={inPlan}
+          choices={target.mode === "side" ? sideChoices : choices}
+          inPlan={target.mode === "side" ? [] : inPlan}
           base={base}
           formKey={formKey}
           onClose={() => setTarget(null)}
@@ -127,7 +133,11 @@ function PickerDialog({
   const [quick, setQuick] = useState(false);
   const deferred = useDeferredValue(query);
   const [state, formAction, pending] = useActionState<PlannerState, FormData>(
-    target.mode === "replace" ? pickEntryAction : pickAddAction,
+    target.mode === "replace"
+      ? pickEntryAction
+      : target.mode === "side"
+        ? addSideAction
+        : pickAddAction,
     idlePlanner,
   );
 
@@ -159,28 +169,34 @@ function PickerDialog({
   return (
     <dialog
       ref={dialog}
-      aria-label="Choisir un plat"
+      aria-label={target.mode === "side" ? "Ajouter à côté" : "Choisir un plat"}
       onClose={onClose}
       className="bg-background text-foreground sm:border-border m-auto h-[min(42rem,100dvh)] max-h-none w-[min(36rem,100vw)] max-w-none overflow-hidden p-0 backdrop:bg-black/40 max-sm:h-dvh sm:rounded-2xl sm:border sm:shadow-2xl"
     >
       <form action={formAction} className="flex h-full flex-col">
         <input type="hidden" name="week" value={base.week} />
-        <input type="hidden" name="version" value={base.version} />
+        {target.mode === "side" ? null : (
+          <input type="hidden" name="version" value={base.version} />
+        )}
         <input type="hidden" name="key" value={formKey} />
         {target.mode === "replace" ? (
           <input type="hidden" name="position" value={target.position} />
-        ) : (
+        ) : target.mode === "add" ? (
           <input type="hidden" name="slot" value={target.slot} />
-        )}
+        ) : null}
 
         <header className="border-border flex flex-col gap-3 border-b px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-3">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <h2 className="font-display text-xl font-semibold">Choisir un plat</h2>
+              <h2 className="font-display text-xl font-semibold">
+                {target.mode === "side" ? "Ajouter à côté" : "Choisir un plat"}
+              </h2>
               <p className="text-muted truncate text-sm">
                 {target.mode === "replace"
                   ? `À la place de « ${target.title} »`
-                  : `Pour ${target.label}`}
+                  : target.mode === "side"
+                    ? "En plus des repas : pain, brioche, gâteau…"
+                    : `Pour ${target.label}`}
               </p>
             </div>
             <button
@@ -207,7 +223,9 @@ function PickerDialog({
                 // Entrée ne doit pas envoyer le formulaire sans recette choisie.
                 if (e.key === "Enter") e.preventDefault();
               }}
-              placeholder="Curry, poulet, lentilles…"
+              placeholder={
+                target.mode === "side" ? "Brioche, pain, cookies…" : "Curry, poulet, lentilles…"
+              }
               className="bg-surface border-border hover:border-border-strong focus-visible:border-brand focus-visible:ring-brand/25 min-h-11 w-full rounded-lg border pr-3 pl-10 text-base outline-none focus-visible:ring-2"
             />
           </label>

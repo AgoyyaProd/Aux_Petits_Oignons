@@ -225,8 +225,8 @@ function ListView({ page, byRecipe }: { page: ListPage; byRecipe: boolean }) {
               <span className="text-muted hidden text-sm lg:inline">
                 En paquets entiers.{" "}
                 {totals.storeCents > totals.knownCents
-                  ? `Dont ≈ ${formatCents(totals.knownCents)} pour les ${plan.mealCount} plat${plan.mealCount > 1 ? "s" : ""} (${plan.people} pers.), ≈ ${formatCents(totals.storeCents - totals.knownCents)} restent au garde-manger.`
-                  : `Pour ${plan.mealCount} plat${plan.mealCount > 1 ? "s" : ""} (${plan.people} pers.).`}
+                  ? `Dont ≈ ${formatCents(totals.knownCents)} pour ${forWhat(plan)}, ≈ ${formatCents(totals.storeCents - totals.knownCents)} restent au garde-manger.`
+                  : `Pour ${forWhat(plan)}.`}
                 {totals.unpriced
                   ? ` ${totals.unpriced} article${totals.unpriced > 1 ? "s" : ""} sans prix.`
                   : ""}
@@ -517,4 +517,12 @@ function NeedDetail({ line, byRecipe }: { line: ShoppingLineView; byRecipe: bool
       {stock}
     </span>
   );
+}
+
+/** « les 6 plats (2 pers.) et 1 recette à côté » */
+function forWhat(plan: { mealCount: number; people: number; sideCount: number }): string {
+  const meals = `${plan.mealCount} plat${plan.mealCount > 1 ? "s" : ""} (${plan.people} pers.)`;
+  if (plan.sideCount === 0) return `les ${meals}`;
+  const sides = `${plan.sideCount} recette${plan.sideCount > 1 ? "s" : ""} à côté`;
+  return plan.mealCount === 0 ? sides : `les ${meals} et ${sides}`;
 }

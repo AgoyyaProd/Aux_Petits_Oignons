@@ -325,3 +325,32 @@ export async function readWorking(
     draft: null,
   };
 }
+
+/** Recette « à côté » d'une semaine : en plus des repas, hors du nombre de repas. */
+export interface StoredSide {
+  id: string;
+  recipeId: string;
+  servings: number;
+  cooked: boolean;
+}
+
+export async function readSides(
+  supabase: Supabase,
+  householdId: string,
+  weekStart: string,
+): Promise<StoredSide[]> {
+  const { data, error } = await supabase
+    .from("meal_plan_sides")
+    .select("id, recipe_id, servings, cooking_id")
+    .eq("household_id", householdId)
+    .eq("week_start", weekStart)
+    .order("created_at")
+    .order("id");
+  if (error) throw new Error(`Lecture des recettes à côté impossible : ${error.message}`);
+  return data.map((s) => ({
+    id: s.id,
+    recipeId: s.recipe_id,
+    servings: s.servings,
+    cooked: s.cooking_id !== null,
+  }));
+}

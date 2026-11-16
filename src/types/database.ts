@@ -541,6 +541,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"meal_plan_sides": {
+                  Row: {
+                    "cooking_id": string | null,"created_at": string,"created_by": string | null,"household_id": string,"id": string,"idempotency_key": string,"recipe_id": string,"servings": number,"week_start": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cooking_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"household_id": string,"id"?: string,"idempotency_key": string,"recipe_id": string,"servings": number,"week_start": string
+                  }
+                  Update: {
+                    "cooking_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"household_id"?: string,"id"?: string,"idempotency_key"?: string,"recipe_id"?: string,"servings"?: number,"week_start"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "meal_plan_sides_cooking_id_fkey"
+      columns: ["cooking_id"]
+isOneToOne: true
+      referencedRelation: "meal_cookings"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "meal_plan_sides_household_id_fkey"
+      columns: ["household_id"]
+isOneToOne: false
+      referencedRelation: "households"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "meal_plan_sides_recipe_id_fkey"
+      columns: ["recipe_id"]
+isOneToOne: false
+      referencedRelation: "recipes"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"meal_plans": {
                   Row: {
                     "budget_cents": number | null,"created_at": string,"created_by": string | null,"household_id": string,"id": string,"last_idempotency_key": string | null,"meal_count": number,"people": number,"seed": number,"shopping_done_at": string | null,"updated_at": string,"version": number,"week_start": string
@@ -1056,6 +1088,9 @@ isOneToOne: false
                            },
 "pantry_update_details":
 { Args: { "p_expected_version": number,"p_expires_on": string,"p_expiry_kind": Database["public"]['Enums']["expiry_kind"],"p_item_id": string,"p_location": Database["public"]['Enums']["storage_loc"],"p_opened": boolean }; Returns: Json
+                           },
+"meal_side_cook":
+{ Args: { "p_consumptions": Json,"p_household_id": string,"p_idempotency_key": string,"p_missing": Json,"p_side_id": string }; Returns: Json
                            },
 "recipe_cook_off_menu":
 { Args: { "p_consumptions": Json,"p_household_id": string,"p_idempotency_key": string,"p_missing": Json,"p_recipe_id": string,"p_servings": number }; Returns: Json

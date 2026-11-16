@@ -5,6 +5,7 @@ import { PlanActionButton } from "@/components/planner/entry-action";
 import { GenerateForm } from "@/components/planner/generate-form";
 import { WeekBalancePanel } from "@/components/planner/week-balance";
 import { RecipePickerProvider } from "@/components/planner/recipe-picker";
+import { SidesSection } from "@/components/planner/sides-section";
 import { WeekGrid, type Base } from "@/components/planner/week-grid";
 import { Hero, HeroWeekNav } from "@/components/ui/hero";
 import { Alert } from "@/components/ui/alert";
@@ -81,25 +82,30 @@ export function PlannerView({
         </Alert>
       ) : null}
 
-      {plan && base ? (
-        <>
-          <Toolbar page={page} base={base} />
-          <Summary page={page} />
-          <RecipePickerProvider
-            choices={page.choices}
-            inPlan={page.entries.map((e) => e.recipeId)}
-            base={base}
-            formKey={page.newKey()}
-          >
+      <RecipePickerProvider
+        choices={page.choices}
+        sideChoices={page.sideChoices}
+        inPlan={page.entries.map((e) => e.recipeId)}
+        base={base ?? { week: page.weekStart, version: "" }}
+        formKey={page.newKey()}
+      >
+        {plan && base ? (
+          <>
+            <Toolbar page={page} base={base} />
+            <Summary page={page} />
             <WeekGrid page={page} base={base} />
-          </RecipePickerProvider>
-          <WeekBalancePanel balance={page.balance} protein={page.protein} />
-          <Regenerate page={page} />
-          {plan.isDraft ? <DraftDock page={page} base={base} /> : null}
-        </>
-      ) : (
-        <EmptyPlan page={page} />
-      )}
+            <SidesSection page={page} />
+            <WeekBalancePanel balance={page.balance} protein={page.protein} />
+            <Regenerate page={page} />
+            {plan.isDraft ? <DraftDock page={page} base={base} /> : null}
+          </>
+        ) : (
+          <>
+            <EmptyPlan page={page} />
+            <SidesSection page={page} />
+          </>
+        )}
+      </RecipePickerProvider>
       <PriceSourceNote page={page} />
     </div>
   );

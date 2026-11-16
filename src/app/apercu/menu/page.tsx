@@ -97,7 +97,8 @@ function demo(draft: boolean): PlannerPage {
     entries,
     balance: weekBalance([]),
     totals: {
-      cents: entries.reduce((s, e) => s + e.cents, 0),
+      cents: entries.reduce((s, e) => s + e.cents, 0) + 412,
+      sidesCents: 412,
       entriesWithMissing: 1,
       missingNames: ["Crevettes"],
     },
@@ -131,6 +132,21 @@ function demo(draft: boolean): PlannerPage {
       favorite: i === 2,
       warning: i === 5 ? "Demande : four, moule" : null,
     })),
+    sides: [
+      {
+        id: "20000000-0000-0000-0000-000000000001",
+        recipeId: "20000000-0000-0000-0000-000000000011",
+        slug: "brioche-maison",
+        title: "Brioche maison",
+        tags: ["boulangerie"],
+        servings: 8,
+        totalMinutes: 630,
+        cents: 412,
+        missingNames: [],
+        cooked: false,
+      },
+    ],
+    sideChoices: [],
     prices: { pricedIngredients: 200, lastObservation: "2026-10-12" },
     newKey: () => "00000000-0000-4000-8000-000000000000",
   } as unknown as PlannerPage;
