@@ -63,7 +63,6 @@ ALIASES = {
         "pate-lasagne": "pates-lasagne",
         "pain-mie": "pain-de-mie",
         "nouilles-chinoises": "nouilles-oeufs",
-        "riz-jasmin": "riz-thai",
         "cuisse-poulet": "poulet-cuisse",
         "tofu-ferme": "tofu",
         "tortilla-ble": "tortilla",
@@ -85,6 +84,8 @@ def known_slugs(kind: str) -> set[str]:
                 continue
             body = block.split(";\n")[0]
             slugs.update(re.findall(r"\(\s*'([a-z0-9]+(?:-[a-z0-9]+)*)',\s*'(?:[^']|'')+'", body))
+            # « insert … select 'slug', 'Nom', … » (ex. riz-jasmin, 0062).
+            slugs.update(re.findall(r"^select '([a-z0-9]+(?:-[a-z0-9]+)*)', '(?:[^']|'')+'", body, re.M))
     return slugs
 
 
