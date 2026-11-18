@@ -104,7 +104,10 @@ LATER = {
     **{slug: {"dim": "mass", "density": False, "piece": False} for slug in (
         "palet-legumes", "melange-legumes", "legumes-wok", "epinard-galets",
         "haricot-vert-surgele", "legumes-couscous", "legumes-ratatouille",
-        "poisson-blanc-surgele", "falafel", "lentille-boite", "carotte-rapee", "houmous")},
+        "poisson-blanc-surgele", "falafel", "lentille-boite", "carotte-rapee", "houmous",
+        # Lot 25 (0089) : produits express et protéines prêtes.
+        "puree-flocons", "riz-cuit-sachet", "pdt-vapeur", "pates-fraiches", "raviolis-frais",
+        "poulet-cuit", "maquereau-boite", "boulettes-vegetales", "petits-pois-carottes")},
 }
 
 

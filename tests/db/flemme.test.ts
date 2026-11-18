@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { asUser, createUser, expectPgError, pool } from "./helpers";
 
 /**
- * « Recettes de la flemme » (0087 à 0090) : chaque recette taguée « flemme » respecte
+ * « Recettes de la flemme » (0087 à 0091) : chaque recette taguée « flemme » respecte
  * les critères promis, calculés en base (durées, ingrédients hors placard, étapes, Ciqual).
  * Les pommes de terre ne comptent pas dans les légumes (féculent dans l'assiette).
  */
@@ -36,7 +36,7 @@ describe("recettes de la flemme", () => {
             where l.id = r.id and not l.is_optional) as measured
        from public.recipes r where 'flemme' = any(r.tags) order by r.slug`,
     );
-    expect(rows.length).toBeGreaterThanOrEqual(31);
+    expect(rows.length).toBeGreaterThanOrEqual(41);
     for (const r of rows) {
       const at = `[${r.slug}]`;
       expect(r.status, at).toBe("published");
