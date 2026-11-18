@@ -100,6 +100,11 @@ LATER = {
     "blanc-dinde": {"dim": "mass", "density": False, "piece": False},
     "roquette": {"dim": "mass", "density": False, "piece": False},
     "creme": {"dim": "volume", "density": True, "piece": False},
+    # Lot 24 (0088) : produits « raccourcis » des recettes de la flemme.
+    **{slug: {"dim": "mass", "density": False, "piece": False} for slug in (
+        "palet-legumes", "melange-legumes", "legumes-wok", "epinard-galets",
+        "haricot-vert-surgele", "legumes-couscous", "legumes-ratatouille",
+        "poisson-blanc-surgele", "falafel", "lentille-boite", "carotte-rapee", "houmous")},
 }
 
 

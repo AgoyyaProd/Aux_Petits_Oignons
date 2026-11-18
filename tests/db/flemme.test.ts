@@ -2,8 +2,9 @@ import { describe, expect, it } from "vitest";
 import { asUser, createUser, expectPgError, pool } from "./helpers";
 
 /**
- * « Recettes de la flemme » (0087, 0088) : chaque recette taguée « flemme » respecte les
- * critères promis, calculés en base (durées, ingrédients hors placard, étapes, Ciqual).
+ * « Recettes de la flemme » (0087, 0088, 0089) : chaque recette taguée « flemme » respecte
+ * les critères promis, calculés en base (durées, ingrédients hors placard, étapes, Ciqual).
+ * Les pommes de terre ne comptent pas dans les légumes (féculent dans l'assiette).
  */
 describe("recettes de la flemme", () => {
   it("chaque recette flemme respecte les critères", async () => {
@@ -29,12 +30,13 @@ describe("recettes de la flemme", () => {
             where l.id = r.id and not l.is_optional) as proteins,
          (select coalesce(sum(l.grams), 0) / r.servings from lines l
             where l.id = r.id and not l.is_optional and l.category = 'legumes'
-            and l.ing not in ('ail', 'oignon', 'echalote')) as vegetables,
+            and l.ing not in ('ail', 'oignon', 'echalote', 'pomme-de-terre',
+              'pomme-de-terre-grenaille', 'pdt-vapeur')) as vegetables,
          (select bool_and(l.measured or l.is_staple) from lines l
             where l.id = r.id and not l.is_optional) as measured
        from public.recipes r where 'flemme' = any(r.tags) order by r.slug`,
     );
-    expect(rows.length).toBeGreaterThanOrEqual(20);
+    expect(rows.length).toBeGreaterThanOrEqual(41);
     for (const r of rows) {
       const at = `[${r.slug}]`;
       expect(r.status, at).toBe("published");
@@ -56,17 +58,21 @@ describe("recettes de la flemme", () => {
        where i.slug in ('palet-legumes', 'melange-legumes', 'legumes-wok', 'epinard-galets',
          'haricot-vert-surgele', 'legumes-couscous', 'legumes-ratatouille',
          'poisson-blanc-surgele', 'falafel', 'lentille-boite', 'carotte-rapee', 'houmous',
-         'petit-pois', 'epinard')
+         'petit-pois', 'epinard', 'puree-flocons', 'riz-cuit-sachet', 'pdt-vapeur',
+         'pates-fraiches', 'raviolis-frais', 'poulet-cuit', 'maquereau-boite',
+         'boulettes-vegetales', 'petits-pois-carottes')
        order by i.slug`,
     );
     const by = Object.fromEntries(rows.map((r) => [r.slug, r]));
-    expect(rows).toHaveLength(14);
+    expect(rows).toHaveLength(23);
     for (const r of rows) expect(r.ciqual_code, r.slug).not.toBeNull();
     expect(by["palet-legumes"].is_frozen).toBe(true);
     expect(by["poisson-blanc-surgele"].is_frozen).toBe(true);
     expect(by["petit-pois"].is_frozen).toBe(true);
     expect(by["falafel"].is_frozen).toBe(false);
     expect(by["epinard"].is_frozen).toBe(false);
+    expect(by["petits-pois-carottes"].is_frozen).toBe(true);
+    expect(by["puree-flocons"].is_frozen).toBe(false);
   });
 
   it("allergènes et régimes des produits industriels", async () => {
@@ -77,19 +83,25 @@ describe("recettes de la flemme", () => {
          array(select d.diet_code from public.ingredient_diet_conflicts d
                where d.ingredient_id = i.id order by 1) as diets
        from public.ingredients i
-       where i.slug in ('palet-legumes', 'falafel', 'houmous', 'poisson-blanc-surgele', 'legumes-wok')
+       where i.slug in ('palet-legumes', 'falafel', 'houmous', 'poisson-blanc-surgele', 'legumes-wok',
+         'pates-fraiches', 'raviolis-frais', 'poulet-cuit', 'maquereau-boite', 'boulettes-vegetales')
        order by i.slug`,
     );
     expect(rows).toEqual([
+      { slug: "boulettes-vegetales", allergens: ["gluten", "soy"], diets: [] },
       { slug: "falafel", allergens: ["gluten", "sesame"], diets: [] },
       { slug: "houmous", allergens: ["sesame"], diets: [] },
       { slug: "legumes-wok", allergens: ["gluten", "soy"], diets: [] },
+      { slug: "maquereau-boite", allergens: ["fish"], diets: ["vegan", "vegetarian"] },
       { slug: "palet-legumes", allergens: ["eggs", "gluten", "milk"], diets: ["vegan"] },
+      { slug: "pates-fraiches", allergens: ["eggs", "gluten"], diets: ["vegan"] },
       {
         slug: "poisson-blanc-surgele",
         allergens: ["fish"],
         diets: ["vegan", "vegetarian"],
       },
+      { slug: "poulet-cuit", allergens: [], diets: ["pescetarian", "vegan", "vegetarian"] },
+      { slug: "raviolis-frais", allergens: ["eggs", "gluten", "milk"], diets: ["vegan"] },
     ]);
   });
 
@@ -97,7 +109,8 @@ describe("recettes de la flemme", () => {
     const { rows } = await pool.query(
       `select v.alias, i.slug from (values ('Palets de légumes'), ('Galettes de légumes surgelées'),
          ('Falafels'), ('Hoummous'), ('Lentilles en conserve'), ('Carottes râpées'),
-         ('Filets de lieu surgelés')) as v(alias)
+         ('Filets de lieu surgelés'), ('Purée en flocons'), ('Purée express'),
+         ('Riz en sachet micro-ondes'), ('Filets de maquereau'), ('Émincés de poulet')) as v(alias)
        join public.ingredient_aliases a on a.alias_normalized = public.normalize_alias(v.alias)
        join public.ingredients i on i.id = a.ingredient_id order by v.alias`,
     );
@@ -105,10 +118,15 @@ describe("recettes de la flemme", () => {
       ["Carottes râpées", "carotte-rapee"],
       ["Falafels", "falafel"],
       ["Filets de lieu surgelés", "poisson-blanc-surgele"],
+      ["Filets de maquereau", "maquereau-boite"],
       ["Galettes de légumes surgelées", "palet-legumes"],
       ["Hoummous", "houmous"],
       ["Lentilles en conserve", "lentille-boite"],
       ["Palets de légumes", "palet-legumes"],
+      ["Purée en flocons", "puree-flocons"],
+      ["Purée express", "puree-flocons"],
+      ["Riz en sachet micro-ondes", "riz-cuit-sachet"],
+      ["Émincés de poulet", "poulet-cuit"],
     ]);
   });
 });
