@@ -138,3 +138,37 @@ export function placeBatches(
 export function cooksFor(meals: number, mealsPerCook: number): number {
   return Math.ceil(Math.max(0, meals) / Math.max(1, mealsPerCook));
 }
+
+/** Jour de la semaine ISO (1 = lundi … 7 = dimanche) d'une date AAAA-MM-JJ. */
+function isoWeekday(day: string): number {
+  return ((new Date(`${day}T00:00:00Z`).getUTCDay() + 6) % 7) + 1;
+}
+
+/**
+ * Soirs « flemme » parmi les lots de repas à remplir : jusqu'à `count` lots, choisis d'abord
+ * parmi ceux qui commencent un soir de semaine (lundi à vendredi), puis un autre soir, puis
+ * n'importe quel repas, répartis sur la semaine. Renvoie un masque aligné sur `groups`.
+ * Déterministe : même entrée, même résultat.
+ */
+export function lazyGroupMask(groups: readonly BatchGroup[], count: number): boolean[] {
+  const mask = groups.map(() => false);
+  const want = Math.max(0, Math.min(count, groups.length));
+  if (want === 0) return mask;
+  const first = (g: BatchGroup) => g[0] ?? null;
+  const rank = (g: BatchGroup) => {
+    const ref = first(g);
+    if (ref?.slot === "dinner") return isoWeekday(ref.day) <= 5 ? 0 : 1;
+    return 2;
+  };
+  for (const level of [0, 1, 2]) {
+    const pool = groups.flatMap((g, i) => (rank(g) === level && !mask[i] ? [i] : []));
+    const missing = want - mask.filter(Boolean).length;
+    if (missing <= 0) break;
+    // Répartition régulière : un lot sur `pool.length / missing`, en partant du milieu du pas.
+    const step = pool.length / Math.min(missing, pool.length);
+    for (let k = 0; k < Math.min(missing, pool.length); k++) {
+      mask[pool[Math.floor(k * step + step / 2)]!] = true;
+    }
+  }
+  return mask;
+}

@@ -167,14 +167,14 @@ isOneToOne: false
                   Relationships: []
                 },"household_food_profile": {
                   Row: {
-                    "eating_style": string,"equipment": (string)[] | null,"household_id": string,"objectives": (string)[],"protein_target_g": number | null,"updated_at": string
+                    "eating_style": string,"equipment": (string)[] | null,"household_id": string,"lazy_nights": number,"objectives": (string)[],"protein_target_g": number | null,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "eating_style"?: string,"equipment"?: (string)[] | null,"household_id": string,"objectives"?: (string)[],"protein_target_g"?: number | null,"updated_at"?: string
+                    "eating_style"?: string,"equipment"?: (string)[] | null,"household_id": string,"lazy_nights"?: number,"objectives"?: (string)[],"protein_target_g"?: number | null,"updated_at"?: string
                   }
                   Update: {
-                    "eating_style"?: string,"equipment"?: (string)[] | null,"household_id"?: string,"objectives"?: (string)[],"protein_target_g"?: number | null,"updated_at"?: string
+                    "eating_style"?: string,"equipment"?: (string)[] | null,"household_id"?: string,"lazy_nights"?: number,"objectives"?: (string)[],"protein_target_g"?: number | null,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -445,14 +445,14 @@ isOneToOne: true
                   ]
                 },"ingredients": {
                   Row: {
-                    "category": string,"created_at": string,"default_dimension": Database["public"]['Enums']["dimension"],"default_shelf_life_days": number | null,"density_g_per_ml": number | null,"id": string,"is_staple": boolean,"is_validated": boolean,"name": string,"parent_id": string | null,"piece_weight_g": number | null,"slug": string,"updated_at": string
+                    "category": string,"created_at": string,"default_dimension": Database["public"]['Enums']["dimension"],"default_shelf_life_days": number | null,"density_g_per_ml": number | null,"id": string,"is_frozen": boolean,"is_staple": boolean,"is_validated": boolean,"name": string,"parent_id": string | null,"piece_weight_g": number | null,"slug": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "category": string,"created_at"?: string,"default_dimension": Database["public"]['Enums']["dimension"],"default_shelf_life_days"?: number | null,"density_g_per_ml"?: number | null,"id"?: string,"is_staple"?: boolean,"is_validated"?: boolean,"name": string,"parent_id"?: string | null,"piece_weight_g"?: number | null,"slug": string,"updated_at"?: string
+                    "category": string,"created_at"?: string,"default_dimension": Database["public"]['Enums']["dimension"],"default_shelf_life_days"?: number | null,"density_g_per_ml"?: number | null,"id"?: string,"is_frozen"?: boolean,"is_staple"?: boolean,"is_validated"?: boolean,"name": string,"parent_id"?: string | null,"piece_weight_g"?: number | null,"slug": string,"updated_at"?: string
                   }
                   Update: {
-                    "category"?: string,"created_at"?: string,"default_dimension"?: Database["public"]['Enums']["dimension"],"default_shelf_life_days"?: number | null,"density_g_per_ml"?: number | null,"id"?: string,"is_staple"?: boolean,"is_validated"?: boolean,"name"?: string,"parent_id"?: string | null,"piece_weight_g"?: number | null,"slug"?: string,"updated_at"?: string
+                    "category"?: string,"created_at"?: string,"default_dimension"?: Database["public"]['Enums']["dimension"],"default_shelf_life_days"?: number | null,"density_g_per_ml"?: number | null,"id"?: string,"is_frozen"?: boolean,"is_staple"?: boolean,"is_validated"?: boolean,"name"?: string,"parent_id"?: string | null,"piece_weight_g"?: number | null,"slug"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -1106,6 +1106,9 @@ isOneToOne: false
                            },
 "set_household_preferences":
 { Args: { "p_allergens": (string)[],"p_diets": (string)[],"p_household_id": string }; Returns: undefined
+                           },
+"set_lazy_nights":
+{ Args: { "p_count": number,"p_household_id": string }; Returns: undefined
                            },
 "set_protein_target":
 { Args: { "p_grams": number,"p_household_id": string }; Returns: undefined

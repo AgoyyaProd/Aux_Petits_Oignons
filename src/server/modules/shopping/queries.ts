@@ -22,7 +22,7 @@ import {
   type Dimension,
   type Quantity,
 } from "@/domain/units";
-import { AISLES, orderedAisles } from "@/lib/categories";
+import { AISLES, FROZEN_AISLE, orderedAisles } from "@/lib/categories";
 import { todayIn } from "@/lib/dates";
 import { addDays, isMonday, mondayOf } from "@/lib/week";
 import { getCurrentContext } from "@/server/modules/auth/session";
@@ -35,8 +35,17 @@ import { createSupabaseServerClient } from "@/server/supabase/server";
 /** Rayons, dans l'ordre d'un parcours de magasin. */
 export { AISLES };
 
+/**
+ * Rayon d'un produit sur la liste : les produits vendus surgelés sont regroupés au rayon
+ * « Surgelés », quelle que soit leur catégorie d'aliment.
+ */
+export function aisleOf(category: string, frozen: boolean | null | undefined): string {
+  return frozen ? FROZEN_AISLE : category;
+}
+
 /** Emplacement proposé au rangement, modifiable. */
 export function defaultLocation(category: string): "pantry" | "fridge" | "freezer" {
+  if (category === FROZEN_AISLE) return "freezer";
   return ["viandes", "poissons", "oeufs_laitiers", "fromages", "legumes"].includes(category)
     ? "fridge"
     : "pantry";
@@ -97,7 +106,7 @@ export async function getShoppingPage(week?: string) {
     supabase
       .from("ingredients")
       .select(
-        "id, slug, name, category, default_dimension, density_g_per_ml, piece_weight_g, parent_id",
+        "id, slug, name, category, is_frozen, default_dimension, density_g_per_ml, piece_weight_g, parent_id",
       ),
     supabase
       .from("pantry_items")
@@ -113,7 +122,9 @@ export async function getShoppingPage(week?: string) {
       .eq("week_start", weekStart),
     supabase
       .from("shopping_extras")
-      .select("id, label, quantity_text, checked, ingredients (category), recipes (title)")
+      .select(
+        "id, label, quantity_text, checked, ingredients (category, is_frozen), recipes (title)",
+      )
       .eq("household_id", household.id)
       .eq("week_start", weekStart)
       .order("created_at"),
@@ -127,7 +138,7 @@ export async function getShoppingPage(week?: string) {
     label: e.label,
     quantity: e.quantity_text,
     checked: e.checked,
-    category: e.ingredients?.category ?? null,
+    category: e.ingredients ? aisleOf(e.ingredients.category, e.ingredients.is_frozen) : null,
     recipe: e.recipes?.title ?? null,
   }));
   // Les recettes « à côté » arrivent sur la liste avec le menu validé (les courses se finissent
@@ -147,7 +158,7 @@ export async function getShoppingPage(week?: string) {
       defaultDimension: i.default_dimension,
       conversions: { densityGPerMl: i.density_g_per_ml, pieceWeightG: i.piece_weight_g },
     });
-    category.set(i.id, i.category);
+    category.set(i.id, aisleOf(i.category, i.is_frozen));
   }
 
   const formats = await loadPurchaseFormats(supabase, catalog.packages, info);

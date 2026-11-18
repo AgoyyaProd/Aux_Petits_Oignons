@@ -307,6 +307,7 @@ export async function loadPlanningCatalog(
       totalMinutes: meta.totalMinutes,
       ingredientSlugs: required.flatMap((l) => (l.ingredients?.slug ? [l.ingredients.slug] : [])),
       proteinPerServing: meta.proteinPerServing,
+      lazy: meta.tags.includes("flemme"),
       // Paquets : quantité par portion, dans l'unité de base du format (sinon ignorée).
       packUses: required.flatMap((l) => {
         const pack = packages.get(l.ingredient_id);

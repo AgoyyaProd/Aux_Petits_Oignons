@@ -55,6 +55,7 @@ export const RECIPE_TAG_LABEL: Record<string, string> = {
   "anti-gaspi": "Anti-gaspi",
   "lunch-box": "À emporter",
   "peu-de-vaisselle": "Peu de vaisselle",
+  flemme: "Recette de la flemme",
 };
 
 function fail(what: string, error: { message: string }): never {
@@ -86,7 +87,7 @@ export async function householdContext(
     supabase.from("ingredients").select("id, parent_id").not("parent_id", "is", null),
     supabase
       .from("household_food_profile")
-      .select("eating_style, objectives, equipment, protein_target_g")
+      .select("eating_style, objectives, equipment, protein_target_g, lazy_nights")
       .eq("household_id", householdId)
       .maybeSingle(),
     loadFreeIngredientIds(supabase),
@@ -112,6 +113,7 @@ export async function householdContext(
     style: (profile.data?.eating_style ?? "omnivore") as EatingStyle,
     objectives: (profile.data?.objectives ?? []) as Objective[],
     proteinTargetG: profile.data?.protein_target_g ?? null,
+    lazyNights: profile.data?.lazy_nights ?? 0,
   };
   const today = todayIn(timeZone);
   const priority = withParents(
@@ -259,6 +261,8 @@ export interface CatalogFilters {
   inSeason?: boolean;
   /** Uniquement les recettes riches en protéines (seuil : objectif du foyer, sinon 30 g). */
   highProtein?: boolean;
+  /** Uniquement les « recettes de la flemme » (tag flemme). */
+  lazy?: boolean;
 }
 
 /**
@@ -349,6 +353,7 @@ export async function getRecipeCatalog(filters: CatalogFilters) {
     const totalMinutes = r.prep_minutes + r.rest_minutes + r.cook_minutes;
     if (filters.maxMinutes && totalMinutes > filters.maxMinutes) continue;
     if (filters.tag && !r.tags.includes(filters.tag)) continue;
+    if (filters.lazy && !r.tags.includes("flemme")) continue;
     const rating = ratings.get(r.id) ?? null;
     if (filters.favoritesOnly && rating !== 1) continue;
     if (

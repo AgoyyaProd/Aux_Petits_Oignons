@@ -55,6 +55,8 @@ export interface PlanCandidate {
    * dans leur unité de base : pour finir un paquet entamé par un autre plat de la semaine.
    */
   packUses?: readonly PackUse[];
+  /** « Recette de la flemme » (tag flemme) : très rapide, pour les soirs sans énergie. */
+  lazy?: boolean;
 }
 
 /** Quantité d'un ingrédient vendu en paquet utilisée par une portion d'un plat. */
@@ -199,6 +201,8 @@ export interface FoodProfile {
   objectives?: readonly Objective[];
   /** Objectif de protéines par part, en grammes (null : pas d'objectif). */
   proteinTargetG?: number | null;
+  /** Soirs « flemme » par semaine (0 à 3) : une recette de la flemme ces soirs-là. */
+  lazyNights?: number;
 }
 
 /**
@@ -257,6 +261,11 @@ export interface PlanRequest {
    * sert à respecter la conservation après ouverture des paquets entamés.
    */
   slotDays?: readonly (string | null)[];
+  /**
+   * Repas « flemme », dans l'ordre des nouveaux plats (comme `slotDays`) : pour ceux-là, une
+   * recette de la flemme est choisie en priorité, s'il en reste une qui convient.
+   */
+  lazySlots?: readonly boolean[];
   /** Recettes à ne pas proposer (ex. retirées par l'utilisateur). */
   excludeRecipeIds?: readonly string[];
   /** Recettes du menu de la semaine précédente : évitées tant qu'il reste d'autres choix. */
@@ -464,6 +473,22 @@ export function generatePlan(candidates: readonly PlanCandidate[], req: PlanRequ
           (!pass.pricedOnly || c.costPerServingMillicents !== null),
       );
       if (available.length === 0) break;
+      // Soir « flemme » : on ne garde que les recettes de la flemme, s'il y en a (sinon le
+      // repas se remplit normalement). Les autres repas restent ouverts à toutes.
+      const slot = entries.length - req.locked.length;
+      if (req.lazySlots?.[slot]) {
+        const lazy = available.filter((c) => c.lazy);
+        if (lazy.length > 0) available.splice(0, available.length, ...lazy);
+      } else if (req.lazySlots) {
+        // Un repas ordinaire ne prend pas une recette de la flemme dont un soir flemme suivant
+        // aura besoin (tant qu'il reste d'autres plats).
+        const lazyAhead = req.lazySlots.slice(slot + 1).filter(Boolean).length;
+        const lazyLeft = available.filter((c) => c.lazy).length;
+        const others = available.filter((c) => !c.lazy);
+        if (lazyAhead > 0 && lazyLeft <= lazyAhead && others.length > 0) {
+          available.splice(0, available.length, ...others);
+        }
+      }
       // Paquets entamés : un plat qui finit le reste d'un plat déjà placé (dans sa durée de
       // conservation après ouverture) gagne des chances. Le bonus s'ajoute au log du poids.
       if (packages.size > 0) {

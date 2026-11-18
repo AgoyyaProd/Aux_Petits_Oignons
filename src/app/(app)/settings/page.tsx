@@ -5,6 +5,7 @@ import { AvoidedFoodsForm } from "@/components/settings/avoided-foods-form";
 import { HouseholdForm } from "@/components/settings/household-form";
 import { MembersSection } from "@/components/settings/members-section";
 import { FoodProfileForm } from "@/components/settings/food-profile-form";
+import { LazyNightsForm } from "@/components/settings/lazy-nights-form";
 import { ProteinTargetForm } from "@/components/settings/protein-target-form";
 import { ThemeSelect } from "@/components/settings/theme-select";
 import { SignOutButton } from "@/components/pwa/sign-out-button";
@@ -102,6 +103,12 @@ async function SettingsContent() {
         <ProteinTargetForm
           householdId={settings.household.id}
           value={settings.foodProfile.proteinTargetG}
+        />
+      </Section>
+      <Section title="Soirs flemme" id="flemme">
+        <LazyNightsForm
+          householdId={settings.household.id}
+          value={settings.foodProfile.lazyNights}
         />
       </Section>
       <Section title="Budget, prix et magasin" id="budget">

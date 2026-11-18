@@ -86,6 +86,7 @@ export function RecipeCard({
               {coverage.inStock}/{coverage.total} chez toi
             </Badge>
           ) : null}
+          {recipe.tags.includes("flemme") ? <Badge tone="brand">Flemme</Badge> : null}
           {recipe.highProtein ? (
             <Badge tone="leaf">{recipe.proteinPerServing} g prot.</Badge>
           ) : null}

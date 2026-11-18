@@ -42,7 +42,7 @@ export async function getHouseholdSettings() {
     supabase.from("equipment").select("code, label").order("position"),
     supabase
       .from("household_food_profile")
-      .select("eating_style, objectives, equipment, protein_target_g")
+      .select("eating_style, objectives, equipment, protein_target_g, lazy_nights")
       .eq("household_id", household.id)
       .maybeSingle(),
   ]);
@@ -89,6 +89,8 @@ export async function getHouseholdSettings() {
       noPork: (chosenDiets.data ?? []).some((d) => d.diet_code === "no_pork"),
       /** Objectif de protéines par part (g), null : aucun. */
       proteinTargetG: profile.data?.protein_target_g ?? null,
+      /** Soirs « flemme » par semaine (0 à 3). */
+      lazyNights: profile.data?.lazy_nights ?? 0,
     },
     avoidedFoods: (avoided.data ?? [])
       .flatMap((a) =>

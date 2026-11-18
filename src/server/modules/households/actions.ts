@@ -242,6 +242,32 @@ export async function saveMealPatternAction(
  * Objectif de protéines par part (g) du foyer, ou null pour ne pas en avoir.
  * Une préférence : les plats qui l'atteignent sortent plus souvent au menu.
  */
+/** Soirs « flemme » par semaine : le menu y place une recette de la flemme en priorité. */
+export async function saveLazyNightsAction(
+  householdId: string,
+  count: number,
+): Promise<{ ok: boolean; message: string }> {
+  await requireUser();
+  if (!/^[0-9a-f-]{36}$/.test(householdId)) return { ok: false, message: "Foyer invalide." };
+  if (!Number.isInteger(count) || count < 0 || count > 3) {
+    return { ok: false, message: "Choisis entre 0 et 3 soirs." };
+  }
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.rpc("set_lazy_nights", {
+    p_household_id: householdId,
+    p_count: count,
+  });
+  if (error) return { ok: false, message: toActionError(error).message };
+  refresh();
+  return {
+    ok: true,
+    message:
+      count === 0
+        ? "Pas de soir flemme : le menu choisit librement."
+        : `${count} soir${count > 1 ? "s" : ""} flemme par semaine, dès le prochain menu.`,
+  };
+}
+
 export async function saveProteinTargetAction(
   householdId: string,
   grams: number | null,

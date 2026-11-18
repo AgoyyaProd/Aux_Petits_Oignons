@@ -40,7 +40,8 @@ def existing_slugs(lot):
         for m in re.finditer(r'^recipe\("([a-z0-9-]+)"',
                              (ROOT / f"scripts/data/recipes-lot{n}.py").read_text(encoding="utf-8"), re.M)
     }
-TAGS = lot1.TAGS | {"boulangerie", "monde", "express", "anti-gaspi", "lunch-box", "peu-de-vaisselle"}
+TAGS = lot1.TAGS | {"boulangerie", "monde", "express", "anti-gaspi", "lunch-box", "peu-de-vaisselle",
+                    "flemme"}
 
 # Ingrédients ajoutés après les premiers lots (migrations 0040 et suivantes) : à compléter ici
 # quand une migration en ajoute. Sert seulement à valider les lignes des recettes.
@@ -145,6 +146,23 @@ def new_ingredient_sql(q, NEW_INGREDIENTS):
         "on conflict do nothing;",
         "",
     ]
+    frozen = [slug for slug, n in NEW_INGREDIENTS.items() if n.get("frozen")]
+    if frozen:
+        out += [
+            "-- Vendus au rayon surgelés : rangés à part sur la liste de courses, au congélateur.",
+            "update public.ingredients set is_frozen = true where slug in ("
+            + ", ".join(q(s) for s in frozen) + ");",
+            "",
+        ]
+    diets = [(slug, d) for slug, n in NEW_INGREDIENTS.items() for d in n.get("diets", [])]
+    if diets:
+        out += [
+            "insert into public.ingredient_diet_conflicts (ingredient_id, diet_code)",
+            "select i.id, v.diet from (values",
+            ",\n".join(f"  ({q(s)}, {q(d)})" for s, d in diets),
+            ") as v(slug, diet) join public.ingredients i on i.slug = v.slug;",
+            "",
+        ]
     if allergens:
         out += [
             "insert into public.ingredient_allergens (ingredient_id, allergen_code)",

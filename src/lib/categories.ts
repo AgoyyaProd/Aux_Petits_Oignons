@@ -1,3 +1,6 @@
+/** Rayon des produits vendus surgelés (ingredients.is_frozen). */
+export const FROZEN_AISLE = "surgeles";
+
 /** Catégories d'ingrédients, dans l'ordre d'un parcours en magasin (rayons). */
 export const AISLES: { category: string; label: string }[] = [
   { category: "fruits", label: "Fruits" },
@@ -14,6 +17,8 @@ export const AISLES: { category: string; label: string }[] = [
   { category: "epices_herbes", label: "Épices et herbes" },
   { category: "matieres_grasses", label: "Huiles et beurre" },
   { category: "boissons", label: "Boissons" },
+  // Rayon de magasin, pas une catégorie d'aliment : produits marqués « surgelé » (is_frozen).
+  { category: FROZEN_AISLE, label: "Surgelés" },
 ];
 
 const LABELS = new Map(AISLES.map((a) => [a.category, a.label]));

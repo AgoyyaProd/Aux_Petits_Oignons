@@ -63,6 +63,7 @@ function readParams(sp: Search) {
     smallBudget: one(sp.budget) === "1",
     inSeason: one(sp.saison) === "1",
     highProtein: one(sp.proteines) === "1",
+    lazy: one(sp.flemme) === "1",
     diet: diet === "vegetarian" || diet === "vegan" ? diet : undefined,
   } as const;
 }
@@ -79,6 +80,7 @@ function toParams(f: Filters): URLSearchParams {
   if (f.smallBudget) p.set("budget", "1");
   if (f.inSeason) p.set("saison", "1");
   if (f.highProtein) p.set("proteines", "1");
+  if (f.lazy) p.set("flemme", "1");
   if (f.diet) p.set("regime", f.diet);
   if (f.showExcluded) p.set("exclues", "1");
   return p;
@@ -110,6 +112,11 @@ async function Catalog({ searchParams }: Pick<PageProps<"/recipes">, "searchPara
   if (!catalog) return <p className="text-muted">Aucun foyer actif.</p>;
 
   const allChips: { label: string; active: boolean; next: Filters; member?: true }[] = [
+    {
+      label: "Flemme (15 min, sain)",
+      active: filters.lazy,
+      next: { ...filters, lazy: !filters.lazy },
+    },
     {
       label: "De saison",
       active: filters.inSeason,
@@ -219,6 +226,7 @@ async function Catalog({ searchParams }: Pick<PageProps<"/recipes">, "searchPara
         {filters.smallBudget ? <input type="hidden" name="budget" value="1" /> : null}
         {filters.inSeason ? <input type="hidden" name="saison" value="1" /> : null}
         {filters.highProtein ? <input type="hidden" name="proteines" value="1" /> : null}
+        {filters.lazy ? <input type="hidden" name="flemme" value="1" /> : null}
         {filters.diet ? <input type="hidden" name="regime" value={filters.diet} /> : null}
       </form>
 
