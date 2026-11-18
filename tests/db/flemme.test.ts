@@ -115,8 +115,9 @@ describe("recettes de la flemme", () => {
        join public.ingredients i on i.id = a.ingredient_id`,
     );
     // Tri côté JS : l'ordre des accents (« É ») dépend de la collation de la base.
-    const byAlias = (a: string[], b: string[]) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0);
-    expect(rows.map((r) => [r.alias, r.slug]).sort(byAlias)).toEqual([
+    const pairs: [string, string][] = rows.map((r) => [r.alias, r.slug]);
+    pairs.sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+    expect(pairs).toEqual([
       ["Carottes râpées", "carotte-rapee"],
       ["Falafels", "falafel"],
       ["Filets de lieu surgelés", "poisson-blanc-surgele"],
