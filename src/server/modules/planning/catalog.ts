@@ -16,7 +16,8 @@ import {
   type CostEstimate,
   type CostLine,
 } from "@/domain/pricing";
-import { checkCompatibility, stockCoverage } from "@/domain/recipes/compatibility";
+import { checkCompatibility } from "@/domain/recipes/compatibility";
+import { quantityCoverage } from "@/domain/pantry/stock-signal";
 import { fromBase } from "@/domain/units";
 import { loadPriceBook, type PriceInfo } from "@/server/modules/prices/price-book";
 import { householdContext, type Supabase } from "@/server/modules/recipes/queries";
@@ -285,13 +286,22 @@ export async function loadPlanningCatalog(
       priorityUses: new Set(
         required.filter((l) => ctx.priority.has(l.ingredient_id)).map((l) => l.ingredient_id),
       ).size,
-      stockCoverage: (() => {
-        const c = stockCoverage(
-          required.map((l) => l.ingredient_id),
-          ctx.available,
-        );
-        return c.total ? c.inStock / c.total : 0;
-      })(),
+      // Produits frais du frigo utilisés (hors ceux déjà comptés « à finir en priorité »).
+      freshUses: new Set(
+        required
+          .filter((l) => ctx.fresh.has(l.ingredient_id) && !ctx.priority.has(l.ingredient_id))
+          .map((l) => l.ingredient_id),
+      ).size,
+      // Couverture selon la quantité en stock (pour la recette telle qu'écrite).
+      stockCoverage: quantityCoverage(
+        required.map((l) => ({
+          ingredientId: l.ingredient_id,
+          quantityBase: l.quantity_base === null ? null : Number(l.quantity_base),
+          dimension: l.dimension,
+        })),
+        ctx.stock,
+        ctx.staple,
+      ),
       varietyKeys: varietyKeys(required.map((l) => l.ingredients?.slug ?? "")),
       favorite: meta.rating === 1,
       hasMeat: required.some((l) => l.ingredients?.category === "viandes"),

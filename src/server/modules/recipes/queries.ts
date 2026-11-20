@@ -20,6 +20,7 @@ import {
 import { matchStepIngredients, parseStepTimers, type StepTimer } from "@/domain/recipes/steps";
 import type { EatingStyle, FoodProfile, Objective } from "@/domain/planning";
 import { withParents } from "@/domain/shopping";
+import { isFresh, stockQuantities, type StockLot } from "@/domain/pantry/stock-signal";
 import { fromBase } from "@/domain/units";
 import { todayIn } from "@/lib/dates";
 import { getOptionalContext } from "@/server/modules/auth/session";
@@ -79,7 +80,9 @@ export async function householdContext(
       .eq("household_id", householdId),
     supabase
       .from("pantry_items")
-      .select("ingredient_id, expires_on, expiry_kind, opened_at")
+      .select(
+        "ingredient_id, expires_on, expiry_kind, opened_at, location, quantity_base, dimension, ingredients(category)",
+      )
       .eq("household_id", householdId)
       .eq("status", "active")
       .gt("quantity_base", 0),
@@ -131,7 +134,20 @@ export async function householdContext(
   // robinet, toujours disponible.
   const staple = new Set([...staples.data.map((s) => s.ingredient_id), ...free]);
   const available = withParents([...pantry.data.map((p) => p.ingredient_id), ...staple], parentOf);
-  return { constraints, available, priority, staple, foodProfile };
+  // Frais du frigo (légumes, laitages, viandes… rangés au frigo) : à utiliser avant le placard.
+  const lots: StockLot[] = pantry.data.map((p) => ({
+    ingredientId: p.ingredient_id,
+    quantityBase: Number(p.quantity_base),
+    dimension: p.dimension,
+    location: p.location,
+    category: p.ingredients?.category ?? null,
+  }));
+  const fresh = withParents(
+    lots.filter(isFresh).map((l) => l.ingredientId),
+    parentOf,
+  );
+  const stock = stockQuantities(lots, parentOf);
+  return { constraints, available, priority, fresh, stock, staple, foodProfile };
 }
 
 /** Historique vide (visiteur). */
@@ -156,6 +172,8 @@ function guestContext(): Awaited<ReturnType<typeof householdContext>> {
     },
     available: new Set(),
     priority: new Set(),
+    fresh: new Set(),
+    stock: new Map(),
     staple: new Set(),
     foodProfile: { style: "omnivore", objectives: [], proteinTargetG: null },
   };

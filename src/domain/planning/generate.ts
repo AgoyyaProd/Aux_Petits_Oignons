@@ -31,7 +31,15 @@ export interface PlanCandidate {
   missingPrices: number;
   /** Nombre d'ingrédients prioritaires du garde-manger (DLC proche, entamés) utilisés. */
   priorityUses: number;
-  /** Part des ingrédients obligatoires présents en stock, entre 0 et 1. */
+  /**
+   * Nombre de produits frais du frigo utilisés (légumes, laitages, viandes…), hors ceux déjà
+   * comptés comme prioritaires : à utiliser avant le placard et le congélateur.
+   */
+  freshUses?: number;
+  /**
+   * Part des ingrédients obligatoires couverte par le stock, entre 0 et 1 (un ingrédient en
+   * quantité insuffisante compte à moitié).
+   */
   stockCoverage: number;
   varietyKeys: readonly string[];
   /** Recette marquée « on aime » par le foyer. */
@@ -222,7 +230,8 @@ export function profileBonus(
   let bonus = 0;
   const plants = Math.min(c.plantCount ?? 0, 4);
   if (objectives.has("moins_gaspiller")) {
-    bonus += 2 * Math.min(c.priorityUses, 3) + 1 * c.stockCoverage;
+    bonus +=
+      2 * Math.min(c.priorityUses, 3) + 1 * Math.min(c.freshUses ?? 0, 3) + 1 * c.stockCoverage;
   }
   if (objectives.has("plus_legumes")) bonus += 0.6 * plants;
   if (objectives.has("manger_mieux")) bonus += 0.4 * plants + (c.fishOrPulses ? 1 : 0);
@@ -247,6 +256,23 @@ export function flexitarianMeatCap(mealCount: number): number {
 
 /** Bonus de score d'un favori : du même ordre qu'un ingrédient à consommer vite. */
 export const FAVORITE_BONUS = 2.5;
+
+/**
+ * Poids du garde-manger, du plus urgent au moins urgent : à finir en priorité (entamé, DLC
+ * proche), puis frais du frigo, puis couverture du stock (placard, congélateur compris).
+ */
+export const PRIORITY_WEIGHT = 3;
+export const FRESH_WEIGHT = 1.5;
+export const STOCK_WEIGHT = 2;
+
+/** Bonus garde-manger d'un plat (jusqu'à 3 produits par niveau). */
+export function pantryScore(c: PlanCandidate): number {
+  return (
+    PRIORITY_WEIGHT * Math.min(c.priorityUses, 3) +
+    FRESH_WEIGHT * Math.min(c.freshUses ?? 0, 3) +
+    STOCK_WEIGHT * c.stockCoverage
+  );
+}
 
 export interface PlanRequest {
   mealCount: number;
@@ -350,8 +376,7 @@ export function drawWeights(
   return new Map(
     candidates.map((c) => {
       const preference =
-        3 * Math.min(c.priorityUses, 3) +
-        2 * c.stockCoverage +
+        pantryScore(c) +
         (c.favorite ? FAVORITE_BONUS : 0) +
         profileBonus(c, objectives, maxCost) +
         candidateSeasonScore(c, req.month) +
@@ -615,8 +640,7 @@ export function suggestReplacements(
     (fits(c) ? 100 : 0) +
     profileBonus(c, objectives, maxCost) +
     (recent.has(c.id) ? 0 : 20) +
-    3 * Math.min(c.priorityUses, 3) +
-    2 * c.stockCoverage +
+    pantryScore(c) +
     (c.favorite ? FAVORITE_BONUS : 0) +
     candidateSeasonScore(c, month) +
     1.5 * (jitter.get(c.id) ?? 0);
