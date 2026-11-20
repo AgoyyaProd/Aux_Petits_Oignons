@@ -23,6 +23,7 @@ describe("garde-fous du schéma public", () => {
     "equipment",
     "ingredient_allergens",
     "ingredient_diet_conflicts",
+    "ingredient_juice_sources",
     "ingredient_nutrition",
     "ingredient_price_sources",
     "ingredients",

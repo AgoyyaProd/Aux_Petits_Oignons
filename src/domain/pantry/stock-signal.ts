@@ -5,7 +5,8 @@
  *     viandes, poissons), à utiliser avant le placard et le congélateur ;
  *  3. le reste du stock (placard, congélateur), qui compte selon la quantité disponible.
  */
-import type { Dimension } from "@/domain/units";
+import { juiceFromPieces, type JuiceSource } from "@/domain/requirements/juice";
+import { fromBase, toBaseString, type Dimension } from "@/domain/units";
 
 /** Catégories périssables : au frigo, elles passent avant le placard. */
 export const FRESH_CATEGORIES: ReadonlySet<string> = new Set([
@@ -110,4 +111,32 @@ export function quantityCoverage(
     else covered += PARTIAL_COVERAGE;
   }
   return covered / need.size;
+}
+
+/**
+ * Lots de jus tirés des fruits en stock (citron → jus de citron, au rendement déclaré). Le
+ * fruit reste aussi compté pour lui-même : pour classer les plats, on ne sait pas encore si la
+ * recette demande le fruit, le jus ou les deux.
+ */
+export function juiceStockLots(
+  lots: readonly StockLot[],
+  sources: readonly JuiceSource[],
+): StockLot[] {
+  const bySource = new Map(sources.map((s) => [s.sourceId, s]));
+  return lots.flatMap((lot) => {
+    const s = bySource.get(lot.ingredientId);
+    if (!s || lot.dimension !== "count" || !(lot.quantityBase > 0)) return [];
+    const juice = juiceFromPieces(
+      fromBase(lot.quantityBase.toFixed(3), "count"),
+      s.tenthsMlPerPiece,
+    );
+    return [
+      {
+        ...lot,
+        ingredientId: s.productId,
+        dimension: "volume" as const,
+        quantityBase: Number(toBaseString(juice)),
+      },
+    ];
+  });
 }

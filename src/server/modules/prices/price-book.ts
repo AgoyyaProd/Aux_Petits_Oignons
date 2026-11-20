@@ -1,4 +1,5 @@
 import "server-only";
+import { tenthsOf, type JuiceSource } from "@/domain/requirements/juice";
 import { MIN_RELIABLE_SAMPLE, type UnitPrice } from "@/domain/pricing";
 import type { Supabase } from "@/server/modules/recipes/queries";
 
@@ -93,4 +94,17 @@ export async function loadFreeIngredientIds(supabase: Supabase): Promise<Set<str
     .eq("kind", "free");
   if (error) throw new Error(`Lecture des ingrédients gratuits impossible : ${error.message}`);
   return new Set(data.map((r) => r.ingredient_id));
+}
+
+/** Jus d'agrume tiré du fruit en stock (citron → jus de citron), au rendement déclaré (0094). */
+export async function loadJuiceSources(supabase: Supabase): Promise<JuiceSource[]> {
+  const { data, error } = await supabase
+    .from("ingredient_juice_sources")
+    .select("product_id, source_id, ml_per_piece");
+  if (error) throw new Error(`Lecture des sources de jus impossible : ${error.message}`);
+  return data.map((r) => ({
+    productId: r.product_id,
+    sourceId: r.source_id,
+    tenthsMlPerPiece: tenthsOf(r.ml_per_piece),
+  }));
 }

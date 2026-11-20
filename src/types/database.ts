@@ -443,6 +443,18 @@ isOneToOne: true
       referencedColumns: ["id"]
     }
                   ]
+                },"ingredient_juice_sources": {
+                  Row: {
+                    "ml_per_piece": number,"product_id": string,"source_id": string,"source_note": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "ml_per_piece": number,"product_id": string,"source_id": string,"source_note": string
+                  }
+                  Update: {
+                    "ml_per_piece"?: number,"product_id"?: string,"source_id"?: string,"source_note"?: string
+                  }
+                  Relationships: []
                 },"ingredients": {
                   Row: {
                     "category": string,"created_at": string,"default_dimension": Database["public"]['Enums']["dimension"],"default_shelf_life_days": number | null,"density_g_per_ml": number | null,"id": string,"is_frozen": boolean,"is_staple": boolean,"is_validated": boolean,"name": string,"parent_id": string | null,"piece_weight_g": number | null,"slug": string,"updated_at": string

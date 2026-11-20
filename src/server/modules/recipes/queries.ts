@@ -20,7 +20,12 @@ import {
 import { matchStepIngredients, parseStepTimers, type StepTimer } from "@/domain/recipes/steps";
 import type { EatingStyle, FoodProfile, Objective } from "@/domain/planning";
 import { withParents } from "@/domain/shopping";
-import { isFresh, stockQuantities, type StockLot } from "@/domain/pantry/stock-signal";
+import {
+  isFresh,
+  juiceStockLots,
+  stockQuantities,
+  type StockLot,
+} from "@/domain/pantry/stock-signal";
 import { fromBase } from "@/domain/units";
 import { todayIn } from "@/lib/dates";
 import { getOptionalContext } from "@/server/modules/auth/session";
@@ -34,7 +39,7 @@ import {
   proteinPerServing,
   type ProteinLine,
 } from "@/server/modules/recipes/nutrition-data";
-import { loadFreeIngredientIds } from "@/server/modules/prices/price-book";
+import { loadFreeIngredientIds, loadJuiceSources } from "@/server/modules/prices/price-book";
 
 export type Supabase = Awaited<ReturnType<typeof createSupabaseServerClient>>;
 
@@ -72,7 +77,7 @@ export async function householdContext(
   householdId: string,
   timeZone = "Europe/Paris",
 ) {
-  const [diets, exclusions, pantry, staples, variants, profile, free] = await Promise.all([
+  const [diets, exclusions, pantry, staples, variants, profile, free, juices] = await Promise.all([
     supabase.from("household_diets").select("diet_code").eq("household_id", householdId),
     supabase
       .from("household_exclusions")
@@ -94,6 +99,7 @@ export async function householdContext(
       .eq("household_id", householdId)
       .maybeSingle(),
     loadFreeIngredientIds(supabase),
+    loadJuiceSources(supabase),
   ]);
   if (profile.error) fail("du profil alimentaire", profile.error);
   if (diets.error) fail("des régimes", diets.error);
@@ -133,15 +139,17 @@ export async function householdContext(
   // Placard : présents par déclaration du foyer (sans quantité, jamais décomptés), et l'eau du
   // robinet, toujours disponible.
   const staple = new Set([...staples.data.map((s) => s.ingredient_id), ...free]);
-  const available = withParents([...pantry.data.map((p) => p.ingredient_id), ...staple], parentOf);
   // Frais du frigo (légumes, laitages, viandes… rangés au frigo) : à utiliser avant le placard.
-  const lots: StockLot[] = pantry.data.map((p) => ({
+  const pantryLots: StockLot[] = pantry.data.map((p) => ({
     ingredientId: p.ingredient_id,
     quantityBase: Number(p.quantity_base),
     dimension: p.dimension,
     location: p.location,
     category: p.ingredients?.category ?? null,
   }));
+  // Jus d'agrume : des citrons en stock comptent aussi comme leur jus (0094).
+  const lots = [...pantryLots, ...juiceStockLots(pantryLots, juices)];
+  const available = withParents([...lots.map((l) => l.ingredientId), ...staple], parentOf);
   const fresh = withParents(
     lots.filter(isFresh).map((l) => l.ingredientId),
     parentOf,

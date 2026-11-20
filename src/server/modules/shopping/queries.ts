@@ -5,6 +5,7 @@ import {
   computeShoppingList,
   packHint,
   purchaseQuantity,
+  juiceLots,
   splitVariantLots,
   type IngredientInfo,
   type PlannedMealInput,
@@ -27,7 +28,7 @@ import { todayIn } from "@/lib/dates";
 import { addDays, isMonday, mondayOf } from "@/lib/week";
 import { getCurrentContext } from "@/server/modules/auth/session";
 import { getPlanningCatalog } from "@/server/modules/planning/catalog";
-import { loadFreeIngredientIds } from "@/server/modules/prices/price-book";
+import { loadFreeIngredientIds, loadJuiceSources } from "@/server/modules/prices/price-book";
 import { readPlan, readSides } from "@/server/modules/planning/repository";
 import { fetchAll } from "@/server/supabase/fetch-all";
 import { createSupabaseServerClient } from "@/server/supabase/server";
@@ -223,9 +224,10 @@ export async function getShoppingPage(week?: string) {
     opened: p.opened_at !== null,
     status: p.status,
   }));
-  const [staples, free] = await Promise.all([
+  const [staples, free, juiceSources] = await Promise.all([
     supabase.from("household_staples").select("ingredient_id").eq("household_id", household.id),
     loadFreeIngredientIds(supabase),
+    loadJuiceSources(supabase),
   ]);
   if (staples.error) throw new Error(staples.error.message);
 
@@ -246,10 +248,12 @@ export async function getShoppingPage(week?: string) {
       variantDemand.set(l.ingredientId, [...(variantDemand.get(l.ingredientId) ?? []), need]);
     }
   }
+  // Jus d'agrume : des citrons en stock couvrent un besoin de jus de citron (0094).
+  const juiced = juiceLots(stock, juiceSources, required);
   const result = computeShoppingList({
     meals,
     ingredients: info,
-    stock: splitVariantLots(stock, parentOf, required, variantDemand),
+    stock: splitVariantLots(juiced, parentOf, required, variantDemand),
     cupboard: new Set([...staples.data.map((s) => s.ingredient_id), ...free]),
   });
 

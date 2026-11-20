@@ -1,10 +1,16 @@
 "use server";
 
 import { refresh } from "next/cache";
-import { loadFreeIngredientIds } from "@/server/modules/prices/price-book";
+import { loadFreeIngredientIds, loadJuiceSources } from "@/server/modules/prices/price-book";
 import { z } from "zod";
 import { planCooking, type CookLot } from "@/domain/cooking";
-import { remapVariantLots, type IngredientInfo, type RecipeLine } from "@/domain/shopping";
+import {
+  juiceLots,
+  piecesFromJuice,
+  remapVariantLots,
+  type IngredientInfo,
+  type RecipeLine,
+} from "@/domain/shopping";
 import { fromBase, toBaseString } from "@/domain/units";
 import { todayIn } from "@/lib/dates";
 import { formatShoppingQuantity } from "@/lib/format-quantity";
@@ -76,7 +82,13 @@ async function prepareCooking(
     .in("parent_id", [...info.keys()]);
   if (variants.error) return { error: toActionError(variants.error).message } as const;
   const parentOf = new Map(variants.data.map((v) => [v.id, v.parent_id!]));
-  const ingredientIds = [...info.keys(), ...parentOf.keys()];
+  // Jus d'agrume : un citron en stock peut donner le jus demandé (0094).
+  const juiceSources = (await loadJuiceSources(supabase)).filter((s) => info.has(s.productId));
+  const ingredientIds = [
+    ...info.keys(),
+    ...parentOf.keys(),
+    ...juiceSources.map((s) => s.sourceId),
+  ];
   const [pantry, staples, free] = await Promise.all([
     supabase
       .from("pantry_items")
@@ -102,16 +114,26 @@ async function prepareCooking(
     version: p.version,
   }));
   const required = new Set(lines.filter((l) => !l.optional).map((l) => l.ingredientId));
-  const result = planCooking({
+  const juiced = juiceLots(lots, juiceSources, required);
+  const juiceOf = new Map(juiced.flatMap((l) => (l.juiceOf ? [[l.id, l.juiceOf] as const] : [])));
+  const planned = planCooking({
     lines,
     servings,
     baseServings: recipe.data.servings,
     ingredients: info,
-    lots: remapVariantLots(lots, parentOf, required),
+    lots: remapVariantLots(juiced, parentOf, required),
     // Ingrédients du placard et eau du robinet : toujours disponibles, jamais décomptés.
     cupboard: new Set([...staples.data.map((s) => s.ingredient_id), ...free]),
     today: todayIn(household.timezone),
   });
+  // Le jus pris sur un lot de citrons se décompte en citrons (fractions comprises).
+  const result = {
+    ...planned,
+    consumptions: planned.consumptions.map((c) => {
+      const s = juiceOf.get(c.lotId);
+      return s ? { ...c, quantity: piecesFromJuice(c.quantity, s.tenthsMlPerPiece) } : c;
+    }),
+  };
 
   const missing = result.missing.map((m) => ({
     ingredient_id: m.ingredientId,
