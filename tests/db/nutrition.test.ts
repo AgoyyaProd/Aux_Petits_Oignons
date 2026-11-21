@@ -16,6 +16,8 @@ describe("valeurs nutritionnelles (Ciqual)", () => {
     );
     expect(rows.map((r) => r.slug)).toEqual([
       "ciboulette",
+      // Mélange riz-blé-sarrasin : composition variable selon la marque, aucun aliment Ciqual.
+      "melange-cereales",
       "moule",
       "pate-curry",
       "poulet-entier",

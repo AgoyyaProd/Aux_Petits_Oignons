@@ -53,3 +53,30 @@ describe("jus d'agrumes", () => {
     }
   });
 });
+
+/** 0095 : céréales et pâtes torti. */
+describe("céréales et torti", () => {
+  it("nouveaux produits, allergènes, variante et alias", async () => {
+    const { rows } = await pool.query(
+      `select i.slug, p.slug as parent, n.ciqual_code,
+         array(select a.allergen_code from public.ingredient_allergens a
+               where a.ingredient_id = i.id) as allergens
+       from public.ingredients i
+       left join public.ingredients p on p.id = i.parent_id
+       left join public.ingredient_nutrition n on n.ingredient_id = i.id
+       where i.slug in ('melange-cereales', 'ble-precuit', 'sarrasin', 'pates-torti')
+       order by i.slug`,
+    );
+    expect(rows).toEqual([
+      { slug: "ble-precuit", parent: null, ciqual_code: 9080, allergens: ["gluten"] },
+      { slug: "melange-cereales", parent: null, ciqual_code: null, allergens: ["gluten"] },
+      { slug: "pates-torti", parent: "pates", ciqual_code: 9810, allergens: ["gluten"] },
+      { slug: "sarrasin", parent: null, ciqual_code: 9380, allergens: [] },
+    ]);
+    const alias = await pool.query(
+      `select i.slug from public.ingredient_aliases a join public.ingredients i on i.id = a.ingredient_id
+       where a.alias_normalized = public.normalize_alias('Tortis')`,
+    );
+    expect(alias.rows[0]?.slug).toBe("pates-torti");
+  });
+});
