@@ -18,6 +18,8 @@ describe("valeurs nutritionnelles (Ciqual)", () => {
       "ciboulette",
       // Farine multi-céréales : mélange variable selon la marque, aucun aliment Ciqual.
       "farine-multicereales",
+      // Feuilles de riz : absentes de Ciqual (ses galettes de riz sont du riz soufflé).
+      "feuille-riz",
       // Mélange riz-blé-sarrasin : composition variable selon la marque, aucun aliment Ciqual.
       "melange-cereales",
       "moule",

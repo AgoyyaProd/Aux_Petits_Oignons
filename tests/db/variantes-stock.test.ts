@@ -116,3 +116,15 @@ describe("farine de gruau et chia", () => {
     ]);
   });
 });
+
+/** 0098 : feuilles de riz, comptées à la feuille. */
+describe("feuilles de riz", () => {
+  it("à la pièce, trouvées par « papier de riz »", async () => {
+    const { rows } = await pool.query(
+      `select i.slug, i.default_dimension, i.piece_weight_g::float as g from public.ingredient_aliases a
+       join public.ingredients i on i.id = a.ingredient_id
+       where a.alias_normalized = public.normalize_alias('Papier de riz')`,
+    );
+    expect(rows).toEqual([{ slug: "feuille-riz", default_dimension: "count", g: 10 }]);
+  });
+});
