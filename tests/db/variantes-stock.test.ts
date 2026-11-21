@@ -128,3 +128,25 @@ describe("feuilles de riz", () => {
     expect(rows).toEqual([{ slug: "feuille-riz", default_dimension: "count", g: 10 }]);
   });
 });
+
+/** 0099 : choux de Bruxelles frais et surgelés. */
+describe("choux de Bruxelles", () => {
+  it("frais et surgelés (variante, rayon surgelés), avec leur nutrition", async () => {
+    const { rows } = await pool.query(
+      `select i.slug, p.slug as parent, i.is_frozen, n.ciqual_code
+       from public.ingredients i
+       left join public.ingredients p on p.id = i.parent_id
+       left join public.ingredient_nutrition n on n.ingredient_id = i.id
+       where i.slug like 'chou-bruxelles%' order by i.slug`,
+    );
+    expect(rows).toEqual([
+      { slug: "chou-bruxelles", parent: null, is_frozen: false, ciqual_code: 20058 },
+      {
+        slug: "chou-bruxelles-surgele",
+        parent: "chou-bruxelles",
+        is_frozen: true,
+        ciqual_code: 20206,
+      },
+    ]);
+  });
+});
