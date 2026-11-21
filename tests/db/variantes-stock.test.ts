@@ -99,3 +99,20 @@ describe("farines T00 et multi-céréales", () => {
     ]);
   });
 });
+
+/** 0097 : farine de gruau et graines de chia. */
+describe("farine de gruau et chia", () => {
+  it("gruau variante de la farine, chia avec sa nutrition", async () => {
+    const { rows } = await pool.query(
+      `select i.slug, p.slug as parent, n.ciqual_code
+       from public.ingredients i
+       left join public.ingredients p on p.id = i.parent_id
+       left join public.ingredient_nutrition n on n.ingredient_id = i.id
+       where i.slug in ('farine-gruau', 'graine-chia') order by i.slug`,
+    );
+    expect(rows).toEqual([
+      { slug: "farine-gruau", parent: "farine", ciqual_code: 9440 },
+      { slug: "graine-chia", parent: null, ciqual_code: 15047 },
+    ]);
+  });
+});
