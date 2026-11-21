@@ -80,3 +80,22 @@ describe("céréales et torti", () => {
     expect(alias.rows[0]?.slug).toBe("pates-torti");
   });
 });
+
+/** 0096 : farines T00 et multi-céréales. */
+describe("farines T00 et multi-céréales", () => {
+  it("la T00 est une variante de la farine, la multi-céréales non", async () => {
+    const { rows } = await pool.query(
+      `select i.slug, p.slug as parent, n.ciqual_code,
+         array(select a.allergen_code from public.ingredient_allergens a
+               where a.ingredient_id = i.id) as allergens
+       from public.ingredients i
+       left join public.ingredients p on p.id = i.parent_id
+       left join public.ingredient_nutrition n on n.ingredient_id = i.id
+       where i.slug in ('farine-t00', 'farine-multicereales') order by i.slug`,
+    );
+    expect(rows).toEqual([
+      { slug: "farine-multicereales", parent: null, ciqual_code: null, allergens: ["gluten"] },
+      { slug: "farine-t00", parent: "farine", ciqual_code: 9440, allergens: ["gluten"] },
+    ]);
+  });
+});
